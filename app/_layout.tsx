@@ -4,12 +4,10 @@ import {
   Theme,
   ThemeProvider,
 } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { SplashScreen, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useRef, useState } from 'react';
-import { Platform } from 'react-native';
-import { SessionProvider, useSession } from '~/auth/ctx';
-import { SplashScreenController } from '~/auth/splash';
+import { useEffect } from 'react';
+import { AuthProvider, useSession } from '~/auth/auth-context';
 import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
 import '../global.css';
@@ -25,40 +23,34 @@ const DARK_THEME: Theme = {
 
 export { ErrorBoundary } from 'expo-router';
 
+SplashScreen.preventAutoHideAsync();
+
 export default function Root() {
-  const hasMounted = useRef(false);
-  const { colorScheme, isDarkColorScheme } = useColorScheme();
-  const [isColorSchemeLoaded, setIsColorSchemeLoaded] = useState(false);
-
-  useIsomorphicLayoutEffect(() => {
-    if (hasMounted.current) {
-      return;
-    }
-
-    if (Platform.OS === 'web') {
-      document.documentElement.classList.add('bg-background');
-    }
-    setIsColorSchemeLoaded(true);
-    hasMounted.current = true;
-  }, []);
-
-  if (!isColorSchemeLoaded) {
-    return null;
-  }
+  const { isDarkColorScheme } = useColorScheme();
 
   return (
-    <SessionProvider>
+    <AuthProvider>
       <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
         <StatusBar style={!isDarkColorScheme ? 'light' : 'dark'} />
-        <SplashScreenController />
         <RootNavigator />
       </ThemeProvider>
-    </SessionProvider>
+    </AuthProvider>
   );
 }
 
 function RootNavigator() {
-  const { session } = useSession();
+  const { session, isLoading } = useSession();
+
+  useEffect(() => {
+    if (!isLoading) {
+      SplashScreen.hideAsync();
+    }
+  }, [isLoading]);
+
+  if (isLoading) {
+    return null;
+  }
+
   return (
     <Stack>
       <Stack.Protected guard={!!session}>
@@ -71,8 +63,3 @@ function RootNavigator() {
     </Stack>
   );
 }
-
-const useIsomorphicLayoutEffect =
-  Platform.OS === 'web' && typeof window === 'undefined'
-    ? React.useEffect
-    : React.useLayoutEffect;
