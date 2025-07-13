@@ -1,4 +1,4 @@
-// supabase gen types typescript --local --schema public > lib/database.types.ts
+// supabase gen types typescript --local --schema public > lib/database.types.ts for local SB in Docker
 
 export type UUID = string; // Postgres uuid
 
