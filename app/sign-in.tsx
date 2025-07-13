@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import 'react-native-url-polyfill/auto';
-import Auth from '~/components/sb-auth';
+import Auth from '~/screens/sign-in';
 
 export default function SignIn() {
   return (

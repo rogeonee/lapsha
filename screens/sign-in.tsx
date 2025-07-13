@@ -1,8 +1,9 @@
+import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Alert, TextInput, View } from 'react-native';
+import { Button } from '~/components/ui/button';
+import { Text } from '~/components/ui/text';
 import { supabase } from '../lib/supabase';
-import { Button } from './ui/button';
-import { Text } from './ui/text';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -60,10 +61,21 @@ export default function Auth() {
           <Text>Sign in</Text>
         </Button>
       </View>
-      <View className="py-1 align-self-stretch">
-        <Button disabled={loading} onPress={() => signUpWithEmail()}>
-          <Text>Sign up</Text>
-        </Button>
+
+      <View className="py-1 mt-4 align-self-stretch">
+        <Link href="/sign-up" asChild>
+          <Button disabled={loading}>
+            <Text>Sign up</Text>
+          </Button>
+        </Link>
+      </View>
+
+      <View className="py-1 mt-4 align-self-stretch">
+        <Link href="/forgot-password" asChild>
+          <Button disabled={loading}>
+            <Text>Forgot password</Text>
+          </Button>
+        </Link>
       </View>
     </View>
   );
