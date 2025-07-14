@@ -30,10 +30,15 @@ export const AuthInput = forwardRef<TextInput, AuthInputProps>(
             autoCapitalize={type === 'email' ? 'none' : 'sentences'}
             keyboardType={type === 'email' ? 'email-address' : 'default'}
             className={cn(
-              'pr-12',
+              'py-3 pr-12',
               error && 'border-destructive',
               isPasswordType && 'pr-12',
             )}
+            style={{
+              height: undefined,
+              minHeight: 48,
+              includeFontPadding: false,
+            }}
             {...props}
           />
           {isPasswordType && (
