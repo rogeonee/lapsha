@@ -7,6 +7,7 @@ import {
 import { SplashScreen, Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { AuthProvider, useSession } from '~/auth/auth-context';
 import { NAV_THEME } from '~/lib/constants';
 import { useColorScheme } from '~/lib/useColorScheme';
@@ -29,12 +30,14 @@ export default function Root() {
   const { isDarkColorScheme } = useColorScheme();
 
   return (
-    <AuthProvider>
-      <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-        <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
-        <RootNavigator />
-      </ThemeProvider>
-    </AuthProvider>
+    <KeyboardProvider>
+      <AuthProvider>
+        <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+          <StatusBar style={!isDarkColorScheme ? 'light' : 'dark'} />
+          <RootNavigator />
+        </ThemeProvider>
+      </AuthProvider>
+    </KeyboardProvider>
   );
 }
 
