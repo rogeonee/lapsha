@@ -34,14 +34,22 @@ export default function TabLayout() {
           'rgba(255, 255, 255, 0.7)',
           'rgba(255, 255, 255, 1)',
         ]}
-        style={[styles.gradient, { height: 110 + insets.bottom }]}
+        style={[
+          styles.gradient,
+          {
+            height:
+              Platform.OS === 'android'
+                ? 68 + insets.bottom
+                : 52 + insets.bottom,
+          },
+        ]}
         pointerEvents="none"
       />
 
       <TabList
         style={[
           styles.tabBar,
-          { bottom: insets.bottom + (Platform.OS === 'android' ? 15 : 10) },
+          { bottom: insets.bottom + (Platform.OS === 'android' ? 15 : 0) },
         ]}
       >
         <TabTrigger name="index" href="/" asChild>
@@ -69,15 +77,26 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     position: 'absolute',
-    left: 40,
-    right: 40,
+    left: 80,
+    right: 80,
     height: 65,
     backgroundColor: 'white',
     borderRadius: 32.5,
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    elevation: 8,
+    ...(Platform.OS === 'android' ? { elevation: 4 } : {}),
+    ...(Platform.OS === 'ios'
+      ? {
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 2,
+          },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+        }
+      : {}),
   },
   tabItem: {
     flex: 1,
