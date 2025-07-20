@@ -31,7 +31,7 @@ export default function Root() {
   return (
     <AuthProvider>
       <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-        <StatusBar style={isDarkColorScheme ? 'light' : 'dark'} />
+        <StatusBar style={!isDarkColorScheme ? 'light' : 'dark'} />
         <RootNavigator />
       </ThemeProvider>
     </AuthProvider>
