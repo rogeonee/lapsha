@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Alert, ScrollView, View } from 'react-native';
 import { useSession } from '~/auth/auth-context';
@@ -11,7 +11,7 @@ import { Text } from '~/components/ui/text';
 import { createPerson } from '~/lib/people-service';
 import { CreatePersonForm, createPersonSchema } from '~/lib/person-schema';
 
-// Analytics tracking function (placeholder for now)
+// placeholder analytic fn
 const trackEvent = (event: any) => {
   console.log('Analytics event:', event);
   // TODO: Implement actual analytics tracking
@@ -27,6 +27,7 @@ export default function AddPersonModal() {
     handleSubmit,
     formState: { errors, isValid },
     watch,
+    reset,
   } = useForm<CreatePersonForm>({
     resolver: zodResolver(createPersonSchema),
     defaultValues: {
@@ -38,8 +39,7 @@ export default function AddPersonModal() {
 
   const nameValue = watch('name');
 
-  React.useEffect(() => {
-    // Track modal open event
+  useEffect(() => {
     trackEvent({ type: 'person_create_started' });
   }, []);
 
@@ -57,24 +57,53 @@ export default function AddPersonModal() {
         name: data.name.trim(),
       };
 
-      const { error } = await createPerson(personData);
+      const response = await createPerson(personData);
 
-      if (error) {
-        throw error;
+      if (response.error) {
+        console.error('Failed to create person:', response.error);
+
+        trackEvent({
+          type: 'person_create_error',
+          errorCode: response.error.code,
+          errorMessage: response.error.message,
+        });
+
+        let errorMessage = 'Failed to add person. Please try again.';
+        if (response.error.code === 'VALIDATION_ERROR') {
+          errorMessage = 'Please check your input and try again.';
+        } else if (response.error.code === 'FORBIDDEN') {
+          errorMessage = "You don't have permission to add people.";
+        } else if (response.error.code === 'CONNECTION_ERROR') {
+          errorMessage =
+            'Network error. Please check your connection and try again.';
+        }
+
+        Alert.alert('Error', errorMessage, [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Retry', onPress: () => onSubmit(data) },
+        ]);
+        return;
       }
 
-      // Close modal and return to people tab
-      // Note: In a real app, you might want to pass the person.id back
+      trackEvent({
+        type: 'person_create_success',
+        personId: response.data?.id,
+      });
+
+      reset();
+
+      // close modal and return to people tab
       router.back();
     } catch (error) {
-      console.error('Failed to create person:', error);
+      console.error('Unexpected error creating person:', error);
 
       trackEvent({
         type: 'person_create_error',
-        errorCode: error instanceof Error ? error.message : 'unknown',
+        errorCode: 'UNEXPECTED_ERROR',
+        errorMessage: error instanceof Error ? error.message : 'unknown',
       });
 
-      Alert.alert('Error', 'Failed to add person. Please try again.', [
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.', [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Retry', onPress: () => onSubmit(data) },
       ]);
@@ -97,6 +126,7 @@ export default function AddPersonModal() {
           size="sm"
           onPress={handleClose}
           className="bg-transparent border-gray-300"
+          disabled={isSubmitting}
         >
           <Text className="text-gray-600">×</Text>
         </Button>
@@ -123,6 +153,7 @@ export default function AddPersonModal() {
                 maxLength={60}
                 accessibilityLabel="Person's name"
                 className={errors.name ? 'border-red-500' : ''}
+                editable={!isSubmitting}
               />
             )}
           />
@@ -131,20 +162,36 @@ export default function AddPersonModal() {
               {errors.name.message}
             </Text>
           )}
+          <Text className="text-xs text-muted-foreground mt-1">
+            This is the name that will appear in your people list
+          </Text>
+        </View>
+
+        {/* Future fields placeholder */}
+        <View className="mb-6">
+          <Text className="text-sm text-muted-foreground">
+            More fields like photo, birthday, and notes will be available soon!
+          </Text>
         </View>
       </ScrollView>
 
       {/* Sticky Save Button */}
-      <View className="p-6 border-t border-gray-200 bg-[#F9F7F4]">
+      <View className="p-6 mb-6 border-t border-gray-200 bg-[#F9F7F4]">
         <Button
           onPress={handleSubmit(onSubmit)}
           disabled={!isValid || !nameValue?.trim() || isSubmitting}
           className="w-full"
         >
           <Text className="text-white font-medium">
-            {isSubmitting ? 'Saving...' : 'Save Person'}
+            {isSubmitting ? 'Adding Person...' : 'Add Person'}
           </Text>
         </Button>
+
+        {isSubmitting && (
+          <Text className="text-xs text-muted-foreground text-center mt-2">
+            Please wait while we add this person to your list
+          </Text>
+        )}
       </View>
     </View>
   );

@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSession } from '~/auth/auth-context';
@@ -27,32 +27,53 @@ function PersonCard({ person }: { person: Person }) {
 export default function PeopleScreen() {
   const router = useRouter();
   const { session } = useSession();
-  const [people, setPeople] = useState<Person[] | null>(null);
+  const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
 
   const handleAddPerson = () => {
     router.push('/(tabs)/../add-person' as any);
   };
 
-  useEffect(() => {
-    let isMounted = true;
-    async function fetchPeople() {
-      if (!session?.user?.id) return;
-      setLoading(true);
-      const { data, error } = await getPeople(session.user.id);
-      if (isMounted) {
-        if (!error) {
-          setPeople(data ?? []);
-        }
-        setLoading(false);
-      }
+  const fetchPeople = useCallback(async () => {
+    if (!session?.user?.id) {
+      setLoading(false);
+      return;
     }
-    fetchPeople();
-    return () => {
-      isMounted = false;
-    };
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await getPeople(session.user.id);
+
+      if (response.error) {
+        console.error('Failed to fetch people:', response.error);
+        setError(response.error.message || 'Failed to load people');
+        setPeople([]);
+      } else {
+        setPeople(response.data || []);
+      }
+    } catch (err) {
+      console.error('Unexpected error fetching people:', err);
+      setError('An unexpected error occurred');
+      setPeople([]);
+    } finally {
+      setLoading(false);
+    }
   }, [session?.user?.id]);
+
+  // refresh list when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchPeople();
+    }, [fetchPeople]),
+  );
+
+  const handleRetry = () => {
+    fetchPeople();
+  };
 
   return (
     <View className="flex-1 bg-[#F9F7F4]">
@@ -71,9 +92,22 @@ export default function PeopleScreen() {
       {loading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#F6B756" />
+          <Text className="text-muted-foreground mt-2">Loading people...</Text>
         </View>
-      ) : people && people.length > 0 ? (
-        <ScrollView className="flex-1 pt-2">
+      ) : error ? (
+        <View className="flex-1 items-center justify-center px-8">
+          <Text className="text-lg text-red-600 text-center mb-4">
+            Error loading people
+          </Text>
+          <Text className="text-sm text-muted-foreground text-center mb-6">
+            {error}
+          </Text>
+          <Button onPress={handleRetry} variant="outline">
+            <Text className="font-medium">Try Again</Text>
+          </Button>
+        </View>
+      ) : people.length > 0 ? (
+        <ScrollView className="flex-1 py-8 mb-28">
           {people.map((person) => (
             <PersonCard key={person.id} person={person} />
           ))}
