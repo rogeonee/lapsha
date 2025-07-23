@@ -93,3 +93,34 @@ export interface Tables {
     };
   };
 }
+
+// Basic type exports following existing patterns
+export type Person = Tables['persons']['Row'];
+export type PersonInsert = Tables['persons']['Insert'];
+export type PersonUpdate = Tables['persons']['Update'];
+
+export type Fact = Tables['facts']['Row'];
+export type FactInsert = Tables['facts']['Insert'];
+export type FactUpdate = Tables['facts']['Update'];
+
+export type Date = Tables['dates']['Row'];
+export type DateInsert = Tables['dates']['Insert'];
+export type DateUpdate = Tables['dates']['Update'];
+
+export type User = Tables['users']['Row'];
+export type UserInsert = Tables['users']['Insert'];
+export type UserUpdate = Tables['users']['Update'];
+
+// Composite types for enhanced queries
+export type PersonWithDetails = Person & {
+  facts: Fact[];
+  dates: Date[];
+};
+
+export type TimelineEntry = Date & {
+  person: Pick<Person, 'id' | 'name' | 'photo_url'>;
+};
+
+// Re-export service types for consistency
+export { ErrorCode } from '../api/error-handling';
+export type { ServiceError, ServiceResponse } from '../api/error-handling';

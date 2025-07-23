@@ -1,5 +1,5 @@
 import { Alert } from 'react-native';
-import { supabase } from '../lib/supabase';
+import { supabase } from '~/api/supabase';
 
 /**
  * Sign in with email and password
