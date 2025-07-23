@@ -12,8 +12,8 @@ import {
 import {
   forgotPasswordSchema,
   type ForgotPasswordFormData,
-} from '~/auth/auth-schema';
-import { forgotPassword } from '~/auth/auth-service';
+} from '~/api/auth/auth-schema';
+import { forgotPassword } from '~/api/auth/auth-service';
 import { AuthButton, AuthInput } from '~/components/auth';
 import { Text } from '~/components/ui/text';
 

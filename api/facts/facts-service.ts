@@ -1,12 +1,12 @@
-import { Fact, FactInsert, FactUpdate, ServiceResponse } from '~/types/db';
 import {
   createErrorResponse,
   createSuccessResponse,
   mapSupabaseError,
   mapValidationError,
-} from './error-handling';
-import { createFactSchema, updateFactSchema } from './fact-schema';
-import { supabase } from './supabase';
+} from '~/api/error-handling';
+import { createFactSchema, updateFactSchema } from '~/api/facts/fact-schema';
+import { supabase } from '~/api/supabase';
+import { Fact, FactInsert, FactUpdate, ServiceResponse } from '~/types/db';
 
 /**
  * Create a new fact for a person

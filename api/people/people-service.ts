@@ -1,16 +1,16 @@
 import {
+  createErrorResponse,
+  createSuccessResponse,
+  mapSupabaseError,
+} from '~/api/error-handling';
+import { supabase } from '~/api/supabase';
+import {
   Person,
   PersonInsert,
   PersonUpdate,
   PersonWithDetails,
   ServiceResponse,
 } from '~/types/db';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  mapSupabaseError,
-} from './error-handling';
-import { supabase } from './supabase';
 
 // Re-export types for backward compatibility
 export type { Person, PersonInsert, PersonUpdate, PersonWithDetails };

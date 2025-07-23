@@ -9,8 +9,8 @@ import {
   ScrollView,
   View,
 } from 'react-native';
-import { signInSchema, type SignInFormData } from '~/auth/auth-schema';
-import { signIn } from '~/auth/auth-service';
+import { signInSchema, type SignInFormData } from '~/api/auth/auth-schema';
+import { signIn } from '~/api/auth/auth-service';
 import { AuthButton, AuthInput } from '~/components/auth';
 import { Text } from '~/components/ui/text';
 

@@ -6,7 +6,7 @@ import React, {
   useState,
   type PropsWithChildren,
 } from 'react';
-import { supabase } from '~/lib/supabase';
+import { supabase } from '~/api/supabase';
 
 type AuthContextData = {
   session: Session | null;

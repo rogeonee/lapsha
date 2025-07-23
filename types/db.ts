@@ -122,5 +122,5 @@ export type TimelineEntry = Date & {
 };
 
 // Re-export service types for consistency
-export { ErrorCode } from '../lib/error-handling';
-export type { ServiceError, ServiceResponse } from '../lib/error-handling';
+export { ErrorCode } from '../api/error-handling';
+export type { ServiceError, ServiceResponse } from '../api/error-handling';

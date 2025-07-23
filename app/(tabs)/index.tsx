@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { useSession } from '~/auth/auth-context';
+import { useSession } from '~/api/auth/auth-context';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
 

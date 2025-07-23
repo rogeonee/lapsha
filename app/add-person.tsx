@@ -3,13 +3,16 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Alert, ScrollView, View } from 'react-native';
-import { useSession } from '~/auth/auth-context';
+import { useSession } from '~/api/auth/auth-context';
+import { createPerson } from '~/api/people/people-service';
+import {
+  CreatePersonForm,
+  createPersonSchema,
+} from '~/api/people/person-schema';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
 import { Text } from '~/components/ui/text';
-import { createPerson } from '~/lib/people-service';
-import { CreatePersonForm, createPersonSchema } from '~/lib/person-schema';
 
 // placeholder analytic fn
 const trackEvent = (event: any) => {

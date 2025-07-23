@@ -1,12 +1,12 @@
 import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSession } from '~/auth/auth-context';
+import { useSession } from '~/api/auth/auth-context';
+import { getPeople, Person } from '~/api/people/people-service';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
-import { getPeople, Person } from '~/lib/people-service';
 
 const placeholderUri = 'https://placehold.co/96x96?text=Avatar';
 
@@ -24,6 +24,20 @@ function PersonCard({ person }: { person: Person }) {
   );
 }
 
+function arePeopleListsEqual(a: Person[], b: Person[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (
+      a[i].id !== b[i].id ||
+      a[i].name !== b[i].name ||
+      a[i].photo_url !== b[i].photo_url
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
 export default function PeopleScreen() {
   const router = useRouter();
   const { session } = useSession();
@@ -31,48 +45,68 @@ export default function PeopleScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
+  const hasLoadedOnce = useRef(false);
+  const lastPeopleRef = useRef<Person[]>([]);
 
   const handleAddPerson = () => {
     router.push('/(tabs)/../add-person' as any);
   };
 
-  const fetchPeople = useCallback(async () => {
+  // Initial load (show loading spinner)
+  const fetchPeopleInitial = useCallback(async () => {
     if (!session?.user?.id) {
       setLoading(false);
       return;
     }
-
     setLoading(true);
     setError(null);
-
     try {
       const response = await getPeople(session.user.id);
-
       if (response.error) {
-        console.error('Failed to fetch people:', response.error);
         setError(response.error.message || 'Failed to load people');
         setPeople([]);
+        lastPeopleRef.current = [];
       } else {
         setPeople(response.data || []);
+        lastPeopleRef.current = response.data || [];
       }
     } catch (err) {
-      console.error('Unexpected error fetching people:', err);
       setError('An unexpected error occurred');
       setPeople([]);
+      lastPeopleRef.current = [];
     } finally {
       setLoading(false);
+      hasLoadedOnce.current = true;
     }
   }, [session?.user?.id]);
 
-  // refresh list when screen comes into focus
+  // Background refresh (no spinner, only update if changed)
+  const fetchPeopleBackground = useCallback(async () => {
+    if (!session?.user?.id) return;
+    try {
+      const response = await getPeople(session.user.id);
+      if (!response.error && response.data) {
+        if (!arePeopleListsEqual(response.data, lastPeopleRef.current)) {
+          setPeople(response.data);
+          lastPeopleRef.current = response.data;
+        }
+      }
+    } catch {}
+  }, [session?.user?.id]);
+
+  // On mount, do initial load
   useFocusEffect(
     useCallback(() => {
-      fetchPeople();
-    }, [fetchPeople]),
+      if (!hasLoadedOnce.current) {
+        fetchPeopleInitial();
+      } else {
+        fetchPeopleBackground();
+      }
+    }, [fetchPeopleInitial, fetchPeopleBackground]),
   );
 
   const handleRetry = () => {
-    fetchPeople();
+    fetchPeopleInitial();
   };
 
   return (

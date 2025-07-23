@@ -1,12 +1,12 @@
-import { Date, DateInsert, DateUpdate, ServiceResponse } from '~/types/db';
-import { createDateSchema, updateDateSchema } from './date-schema';
 import {
   createErrorResponse,
   createSuccessResponse,
   mapSupabaseError,
   mapValidationError,
-} from './error-handling';
-import { supabase } from './supabase';
+} from '~/api/error-handling';
+import { supabase } from '~/api/supabase';
+import { Date, DateInsert, DateUpdate, ServiceResponse } from '~/types/db';
+import { createDateSchema, updateDateSchema } from './date-schema';
 
 /**
  * Create a new date for a person
