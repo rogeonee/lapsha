@@ -18,6 +18,8 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 .idea/
+ios/
+android/
 
 # Metro
 .metro-health-check*
@@ -35,6 +37,10 @@ yarn-error.*
 .env*.local
 .env
 supabase/
+
+# AI
+.cursor/
+.kiro/
 
 # typescript
 *.tsbuildinfo
