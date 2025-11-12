@@ -1,0 +1,301 @@
+-- =========================================================
+-- Lapsha — Supabase Postgres init (MVP, no images)
+-- Includes: RLS, soft-delete pattern, updated_at triggers,
+--           auth.users → public.users auto-provision,
+--           yearless date helpers, text search QoL,
+--           upcoming_dates() RPC, partial uniques.
+-- =========================================================
+
+-- ---------- EXTENSIONS ----------
+create extension if not exists pgcrypto;   -- gen_random_uuid()
+create extension if not exists pg_trgm;    -- trigram search helpers
+
+-- ---------- USERS (profile) ----------
+create table if not exists public.users
+(
+  id            uuid primary key references auth.users (id) on delete cascade,
+  username      text unique,
+  display_name  text,
+  timezone      text default 'UTC',         -- used by upcoming_dates(); can be customized later
+  locale        text,                       -- e.g., 'en', 'fr-CA'
+  nudges_enabled boolean not null default true,
+
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now(),
+  deleted_at    timestamptz
+);
+
+-- Make username unique only for non-deleted rows (soft-delete friendly)
+alter table public.users drop constraint if exists users_username_key;
+create unique index if not exists users_username_unique_active
+  on public.users ((lower(username)))
+  where deleted_at is null;
+
+-- ---------- PERSONS ----------
+create table if not exists public.persons
+(
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null references public.users (id) on delete cascade,
+  name        text not null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now(),
+  deleted_at  timestamptz
+);
+
+create index if not exists persons_idx_user on public.persons (user_id);
+create index if not exists persons_name_trgm on public.persons using gin (name gin_trgm_ops);
+
+-- ---------- FACTS ----------
+create table if not exists public.facts
+(
+  id          uuid primary key default gen_random_uuid(),
+  person_id   uuid not null references public.persons (id) on delete cascade,
+  label       text not null,
+  value       text not null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now(),
+  deleted_at  timestamptz
+);
+
+create index if not exists facts_idx_person on public.facts (person_id);
+create index if not exists facts_label_trgm on public.facts using gin (label gin_trgm_ops);
+create index if not exists facts_value_trgm on public.facts using gin (value gin_trgm_ops);
+
+-- Optional: avoid duplicate labels per person when active
+create unique index if not exists facts_unique_label_per_person_active
+  on public.facts (person_id, lower(label))
+  where deleted_at is null;
+
+-- ---------- DATES ----------
+create table if not exists public.dates
+(
+  id          uuid primary key default gen_random_uuid(),
+  person_id   uuid not null references public.persons (id) on delete cascade,
+  label       text not null,
+  -- store full date; if year is unknown set to 0001-MM-DD
+  date        date not null,
+
+  -- helpers for "yearless" logic
+  month       smallint generated always as (extract(month from date)) stored,
+  day         smallint generated always as (extract(day   from date)) stored,
+  year_known  boolean  generated always as (extract(year  from date) <> 1) stored,
+
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now(),
+  deleted_at  timestamptz
+);
+
+create index if not exists dates_idx_person on public.dates (person_id);
+create index if not exists dates_idx_date   on public.dates (date);
+create index if not exists dates_idx_md     on public.dates (month, day);
+create index if not exists dates_idx_person_md on public.dates (person_id, month, day);
+
+-- ---------- TIMESTAMP TRIGGERS ----------
+create or replace function public.set_updated_at()
+returns trigger language plpgsql as $$
+begin
+  new.updated_at = now();
+  return new;
+end $$;
+
+drop trigger if exists set_timestamp on public.users;
+create trigger set_timestamp
+  before update on public.users
+  for each row execute procedure public.set_updated_at();
+
+drop trigger if exists set_timestamp on public.persons;
+create trigger set_timestamp
+  before update on public.persons
+  for each row execute procedure public.set_updated_at();
+
+drop trigger if exists set_timestamp on public.facts;
+create trigger set_timestamp
+  before update on public.facts
+  for each row execute procedure public.set_updated_at();
+
+drop trigger if exists set_timestamp on public.dates;
+create trigger set_timestamp
+  before update on public.dates
+  for each row execute procedure public.set_updated_at();
+
+-- ---------- AUTO-PROVISION PROFILE ON SIGNUP ----------
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.users (id) values (new.id)
+  on conflict (id) do nothing;
+  return new;
+end $$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute procedure public.handle_new_user();
+
+-- ---------- ROW-LEVEL SECURITY ----------
+alter table public.users   enable row level security;
+alter table public.persons enable row level security;
+alter table public.facts   enable row level security;
+alter table public.dates   enable row level security;
+
+-- USERS policies (no hard delete; prefer soft-delete via app)
+drop policy if exists "users_select_own"  on public.users;
+drop policy if exists "users_insert_own"  on public.users;
+drop policy if exists "users_update_own"  on public.users;
+
+create policy "users_select_own"
+on public.users for select
+using (id = auth.uid());
+
+create policy "users_insert_own"
+on public.users for insert
+with check (id = auth.uid());
+
+create policy "users_update_own"
+on public.users for update
+using (id = auth.uid())
+with check (id = auth.uid());
+
+-- PERSONS policies
+drop policy if exists "persons_select_own" on public.persons;
+drop policy if exists "persons_insert_own" on public.persons;
+drop policy if exists "persons_update_own" on public.persons;
+
+create policy "persons_select_own"
+on public.persons for select
+using (user_id = auth.uid());
+
+create policy "persons_insert_own"
+on public.persons for insert
+with check (user_id = auth.uid());
+
+create policy "persons_update_own"
+on public.persons for update
+using (user_id = auth.uid())
+with check (user_id = auth.uid());
+
+-- FACTS policies (through parent ownership)
+drop policy if exists "facts_select_through_person" on public.facts;
+drop policy if exists "facts_insert_through_person" on public.facts;
+drop policy if exists "facts_update_through_person" on public.facts;
+
+create policy "facts_select_through_person"
+on public.facts for select
+using (
+  exists (select 1 from public.persons p
+          where p.id = person_id and p.user_id = auth.uid())
+);
+
+create policy "facts_insert_through_person"
+on public.facts for insert
+with check (
+  exists (select 1 from public.persons p
+          where p.id = person_id and p.user_id = auth.uid())
+);
+
+create policy "facts_update_through_person"
+on public.facts for update
+using (
+  exists (select 1 from public.persons p
+          where p.id = person_id and p.user_id = auth.uid())
+)
+with check (
+  exists (select 1 from public.persons p
+          where p.id = person_id and p.user_id = auth.uid())
+);
+
+-- DATES policies (through parent ownership)
+drop policy if exists "dates_select_through_person" on public.dates;
+drop policy if exists "dates_insert_through_person" on public.dates;
+drop policy if exists "dates_update_through_person" on public.dates;
+
+create policy "dates_select_through_person"
+on public.dates for select
+using (
+  exists (select 1 from public.persons p
+          where p.id = person_id and p.user_id = auth.uid())
+);
+
+create policy "dates_insert_through_person"
+on public.dates for insert
+with check (
+  exists (select 1 from public.persons p
+          where p.id = person_id and p.user_id = auth.uid())
+);
+
+create policy "dates_update_through_person"
+on public.dates for update
+using (
+  exists (select 1 from public.persons p
+          where p.id = person_id and p.user_id = auth.uid())
+)
+with check (
+  exists (select 1 from public.persons p
+          where p.id = person_id and p.user_id = auth.uid())
+);
+
+-- ---------- SOFT-DELETE VIEWS ----------
+create or replace view public.v_persons as
+select * from public.persons
+where deleted_at is null;
+
+create or replace view public.v_facts as
+select * from public.facts
+where deleted_at is null;
+
+create or replace view public.v_dates as
+select * from public.dates
+where deleted_at is null;
+
+-- ---------- UPCOMING DATES RPC ----------
+-- Returns next occurrences for the current user, honoring user's timezone (default UTC)
+create or replace function public.upcoming_dates(days_ahead int default 30)
+returns table (
+  date_id uuid,
+  person_id uuid,
+  label text,
+  event_date date,
+  next_occurrence date
+)
+language sql
+security invoker
+as $$
+with me as (
+  select coalesce(u.timezone, 'UTC') as tz
+  from public.users u
+  where u.id = auth.uid()
+),
+base as (
+  select
+    d.id as date_id,
+    d.person_id,
+    d.label,
+    d.date as event_date,
+    make_date(
+      extract(year from (now() at time zone (select tz from me)))::int,
+      d.month, d.day
+    ) as this_year
+  from public.dates d
+  join public.persons p on p.id = d.person_id
+  where p.user_id = auth.uid()
+    and d.deleted_at is null
+    and p.deleted_at is null
+),
+fold as (
+  select *,
+    case
+      when this_year >= (current_date at time zone (select tz from me))
+        then this_year
+      else this_year + interval '1 year'
+    end::date as next_occurrence
+  from base
+)
+select date_id, person_id, label, event_date, next_occurrence
+from fold
+where next_occurrence <= (current_date at time zone (select tz from me)) + (days_ahead || ' days')::interval
+order by next_occurrence asc, label asc;
+$$;
