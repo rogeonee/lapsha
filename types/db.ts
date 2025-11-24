@@ -7,7 +7,10 @@ export interface Tables {
     Row: {
       id: UUID;
       username: string | null;
-      avatar_url: string | null;
+      display_name: string | null;
+      timezone: string;
+      locale: string | null;
+      nudges_enabled: boolean;
       created_at: string; // ISO string
       updated_at: string;
       deleted_at: string | null;
@@ -15,11 +18,17 @@ export interface Tables {
     Insert: {
       id?: UUID;
       username?: string | null;
-      avatar_url?: string | null;
+      display_name?: string | null;
+      timezone?: string;
+      locale?: string | null;
+      nudges_enabled?: boolean;
     };
     Update: {
       username?: string | null;
-      avatar_url?: string | null;
+      display_name?: string | null;
+      timezone?: string;
+      locale?: string | null;
+      nudges_enabled?: boolean;
       deleted_at?: string | null;
     };
   };
@@ -29,7 +38,6 @@ export interface Tables {
       id: UUID;
       user_id: UUID;
       name: string;
-      photo_url: string | null;
       created_at: string;
       updated_at: string;
       deleted_at: string | null;
@@ -38,11 +46,9 @@ export interface Tables {
       id?: UUID;
       user_id: UUID;
       name: string;
-      photo_url?: string | null;
     };
     Update: {
       name?: string;
-      photo_url?: string | null;
       deleted_at?: string | null;
     };
   };
@@ -76,6 +82,9 @@ export interface Tables {
       person_id: UUID;
       label: string;
       date: string; // YYYY-MM-DD
+      month: number;
+      day: number;
+      year_known: boolean;
       created_at: string;
       updated_at: string;
       deleted_at: string | null;
@@ -118,7 +127,15 @@ export type PersonWithDetails = Person & {
 };
 
 export type TimelineEntry = Date & {
-  person: Pick<Person, 'id' | 'name' | 'photo_url'>;
+  person: Pick<Person, 'id' | 'name'>;
+};
+
+export type UpcomingDate = {
+  date_id: UUID;
+  person_id: UUID;
+  label: string;
+  event_date: string;
+  next_occurrence: string;
 };
 
 // Re-export service types for consistency

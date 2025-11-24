@@ -29,8 +29,7 @@ function arePeopleListsEqual(a: Person[], b: Person[]): boolean {
   for (let i = 0; i < a.length; i++) {
     if (
       a[i].id !== b[i].id ||
-      a[i].name !== b[i].name ||
-      a[i].photo_url !== b[i].photo_url
+      a[i].name !== b[i].name
     ) {
       return false;
     }

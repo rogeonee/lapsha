@@ -1,4 +1,4 @@
-import { ServiceResponse, TimelineEntry } from '~/types/db';
+import { ServiceResponse, TimelineEntry, UpcomingDate } from '~/types/db';
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -36,8 +36,7 @@ export async function getTimelineForUser(
         *,
         person:persons!inner(
           id,
-          name,
-          photo_url
+          name
         )
       `,
       )
@@ -80,13 +79,15 @@ export async function getTimelineForUser(
       person_id: item.person_id,
       label: item.label,
       date: item.date,
+      month: item.month,
+      day: item.day,
+      year_known: item.year_known,
       created_at: item.created_at,
       updated_at: item.updated_at,
       deleted_at: item.deleted_at,
       person: {
         id: item.person.id,
         name: item.person.name,
-        photo_url: item.person.photo_url,
       },
     }));
 
@@ -129,18 +130,21 @@ export async function getTimelineForUser(
  * Useful for dashboard widgets or notifications
  */
 export async function getUpcomingDates(
-  userId: string,
   daysAhead: number = 30,
-): Promise<ServiceResponse<TimelineEntry[]>> {
-  const today = new Date();
-  const futureDate = new Date();
-  futureDate.setDate(today.getDate() + daysAhead);
+): Promise<ServiceResponse<UpcomingDate[]>> {
+  try {
+    const { data, error } = await supabase.rpc('upcoming_dates', {
+      days_ahead: daysAhead,
+    });
 
-  return getTimelineForUser(userId, {
-    startDate: today.toISOString().split('T')[0],
-    endDate: futureDate.toISOString().split('T')[0],
-    includeUnknownYears: true,
-  });
+    if (error) {
+      return createErrorResponse(mapSupabaseError(error));
+    }
+
+    return createSuccessResponse(data || []);
+  } catch (unexpectedError) {
+    return createErrorResponse(mapGenericError(unexpectedError));
+  }
 }
 
 /**
