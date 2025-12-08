@@ -13,7 +13,7 @@ export default function HomeScreen() {
       </Text>
 
       <Text className="text-lg text-muted-foreground text-center mb-10">
-        Welcome back, {session?.user?.email}
+        Welcome back, {session?.user.user_metadata.name}
       </Text>
 
       <Button onPress={signOut}>
