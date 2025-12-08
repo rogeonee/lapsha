@@ -1,0 +1,222 @@
+# Expo + React Native + TypeScript Project
+
+You are an expert in React Native, Expo, TypeScript, and mobile app development.
+
+## Key Principles
+
+- Write concise, technical TypeScript code with accurate examples
+- Use functional and declarative programming patterns; avoid classes
+- Prefer iteration and modularization over code duplication
+- Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError)
+- Structure files: imports, types, component, helpers, static content, exports
+
+## Tech Stack
+
+- React Native with Expo SDK 54+
+- Expo Router for file-based routing
+- TypeScript (strict mode)
+- NativeWind and StyleSheet for styling
+
+## React Native / Expo Best Practices
+
+### File-Based Routing with Expo Router
+
+- Use file-based routing in the `app/` directory
+- Dynamic routes: `[id].tsx`
+- Layout groups: `(tabs)/`, `(auth)/`
+- Layouts: `_layout.tsx`
+
+### Navigation
+
+```tsx
+import { router, Link, useLocalSearchParams } from 'expo-router';
+
+// Programmatic navigation
+router.push('/profile/123');
+router.replace('/login');
+
+// Declarative navigation
+<Link href="/profile/123">View Profile</Link>;
+
+// Access params
+const { id } = useLocalSearchParams();
+```
+
+### Components
+
+- Use functional components with TypeScript
+- Prefer named exports (except for Expo Router screens)
+- Use `View`, `Text`, `Pressable` from `react-native`
+- Import platform-specific code with `.ios.tsx` / `.android.tsx` extensions
+
+### File Naming
+
+- Components: kebab-case (e.g., `user-profile.tsx`)
+- Hooks: camelCase with 'use' prefix (e.g., `useAuth.ts`)
+- Utilities: camelCase (e.g., `formatDate.ts`)
+- Screens: Use Expo Router conventions (e.g., `[id].tsx`, `_layout.tsx`)
+
+### Styling
+
+```tsx
+// Using StyleSheet
+import { StyleSheet, View } from 'react-native';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+});
+
+// Or using NativeWind (Tailwind)
+<View className="flex-1 p-4">
+```
+
+### State Management
+
+- Use `useState` for local state
+- Avoid prop drilling - use Context or Zustand
+
+### Performance
+
+- Use `FlashList` instead of `FlatList` for long lists
+- Memoize expensive calculations with `useMemo`
+- Memoize callbacks with `useCallback`
+- Use `React.memo` for pure components
+- Lazy load screens with `React.lazy` (when not using Expo Router)
+
+### Platform-Specific Code
+
+```tsx
+import { Platform } from 'react-native';
+
+// Inline platform check
+const padding = Platform.OS === 'ios' ? 20 : 10;
+
+// Platform.select
+const styles = StyleSheet.create({
+  container: {
+    ...Platform.select({
+      ios: { paddingTop: 20 },
+      android: { paddingTop: 10 },
+    }),
+  },
+});
+
+// Separate files
+// button.ios.tsx
+// button.android.tsx
+```
+
+## TypeScript Best Practices
+
+- Use strict mode
+- Avoid `any` - use `unknown` if type is truly unknown
+- Define interfaces for component props
+- Use type inference where possible
+- Use const assertions for constants
+
+```tsx
+// Good
+interface ButtonProps {
+  title: string;
+  onPress: () => void;
+  variant?: 'primary' | 'secondary';
+}
+
+export function Button({ title, onPress, variant = 'primary' }: ButtonProps) {
+  // Implementation
+}
+
+// Const assertion
+const colors = {
+  primary: '#007AFF',
+  secondary: '#5856D6',
+} as const;
+```
+
+## Expo Specific
+
+### Installing Dependencies
+
+**ALWAYS use `npx expo install` instead of npm/yarn:**
+
+```bash
+npx expo install react-native-reanimated
+npx expo install expo-image
+```
+
+This ensures SDK compatibility.
+
+### Environment Variables
+
+```bash
+# .env.local
+EXPO_PUBLIC_API_URL=https://api.example.com  # Available on client
+EXPO_PUBLIC_API_KEY=abc123                   # Available on client
+SECRET_KEY=secret123                          # Server-side only
+```
+
+```tsx
+// Usage
+const apiUrl = process.env.EXPO_PUBLIC_API_URL;
+```
+
+### Common Expo Modules
+
+- `expo-router` - File-based routing
+- `expo-image` - Optimized images
+- `expo-font` - Custom fonts
+- `expo-secure-store` - Secure storage
+- `expo-camera` - Camera access
+- `expo-location` - Location services
+- `expo-notifications` - Push notifications
+
+### API Routes
+
+```tsx
+// app/api/users+api.ts
+export async function GET(request: Request) {
+  const users = await db.users.findMany();
+  return Response.json(users);
+}
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const user = await db.users.create(body);
+  return Response.json(user, { status: 201 });
+}
+```
+
+## Error Handling
+
+```tsx
+try {
+  const result = await fetchData();
+} catch (error) {
+  if (error instanceof Error) {
+    console.error('Error:', error.message);
+  }
+  // Handle error appropriately
+}
+```
+
+## Important Reminders
+
+1. This is a mobile app - consider iOS and Android differences
+2. Always use `npx expo install` for dependencies
+3. Use Expo Router patterns, not React Navigation directly
+4. Consider performance on mobile devices
+5. Test on both iOS and Android
+6. Use TypeScript strictly - avoid `any`
+7. Follow React Native best practices (avoid web patterns that don't translate)
+
+## Code Generation Rules
+
+- When generating navigation code, use Expo Router APIs
+- When suggesting packages, verify Expo SDK compatibility
+- When creating layouts, remember mobile constraints (smaller screens)
+- When handling user input, consider mobile keyboards and gestures
+- When dealing with images, use `expo-image` over `Image`
+- When implementing forms, consider mobile UX (large touch targets, clear error states)

@@ -35,7 +35,6 @@ export default function AddPersonModal() {
     resolver: zodResolver(createPersonSchema),
     defaultValues: {
       name: '',
-      photo_url: null,
     },
     mode: 'onChange',
   });
