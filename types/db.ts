@@ -8,7 +8,7 @@ export interface Tables {
       id: UUID;
       username: string | null;
       display_name: string | null;
-      timezone: string;
+      timezone: string | null;
       locale: string | null;
       nudges_enabled: boolean;
       created_at: string; // ISO string
@@ -19,14 +19,14 @@ export interface Tables {
       id?: UUID;
       username?: string | null;
       display_name?: string | null;
-      timezone?: string;
+      timezone?: string | null;
       locale?: string | null;
       nudges_enabled?: boolean;
     };
     Update: {
       username?: string | null;
       display_name?: string | null;
-      timezone?: string;
+      timezone?: string | null;
       locale?: string | null;
       nudges_enabled?: boolean;
       deleted_at?: string | null;

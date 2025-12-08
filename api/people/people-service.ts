@@ -41,10 +41,9 @@ export async function getPeople(
   userId: string,
 ): Promise<ServiceResponse<Person[]>> {
   const { data, error } = await supabase
-    .from('persons')
+    .from('v_persons')
     .select('*')
     .eq('user_id', userId)
-    .is('deleted_at', null)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -61,10 +60,9 @@ export async function getPerson(
   personId: string,
 ): Promise<ServiceResponse<Person>> {
   const { data, error } = await supabase
-    .from('persons')
+    .from('v_persons')
     .select('*')
     .eq('id', personId)
-    .is('deleted_at', null)
     .single();
 
   if (error) {
@@ -83,7 +81,7 @@ export async function updatePerson(
 ): Promise<ServiceResponse<Person>> {
   const { data, error } = await supabase
     .from('persons')
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(updates)
     .eq('id', personId)
     .select()
     .single();
@@ -126,10 +124,9 @@ export async function getPersonWithDetails(
 
   // First get the person
   const { data: person, error: personError } = await supabase
-    .from('persons')
+    .from('v_persons')
     .select('*')
     .eq('id', personId)
-    .is('deleted_at', null)
     .single();
 
   if (personError) {
@@ -145,10 +142,9 @@ export async function getPersonWithDetails(
 
   // Get facts ordered by newest first (created_at desc)
   const { data: facts, error: factsError } = await supabase
-    .from('facts')
+    .from('v_facts')
     .select('*')
     .eq('person_id', personId)
-    .is('deleted_at', null)
     .order('created_at', { ascending: false });
 
   if (factsError) {
@@ -157,10 +153,9 @@ export async function getPersonWithDetails(
 
   // Get dates ordered chronologically (date asc)
   const { data: dates, error: datesError } = await supabase
-    .from('dates')
+    .from('v_dates')
     .select('*')
     .eq('person_id', personId)
-    .is('deleted_at', null)
     .order('date', { ascending: true });
 
   if (datesError) {

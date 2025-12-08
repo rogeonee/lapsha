@@ -5,7 +5,13 @@ import {
   mapValidationError,
 } from '~/api/error-handling';
 import { supabase } from '~/api/supabase';
-import { Date, DateInsert, DateUpdate, ServiceResponse } from '~/types/db';
+import {
+  Date,
+  DateInsert,
+  DateUpdate,
+  ErrorCode,
+  ServiceResponse,
+} from '~/types/db';
 import { createDateSchema, updateDateSchema } from './date-schema';
 
 /**
@@ -41,11 +47,28 @@ export async function createDate(
 export async function getDatesByPerson(
   personId: string,
 ): Promise<ServiceResponse<Date[]>> {
+  // Ensure the parent person exists and is not soft-deleted
+  const { data: person, error: personError } = await supabase
+    .from('v_persons')
+    .select('id, deleted_at')
+    .eq('id', personId)
+    .single();
+
+  if (personError) {
+    return createErrorResponse(mapSupabaseError(personError));
+  }
+
+  if (!person || person.deleted_at) {
+    return createErrorResponse({
+      code: ErrorCode.NOT_FOUND,
+      message: 'Person not found',
+    });
+  }
+
   const { data, error } = await supabase
-    .from('dates')
+    .from('v_dates')
     .select('*')
     .eq('person_id', personId)
-    .is('deleted_at', null)
     .order('date', { ascending: true });
 
   if (error) {
@@ -70,7 +93,7 @@ export async function updateDate(
 
     const { data, error } = await supabase
       .from('dates')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update(updates)
       .eq('id', dateId)
       .select()
       .single();

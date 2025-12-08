@@ -6,7 +6,13 @@ import {
 } from '~/api/error-handling';
 import { createFactSchema, updateFactSchema } from '~/api/facts/fact-schema';
 import { supabase } from '~/api/supabase';
-import { Fact, FactInsert, FactUpdate, ServiceResponse } from '~/types/db';
+import {
+  ErrorCode,
+  Fact,
+  FactInsert,
+  FactUpdate,
+  ServiceResponse,
+} from '~/types/db';
 
 /**
  * Create a new fact for a person
@@ -40,11 +46,28 @@ export async function createFact(
 export async function getFactsByPerson(
   personId: string,
 ): Promise<ServiceResponse<Fact[]>> {
+  // Ensure the parent person exists and is not soft-deleted
+  const { data: person, error: personError } = await supabase
+    .from('v_persons')
+    .select('id, deleted_at')
+    .eq('id', personId)
+    .single();
+
+  if (personError) {
+    return createErrorResponse(mapSupabaseError(personError));
+  }
+
+  if (!person || person.deleted_at) {
+    return createErrorResponse({
+      code: ErrorCode.NOT_FOUND,
+      message: 'Person not found',
+    });
+  }
+
   const { data, error } = await supabase
-    .from('facts')
+    .from('v_facts')
     .select('*')
     .eq('person_id', personId)
-    .is('deleted_at', null)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -69,7 +92,7 @@ export async function updateFact(
 
     const { data, error } = await supabase
       .from('facts')
-      .update({ ...updates, updated_at: new Date().toISOString() })
+      .update(updates)
       .eq('id', factId)
       .select()
       .single();

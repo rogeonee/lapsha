@@ -1,11 +1,11 @@
-import { ServiceResponse, TimelineEntry, UpcomingDate } from '~/types/db';
 import {
   createErrorResponse,
   createSuccessResponse,
   mapGenericError,
   mapSupabaseError,
-} from './error-handling';
-import { supabase } from './supabase';
+} from '~/api/error-handling';
+import { supabase } from '~/api/supabase';
+import { ServiceResponse, TimelineEntry, UpcomingDate } from '~/types/db';
 
 /**
  * Options for filtering timeline results
@@ -28,21 +28,25 @@ export async function getTimelineForUser(
   try {
     const { startDate, endDate, limit, includeUnknownYears = true } = options;
 
-    // Build the base query with person context
-    let query = supabase
-      .from('dates')
-      .select(
-        `
-        *,
-        person:persons!inner(
-          id,
-          name
-        )
-      `,
-      )
-      .eq('persons.user_id', userId)
-      .is('deleted_at', null)
-      .is('persons.deleted_at', null);
+    // Fetch active persons for the user to honor parent soft-delete and RLS via views
+    const { data: persons, error: personsError } = await supabase
+      .from('v_persons')
+      .select('id, name')
+      .eq('user_id', userId);
+
+    if (personsError) {
+      return createErrorResponse(mapSupabaseError(personsError));
+    }
+
+    if (!persons || persons.length === 0) {
+      return createSuccessResponse([]);
+    }
+
+    const personIds = persons.map((p) => p.id);
+    const personById = new Map(persons.map((p) => [p.id, p]));
+
+    // Build the base query against the view to respect soft-delete
+    let query = supabase.from('v_dates').select('*').in('person_id', personIds);
 
     // Apply date range filters if provided
     if (startDate) {
@@ -54,7 +58,7 @@ export async function getTimelineForUser(
 
     // Filter out unknown years if requested
     if (!includeUnknownYears) {
-      query = query.not('date', 'like', '0001-%');
+      query = query.eq('year_known', true);
     }
 
     // Apply limit if provided
@@ -73,23 +77,25 @@ export async function getTimelineForUser(
       return createSuccessResponse([]);
     }
 
-    // Transform the data to match TimelineEntry type
-    const timelineEntries: TimelineEntry[] = data.map((item: any) => ({
-      id: item.id,
-      person_id: item.person_id,
-      label: item.label,
-      date: item.date,
-      month: item.month,
-      day: item.day,
-      year_known: item.year_known,
-      created_at: item.created_at,
-      updated_at: item.updated_at,
-      deleted_at: item.deleted_at,
-      person: {
-        id: item.person.id,
-        name: item.person.name,
-      },
-    }));
+    // Transform the data to match TimelineEntry type, attaching person info from cached map
+    const timelineEntries: TimelineEntry[] = data.map((item: any) => {
+      const person = personById.get(item.person_id);
+      return {
+        id: item.id,
+        person_id: item.person_id,
+        label: item.label,
+        date: item.date,
+        month: item.month,
+        day: item.day,
+        year_known: item.year_known,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        deleted_at: item.deleted_at,
+        person: person
+          ? { id: person.id, name: person.name }
+          : { id: item.person_id, name: '' },
+      };
+    });
 
     // Sort chronologically with special handling for recurring dates (year 0001)
     const sortedEntries = timelineEntries.sort((a, b) => {
