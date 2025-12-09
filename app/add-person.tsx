@@ -6,7 +6,7 @@ import { Alert, ScrollView, View } from 'react-native';
 import { useSession } from '~/api/auth/auth-context';
 import { createPerson } from '~/api/people/people-service';
 import {
-  CreatePersonForm,
+  type CreatePersonForm,
   createPersonSchema,
 } from '~/api/people/person-schema';
 import { Button } from '~/components/ui/button';
