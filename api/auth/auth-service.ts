@@ -1,3 +1,4 @@
+import * as Linking from 'expo-linking';
 import { Alert } from 'react-native';
 import { supabase } from '~/api/supabase';
 
@@ -48,8 +49,10 @@ export async function signUp(
  * Send password reset email
  */
 export async function forgotPassword(email: string) {
+  const redirectTo = Linking.createURL('/reset-password');
+
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'your-app://reset-password', // TODO: update with dev build
+    redirectTo,
   });
 
   if (!error) {
@@ -59,6 +62,40 @@ export async function forgotPassword(email: string) {
       [{ text: 'OK' }],
     );
   }
+
+  return { data, error };
+}
+
+/**
+ * Update user profile (name and email)
+ */
+export async function updateProfile(name: string, email: string) {
+  const { data, error } = await supabase.auth.updateUser({
+    email,
+    data: { name },
+  });
+
+  return { data, error };
+}
+
+/**
+ * Update the current user's password
+ */
+export async function updatePassword(newPassword: string) {
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword,
+  });
+
+  return { data, error };
+}
+
+/**
+ * Delete the current user's account via a secure backend (Edge Function/API)
+ */
+export async function deleteAccount(userId: string) {
+  const { data, error } = await supabase.functions.invoke('delete-user', {
+    body: { userId },
+  });
 
   return { data, error };
 }

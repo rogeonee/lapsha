@@ -36,7 +36,6 @@ yarn-error.*
 # local env files
 .env*.local
 .env
-supabase/
 
 # AI
 .cursor/
