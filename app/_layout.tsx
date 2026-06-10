@@ -1,10 +1,11 @@
 import {
   DarkTheme,
   DefaultTheme,
-  Theme,
+  SplashScreen,
+  Stack,
   ThemeProvider,
-} from '@react-navigation/native';
-import { SplashScreen, Stack } from 'expo-router';
+} from 'expo-router';
+import type { Theme } from 'expo-router/react-navigation';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
