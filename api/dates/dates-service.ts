@@ -9,9 +9,23 @@ import {
 import {
   DateInsert,
   DateUpdate,
+  EntrySort,
   Date as PersonDate,
   ServiceResponse,
 } from '~/types/db';
+
+/**
+ * Reserved label marking a person's birthday. Matched case-insensitively
+ * so a hand-typed "Birthday" pins too.
+ */
+export const BIRTHDAY_LABEL = 'birthday';
+
+// Whitelisted ORDER BY fragments — never interpolate user input here.
+// Birthday is always pinned first.
+const DATE_ORDER: Record<EntrySort, string> = {
+  created: `CASE WHEN LOWER(label) = '${BIRTHDAY_LABEL}' THEN 0 ELSE 1 END, created_at DESC`,
+  modified: `CASE WHEN LOWER(label) = '${BIRTHDAY_LABEL}' THEN 0 ELSE 1 END, updated_at DESC`,
+};
 
 /**
  * Raw `dates` row as stored in SQLite (booleans are 0/1 integers)
@@ -78,8 +92,8 @@ export function createDate(dateData: DateInsert): ServiceResponse<PersonDate> {
     const { month, day, yearKnown } = parseDateParts(validated.date);
 
     db.runSync(
-      `INSERT INTO dates (id, person_id, label, date, month, day, year_known, created_at, updated_at, deleted_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
+      `INSERT INTO dates (id, person_id, label, date, month, day, year_known, sort_order, created_at, updated_at, deleted_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM dates WHERE person_id = ?), ?, ?, NULL)`,
       id,
       validated.person_id,
       validated.label,
@@ -87,6 +101,7 @@ export function createDate(dateData: DateInsert): ServiceResponse<PersonDate> {
       month,
       day,
       yearKnown,
+      validated.person_id,
       now,
       now,
     );
@@ -96,10 +111,12 @@ export function createDate(dateData: DateInsert): ServiceResponse<PersonDate> {
 }
 
 /**
- * Get all dates for a specific person, ordered chronologically
+ * Get all dates for a specific person — birthday pinned first, then
+ * sorted by date added (default) or last modified
  */
 export function getDatesByPerson(
   personId: string,
+  sort: EntrySort = 'created',
 ): ServiceResponse<PersonDate[]> {
   return runServiceOperation(() => {
     assertPersonExists(personId);
@@ -107,7 +124,7 @@ export function getDatesByPerson(
     const rows = db.getAllSync<DateRow>(
       `SELECT * FROM dates
        WHERE person_id = ? AND deleted_at IS NULL
-       ORDER BY date ASC`,
+       ORDER BY ${DATE_ORDER[sort]}`,
       personId,
     );
 

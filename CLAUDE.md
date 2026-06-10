@@ -40,14 +40,16 @@ bun run lint           # expo lint
 ### Project Structure
 
 ```
-app/                    # Expo Router screens (file-based routing)
-├── (tabs)/            # Tab navigation group
-├── person/[id].tsx    # Dynamic route
-├── _layout.tsx        # Root layout (no auth)
-└── add-person.tsx     # Add person modal
+app/                          # Expo Router screens (file-based routing)
+├── (tabs)/                  # NativeTabs group (+ quick-add BottomAccessory, iOS 26+)
+│   └── (people)/            # Stack group: people list + person detail
+│       ├── people.tsx       # People list (native large-title header)
+│       └── person/[id].tsx  # Person detail (facts & dates)
+├── _layout.tsx              # Root layout (no auth)
+└── add-person.tsx           # Add person modal
 
 api/                    # Domain-driven data layer
-├── database.ts        # SQLite setup + schema (singleton db)
+├── database.ts        # SQLite setup + schema (singleton db, user_version migrations)
 ├── people/            # People CRUD
 ├── facts/             # Person facts CRUD
 ├── dates/             # Person dates CRUD
@@ -56,9 +58,11 @@ api/                    # Domain-driven data layer
 
 components/             # Reusable UI components
 ├── ui/                # Base components (button, input, text)
-└── person/            # Person-related components
+├── person/            # Person-related components (cards, rows)
+├── entry/             # EntrySheet (@expo/ui bottom sheet for facts/dates)
+└── quick-add/         # Tab bar quick-add accessory
 
-lib/                    # Utilities and hooks
+lib/                    # Utilities and hooks (prefs, dates, use-table-version)
 types/db.ts            # Database types
 ```
 
@@ -98,12 +102,14 @@ React Compiler is enabled by default (Expo 54+). Write code that the compiler ca
 
 Local SQLite database (`lapsha.db`) via `expo-sqlite`. Schema defined in `api/database.ts`.
 
-| Table     | Key Columns                                        | Notes                          |
-| --------- | -------------------------------------------------- | ------------------------------ |
-| `persons` | id, name                                           | People you track               |
-| `facts`   | id, person_id, label, value                        | Key-value pairs about a person |
-| `dates`   | id, person_id, label, date, month, day, year_known | Important dates                |
+| Table     | Key Columns                                                    | Notes                                       |
+| --------- | -------------------------------------------------------------- | ------------------------------------------- |
+| `persons` | id, name                                                       | People you track                            |
+| `facts`   | id, person_id, label (nullable), value, sort_order             | label NULL = plain-text fact                |
+| `dates`   | id, person_id, label, date, month, day, year_known, sort_order | 'birthday' label is reserved (pinned first) |
 
 All tables have `created_at`, `updated_at`, `deleted_at` (soft delete). IDs are UUIDs generated via `randomUUID()` from `expo-crypto` (there is no global `crypto` in the Expo native runtime).
+
+Schema migrations are keyed off `PRAGMA user_version` in `api/database.ts`. The db is opened with `enableChangeListener: true`; screens refresh via `useTableVersion()` (`lib/use-table-version.ts`), which subscribes to `addDatabaseChangeListener`. UI preferences (sort modes, last quick-add person) live in `expo-sqlite/kv-store` via `lib/prefs.ts`.
 
 Types in `types/db.ts`.

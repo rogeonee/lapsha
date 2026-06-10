@@ -6,7 +6,19 @@ import {
   runServiceOperation,
 } from '~/api/error-handling';
 import { createFactSchema, updateFactSchema } from '~/api/facts/fact-schema';
-import { Fact, FactInsert, FactUpdate, ServiceResponse } from '~/types/db';
+import {
+  EntrySort,
+  Fact,
+  FactInsert,
+  FactUpdate,
+  ServiceResponse,
+} from '~/types/db';
+
+// Whitelisted ORDER BY fragments — never interpolate user input here
+const FACT_ORDER: Record<EntrySort, string> = {
+  created: 'created_at DESC',
+  modified: 'updated_at DESC',
+};
 
 function assertPersonExists(personId: string): void {
   const person = db.getFirstSync<{ id: string }>(
@@ -45,12 +57,13 @@ export function createFact(factData: FactInsert): ServiceResponse<Fact> {
     const now = new Date().toISOString();
 
     db.runSync(
-      `INSERT INTO facts (id, person_id, label, value, created_at, updated_at, deleted_at)
-       VALUES (?, ?, ?, ?, ?, ?, NULL)`,
+      `INSERT INTO facts (id, person_id, label, value, sort_order, created_at, updated_at, deleted_at)
+       VALUES (?, ?, ?, ?, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM facts WHERE person_id = ?), ?, ?, NULL)`,
       id,
       validated.person_id,
-      validated.label,
+      validated.label ?? null,
       validated.value,
+      validated.person_id,
       now,
       now,
     );
@@ -60,16 +73,20 @@ export function createFact(factData: FactInsert): ServiceResponse<Fact> {
 }
 
 /**
- * Get all facts for a specific person, newest first
+ * Get all facts for a specific person, sorted by date added (default)
+ * or last modified
  */
-export function getFactsByPerson(personId: string): ServiceResponse<Fact[]> {
+export function getFactsByPerson(
+  personId: string,
+  sort: EntrySort = 'created',
+): ServiceResponse<Fact[]> {
   return runServiceOperation(() => {
     assertPersonExists(personId);
 
     return db.getAllSync<Fact>(
       `SELECT * FROM facts
        WHERE person_id = ? AND deleted_at IS NULL
-       ORDER BY created_at DESC`,
+       ORDER BY ${FACT_ORDER[sort]}`,
       personId,
     );
   });
@@ -86,9 +103,13 @@ export function updateFact(
     const validated = updateFactSchema.parse(updates);
     const existing = getFactOrThrow(factId);
 
+    // label: undefined = keep, null = clear (?? would make clearing impossible)
+    const label =
+      validated.label === undefined ? existing.label : validated.label;
+
     db.runSync(
       'UPDATE facts SET label = ?, value = ?, updated_at = ? WHERE id = ?',
-      validated.label ?? existing.label,
+      label,
       validated.value ?? existing.value,
       new Date().toISOString(),
       factId,
