@@ -20,8 +20,9 @@ export interface PersonUpdate {
 export interface Fact {
   id: UUID;
   person_id: UUID;
-  label: string;
+  label: string | null; // null = plain-text fact (no label)
   value: string;
+  sort_order: number;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -30,12 +31,12 @@ export interface Fact {
 export interface FactInsert {
   id?: UUID;
   person_id: UUID;
-  label: string;
+  label?: string | null;
   value: string;
 }
 
 export interface FactUpdate {
-  label?: string;
+  label?: string | null; // null clears the label, undefined leaves it unchanged
   value?: string;
 }
 
@@ -47,10 +48,17 @@ export interface Date {
   month: number;
   day: number;
   year_known: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
 }
+
+/**
+ * Sort modes for a person's facts/dates lists.
+ * 'custom' (drag-n-drop via sort_order) is planned but not implemented yet.
+ */
+export type EntrySort = 'created' | 'modified';
 
 export interface DateInsert {
   id?: UUID;

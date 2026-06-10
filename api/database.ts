@@ -5,11 +5,20 @@ import { openDatabaseSync } from 'expo-sqlite';
  *
  * Schema changes are applied via incremental migrations keyed off
  * `PRAGMA user_version`: bump SCHEMA_VERSION and add a block below
- * for each new version.
+ * for each new version. Each block must stamp its own version INSIDE
+ * its transaction, so the stamp can never outrun the schema.
  */
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
-export const db = openDatabaseSync('lapsha.db');
+// enableChangeListener powers addDatabaseChangeListener-based UI refresh
+// (see lib/use-table-version.ts)
+export const db = openDatabaseSync('lapsha.db', { enableChangeListener: true });
+
+function hasColumn(table: string, column: string): boolean {
+  return db
+    .getAllSync<{ name: string }>(`PRAGMA table_info(${table})`)
+    .some((c) => c.name === column);
+}
 
 function migrate(): void {
   db.execSync(`
@@ -18,14 +27,21 @@ function migrate(): void {
   `);
 
   const row = db.getFirstSync<{ user_version: number }>('PRAGMA user_version');
-  const currentVersion = row?.user_version ?? 0;
+  let currentVersion = row?.user_version ?? 0;
+
+  // Repair: a dev build briefly stamped version 2 without applying the v2
+  // migration. Trust the actual schema over the stamp.
+  if (currentVersion >= 2 && !hasColumn('dates', 'sort_order')) {
+    currentVersion = 1;
+  }
 
   if (currentVersion >= SCHEMA_VERSION) {
     return;
   }
 
   if (currentVersion < 1) {
-    db.execSync(`
+    db.withTransactionSync(() => {
+      db.execSync(`
       CREATE TABLE IF NOT EXISTS persons (
         id TEXT PRIMARY KEY NOT NULL,
         name TEXT NOT NULL,
@@ -59,10 +75,57 @@ function migrate(): void {
 
       CREATE INDEX IF NOT EXISTS idx_facts_person_id ON facts(person_id);
       CREATE INDEX IF NOT EXISTS idx_dates_person_id ON dates(person_id);
+
+      PRAGMA user_version = 1;
     `);
+    });
   }
 
-  db.execSync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
+  if (currentVersion < 2) {
+    // v2: facts.label becomes nullable (plain-text facts) — SQLite cannot
+    // drop NOT NULL, so the table is rebuilt. Both tables gain sort_order
+    // (reserved for custom drag-n-drop ordering; backfilled by created_at).
+    db.withTransactionSync(() => {
+      db.execSync(`
+        CREATE TABLE facts_new (
+          id TEXT PRIMARY KEY NOT NULL,
+          person_id TEXT NOT NULL REFERENCES persons(id),
+          label TEXT,
+          value TEXT NOT NULL,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          deleted_at TEXT
+        );
+
+        INSERT INTO facts_new (id, person_id, label, value, sort_order, created_at, updated_at, deleted_at)
+          SELECT id, person_id, NULLIF(TRIM(label), ''), value, 0, created_at, updated_at, deleted_at
+          FROM facts;
+
+        DROP TABLE facts;
+        ALTER TABLE facts_new RENAME TO facts;
+        CREATE INDEX IF NOT EXISTS idx_facts_person_id ON facts(person_id);
+
+        ALTER TABLE dates ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0;
+
+        UPDATE facts SET sort_order = t.rn
+          FROM (
+            SELECT id, ROW_NUMBER() OVER (PARTITION BY person_id ORDER BY created_at) AS rn
+            FROM facts
+          ) AS t
+          WHERE t.id = facts.id;
+
+        UPDATE dates SET sort_order = t.rn
+          FROM (
+            SELECT id, ROW_NUMBER() OVER (PARTITION BY person_id ORDER BY created_at) AS rn
+            FROM dates
+          ) AS t
+          WHERE t.id = dates.id;
+
+        PRAGMA user_version = 2;
+      `);
+    });
+  }
 }
 
 migrate();
