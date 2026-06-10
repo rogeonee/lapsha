@@ -1,6 +1,7 @@
 # AGENTS.md
 
 See `CLAUDE.md` for commands, architecture, and technical patterns.
+See `notebook.md` for the running log of decisions, gotchas, and product direction.
 
 ## What is Lapsha?
 

@@ -3,6 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 See `AGENTS.md` for app context, domain model, current implementation state, and MVP gaps.
+See `notebook.md` for the running log of decisions, gotchas, and product direction.
 
 ## Commands
 
