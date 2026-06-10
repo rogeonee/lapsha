@@ -1,4 +1,3 @@
-import { PostgrestError } from '@supabase/supabase-js';
 import { ZodError } from 'zod';
 
 /**
@@ -22,24 +21,33 @@ export interface ServiceError {
  * Error categories for consistent error handling
  */
 export enum ErrorCode {
-  // Validation errors (400-level)
+  // Validation errors
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   INVALID_INPUT = 'INVALID_INPUT',
 
-  // Authentication/Authorization errors (401/403-level)
-  UNAUTHORIZED = 'UNAUTHORIZED',
-  FORBIDDEN = 'FORBIDDEN',
-
-  // Not found errors (404-level)
+  // Not found errors
   NOT_FOUND = 'NOT_FOUND',
   PERSON_NOT_FOUND = 'PERSON_NOT_FOUND',
   FACT_NOT_FOUND = 'FACT_NOT_FOUND',
   DATE_NOT_FOUND = 'DATE_NOT_FOUND',
 
-  // Database/Server errors (500-level)
+  // Database errors
   DATABASE_ERROR = 'DATABASE_ERROR',
-  CONNECTION_ERROR = 'CONNECTION_ERROR',
   UNEXPECTED_ERROR = 'UNEXPECTED_ERROR',
+}
+
+/**
+ * Throwable error carrying a ServiceError code, for use inside
+ * runServiceOperation
+ */
+export class NotFoundError extends Error {
+  code: ErrorCode;
+
+  constructor(message: string, code: ErrorCode = ErrorCode.NOT_FOUND) {
+    super(message);
+    this.name = 'NotFoundError';
+    this.code = code;
+  }
 }
 
 /**
@@ -59,64 +67,46 @@ export function createErrorResponse<T>(
 }
 
 /**
- * Map Supabase/PostgreSQL errors to our standard error format
+ * Map SQLite errors to our standard error format.
+ * expo-sqlite throws plain Errors; constraint failures are identified
+ * by message content.
  */
-export function mapSupabaseError(error: PostgrestError): ServiceError {
-  // Handle specific PostgreSQL error codes
-  switch (error.code) {
-    case 'PGRST116': // No rows returned
-    case '42P01': // Relation does not exist
-      return {
-        code: ErrorCode.NOT_FOUND,
-        message: 'Resource not found',
-        details: error,
-      };
+export function mapDatabaseError(error: unknown): ServiceError {
+  const message = error instanceof Error ? error.message : String(error);
 
-    case '23505': // Unique violation
-      return {
-        code: ErrorCode.VALIDATION_ERROR,
-        message: 'Duplicate entry - resource already exists',
-        details: error,
-      };
-
-    case '23503': // Foreign key violation
-      return {
-        code: ErrorCode.VALIDATION_ERROR,
-        message: 'Invalid reference - related resource not found',
-        details: error,
-      };
-
-    case '23514': // Check constraint violation
-      return {
-        code: ErrorCode.VALIDATION_ERROR,
-        message: 'Data violates database constraints',
-        details: error,
-      };
-
-    case '42501': // Insufficient privilege (RLS policy violation)
-      return {
-        code: ErrorCode.FORBIDDEN,
-        message: 'Access denied - insufficient permissions',
-        details: error,
-      };
-
-    case '08000': // Connection exception
-    case '08003': // Connection does not exist
-    case '08006': // Connection failure
-      return {
-        code: ErrorCode.CONNECTION_ERROR,
-        message: 'Database connection failed',
-        details: error,
-      };
-
-    default:
-      // Generic database error
-      return {
-        code: ErrorCode.DATABASE_ERROR,
-        message: error.message || 'Database operation failed',
-        details: error,
-      };
+  if (
+    message.includes('UNIQUE constraint failed') ||
+    message.includes('CHECK constraint failed') ||
+    message.includes('NOT NULL constraint failed')
+  ) {
+    return {
+      code: ErrorCode.VALIDATION_ERROR,
+      message: 'Data violates database constraints',
+      details: error,
+    };
   }
+
+  if (message.includes('FOREIGN KEY constraint failed')) {
+    return {
+      code: ErrorCode.VALIDATION_ERROR,
+      message: 'Invalid reference - related resource not found',
+      details: error,
+    };
+  }
+
+  if (message.includes('no such table') || message.includes('no such column')) {
+    return {
+      code: ErrorCode.NOT_FOUND,
+      message: 'Resource not found',
+      details: error,
+    };
+  }
+
+  return {
+    code: ErrorCode.DATABASE_ERROR,
+    message: message || 'Database operation failed',
+    details: error,
+  };
 }
 
 /**
@@ -156,27 +146,27 @@ export function mapGenericError(error: unknown): ServiceError {
 }
 
 /**
- * Wrapper function to handle service operations with consistent error handling
+ * Wrapper to run a synchronous service operation with consistent
+ * error handling. Throw NotFoundError inside the operation to produce
+ * a NOT_FOUND response.
  */
-export async function handleServiceOperation<T>(
-  operation: () => Promise<T>,
+export function runServiceOperation<T>(
+  operation: () => T,
   errorContext?: string,
-): Promise<ServiceResponse<T>> {
+): ServiceResponse<T> {
   try {
-    const result = await operation();
-    return createSuccessResponse(result);
+    return createSuccessResponse(operation());
   } catch (error) {
     let serviceError: ServiceError;
 
-    if (error instanceof ZodError) {
+    if (error instanceof NotFoundError) {
+      serviceError = { code: error.code, message: error.message };
+    } else if (error instanceof ZodError) {
       serviceError = mapValidationError(error);
-    } else if (error && typeof error === 'object' && 'code' in error) {
-      serviceError = mapSupabaseError(error as PostgrestError);
     } else {
-      serviceError = mapGenericError(error);
+      serviceError = mapDatabaseError(error);
     }
 
-    // Add context if provided
     if (errorContext) {
       serviceError.message = `${errorContext}: ${serviceError.message}`;
     }

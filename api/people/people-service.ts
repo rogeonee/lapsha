@@ -1,9 +1,12 @@
+import { randomUUID } from 'expo-crypto';
+import { db } from '~/api/database';
+import { rowToDate, type DateRow } from '~/api/dates/dates-service';
 import {
-  createErrorResponse,
-  createSuccessResponse,
-  mapSupabaseError,
+  ErrorCode,
+  NotFoundError,
+  runServiceOperation,
 } from '~/api/error-handling';
-import { supabase } from '~/api/supabase';
+import { createPersonSchema } from '~/api/people/person-schema';
 import {
   Person,
   PersonInsert,
@@ -15,159 +18,138 @@ import {
 // Re-export types for backward compatibility
 export type { Person, PersonInsert, PersonUpdate, PersonWithDetails };
 
-/**
- * Create a new person
- */
-export async function createPerson(
-  personData: PersonInsert,
-): Promise<ServiceResponse<Person>> {
-  const { data, error } = await supabase
-    .from('persons')
-    .insert(personData)
-    .select()
-    .single();
+function getPersonOrThrow(personId: string): Person {
+  const person = db.getFirstSync<Person>(
+    'SELECT * FROM persons WHERE id = ? AND deleted_at IS NULL',
+    personId,
+  );
 
-  if (error) {
-    return createErrorResponse(mapSupabaseError(error));
+  if (!person) {
+    throw new NotFoundError('Person not found', ErrorCode.PERSON_NOT_FOUND);
   }
 
-  return createSuccessResponse(data);
+  return person;
 }
 
 /**
- * Get all people for the current user
+ * Create a new person
  */
-export async function getPeople(
-  userId: string,
-): Promise<ServiceResponse<Person[]>> {
-  const { data, error } = await supabase
-    .from('v_persons')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+export function createPerson(
+  personData: PersonInsert,
+): ServiceResponse<Person> {
+  return runServiceOperation(() => {
+    const validated = createPersonSchema.parse(personData);
 
-  if (error) {
-    return createErrorResponse(mapSupabaseError(error));
-  }
+    const id = personData.id ?? randomUUID();
+    const now = new Date().toISOString();
 
-  return createSuccessResponse(data || []);
+    db.runSync(
+      `INSERT INTO persons (id, name, created_at, updated_at, deleted_at)
+       VALUES (?, ?, ?, ?, NULL)`,
+      id,
+      validated.name,
+      now,
+      now,
+    );
+
+    return getPersonOrThrow(id);
+  });
+}
+
+/**
+ * Get all people, newest first
+ */
+export function getPeople(): ServiceResponse<Person[]> {
+  return runServiceOperation(() =>
+    db.getAllSync<Person>(
+      'SELECT * FROM persons WHERE deleted_at IS NULL ORDER BY created_at DESC',
+    ),
+  );
 }
 
 /**
  * Get a single person by ID
  */
-export async function getPerson(
-  personId: string,
-): Promise<ServiceResponse<Person>> {
-  const { data, error } = await supabase
-    .from('v_persons')
-    .select('*')
-    .eq('id', personId)
-    .single();
-
-  if (error) {
-    return createErrorResponse(mapSupabaseError(error));
-  }
-
-  return createSuccessResponse(data);
+export function getPerson(personId: string): ServiceResponse<Person> {
+  return runServiceOperation(() => getPersonOrThrow(personId));
 }
 
 /**
  * Update a person
  */
-export async function updatePerson(
+export function updatePerson(
   personId: string,
   updates: PersonUpdate,
-): Promise<ServiceResponse<Person>> {
-  const { data, error } = await supabase
-    .from('persons')
-    .update(updates)
-    .eq('id', personId)
-    .select()
-    .single();
+): ServiceResponse<Person> {
+  return runServiceOperation(() => {
+    getPersonOrThrow(personId);
 
-  if (error) {
-    return createErrorResponse(mapSupabaseError(error));
-  }
+    if (updates.name !== undefined) {
+      const validated = createPersonSchema.parse({ name: updates.name });
 
-  return createSuccessResponse(data);
+      db.runSync(
+        'UPDATE persons SET name = ?, updated_at = ? WHERE id = ?',
+        validated.name,
+        new Date().toISOString(),
+        personId,
+      );
+    }
+
+    return getPersonOrThrow(personId);
+  });
 }
 
 /**
  * Soft delete a person
  */
-export async function deletePerson(
-  personId: string,
-): Promise<ServiceResponse<Person>> {
-  const { data, error } = await supabase
-    .from('persons')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', personId)
-    .select()
-    .single();
+export function deletePerson(personId: string): ServiceResponse<Person> {
+  return runServiceOperation(() => {
+    getPersonOrThrow(personId);
 
-  if (error) {
-    return createErrorResponse(mapSupabaseError(error));
-  }
+    const now = new Date().toISOString();
+    db.runSync(
+      'UPDATE persons SET deleted_at = ?, updated_at = ? WHERE id = ?',
+      now,
+      now,
+      personId,
+    );
 
-  return createSuccessResponse(data);
+    const deleted = db.getFirstSync<Person>(
+      'SELECT * FROM persons WHERE id = ?',
+      personId,
+    );
+
+    if (!deleted) {
+      throw new NotFoundError('Person not found', ErrorCode.PERSON_NOT_FOUND);
+    }
+
+    return deleted;
+  });
 }
 
 /**
- * Get a person with all associated facts and dates in a single optimized query
+ * Get a person with all associated facts and dates
  */
-export async function getPersonWithDetails(
+export function getPersonWithDetails(
   personId: string,
-): Promise<ServiceResponse<PersonWithDetails>> {
-  // Get person with facts and dates in separate queries for better performance
-  // and to maintain proper ordering for each collection
+): ServiceResponse<PersonWithDetails> {
+  return runServiceOperation(() => {
+    const person = getPersonOrThrow(personId);
 
-  // First get the person
-  const { data: person, error: personError } = await supabase
-    .from('v_persons')
-    .select('*')
-    .eq('id', personId)
-    .single();
+    const facts = db.getAllSync<PersonWithDetails['facts'][number]>(
+      `SELECT * FROM facts
+       WHERE person_id = ? AND deleted_at IS NULL
+       ORDER BY created_at DESC`,
+      personId,
+    );
 
-  if (personError) {
-    return createErrorResponse(mapSupabaseError(personError));
-  }
+    const dates = db.getAllSync<DateRow>(
+      `SELECT * FROM dates
+       WHERE person_id = ? AND deleted_at IS NULL
+       ORDER BY date ASC`,
+      personId,
+    );
 
-  if (!person) {
-    return createErrorResponse({
-      code: 'NOT_FOUND',
-      message: 'Person not found',
-    });
-  }
-
-  // Get facts ordered by newest first (created_at desc)
-  const { data: facts, error: factsError } = await supabase
-    .from('v_facts')
-    .select('*')
-    .eq('person_id', personId)
-    .order('created_at', { ascending: false });
-
-  if (factsError) {
-    return createErrorResponse(mapSupabaseError(factsError));
-  }
-
-  // Get dates ordered chronologically (date asc)
-  const { data: dates, error: datesError } = await supabase
-    .from('v_dates')
-    .select('*')
-    .eq('person_id', personId)
-    .order('date', { ascending: true });
-
-  if (datesError) {
-    return createErrorResponse(mapSupabaseError(datesError));
-  }
-
-  // Combine into PersonWithDetails, handling cases where person has no facts or dates
-  const personWithDetails: PersonWithDetails = {
-    ...person,
-    facts: facts || [],
-    dates: dates || [],
-  };
-
-  return createSuccessResponse(personWithDetails);
+    return { ...person, facts, dates: dates.map(rowToDate) };
+  });
 }

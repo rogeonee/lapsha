@@ -1,128 +1,127 @@
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  mapSupabaseError,
-  mapValidationError,
-} from '~/api/error-handling';
-import { createFactSchema, updateFactSchema } from '~/api/facts/fact-schema';
-import { supabase } from '~/api/supabase';
+import { randomUUID } from 'expo-crypto';
+import { db } from '~/api/database';
 import {
   ErrorCode,
-  Fact,
-  FactInsert,
-  FactUpdate,
-  ServiceResponse,
-} from '~/types/db';
+  NotFoundError,
+  runServiceOperation,
+} from '~/api/error-handling';
+import { createFactSchema, updateFactSchema } from '~/api/facts/fact-schema';
+import { Fact, FactInsert, FactUpdate, ServiceResponse } from '~/types/db';
+
+function assertPersonExists(personId: string): void {
+  const person = db.getFirstSync<{ id: string }>(
+    'SELECT id FROM persons WHERE id = ? AND deleted_at IS NULL',
+    personId,
+  );
+
+  if (!person) {
+    throw new NotFoundError('Person not found', ErrorCode.PERSON_NOT_FOUND);
+  }
+}
+
+function getFactOrThrow(factId: string): Fact {
+  const fact = db.getFirstSync<Fact>(
+    'SELECT * FROM facts WHERE id = ? AND deleted_at IS NULL',
+    factId,
+  );
+
+  if (!fact) {
+    throw new NotFoundError('Fact not found', ErrorCode.FACT_NOT_FOUND);
+  }
+
+  return fact;
+}
 
 /**
  * Create a new fact for a person
  */
-export async function createFact(
-  factData: FactInsert,
-): Promise<ServiceResponse<Fact>> {
-  try {
-    // Validate input data
+export function createFact(factData: FactInsert): ServiceResponse<Fact> {
+  return runServiceOperation(() => {
     const validated = createFactSchema.parse(factData);
 
-    const { data, error } = await supabase
-      .from('facts')
-      .insert(validated)
-      .select()
-      .single();
+    assertPersonExists(validated.person_id);
 
-    if (error) {
-      return createErrorResponse(mapSupabaseError(error));
-    }
+    const id = factData.id ?? randomUUID();
+    const now = new Date().toISOString();
 
-    return createSuccessResponse(data);
-  } catch (validationError) {
-    return createErrorResponse(mapValidationError(validationError as any));
-  }
+    db.runSync(
+      `INSERT INTO facts (id, person_id, label, value, created_at, updated_at, deleted_at)
+       VALUES (?, ?, ?, ?, ?, ?, NULL)`,
+      id,
+      validated.person_id,
+      validated.label,
+      validated.value,
+      now,
+      now,
+    );
+
+    return getFactOrThrow(id);
+  });
 }
 
 /**
- * Get all facts for a specific person
+ * Get all facts for a specific person, newest first
  */
-export async function getFactsByPerson(
-  personId: string,
-): Promise<ServiceResponse<Fact[]>> {
-  // Ensure the parent person exists and is not soft-deleted
-  const { data: person, error: personError } = await supabase
-    .from('v_persons')
-    .select('id, deleted_at')
-    .eq('id', personId)
-    .single();
+export function getFactsByPerson(personId: string): ServiceResponse<Fact[]> {
+  return runServiceOperation(() => {
+    assertPersonExists(personId);
 
-  if (personError) {
-    return createErrorResponse(mapSupabaseError(personError));
-  }
-
-  if (!person || person.deleted_at) {
-    return createErrorResponse({
-      code: ErrorCode.NOT_FOUND,
-      message: 'Person not found',
-    });
-  }
-
-  const { data, error } = await supabase
-    .from('v_facts')
-    .select('*')
-    .eq('person_id', personId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    return createErrorResponse(mapSupabaseError(error));
-  }
-
-  return createSuccessResponse(data || []);
+    return db.getAllSync<Fact>(
+      `SELECT * FROM facts
+       WHERE person_id = ? AND deleted_at IS NULL
+       ORDER BY created_at DESC`,
+      personId,
+    );
+  });
 }
 
 /**
  * Update a fact
  */
-export async function updateFact(
+export function updateFact(
   factId: string,
   updates: FactUpdate,
-): Promise<ServiceResponse<Fact>> {
-  try {
-    // Validate update data if provided
-    if (updates.label !== undefined || updates.value !== undefined) {
-      updateFactSchema.parse(updates);
-    }
+): ServiceResponse<Fact> {
+  return runServiceOperation(() => {
+    const validated = updateFactSchema.parse(updates);
+    const existing = getFactOrThrow(factId);
 
-    const { data, error } = await supabase
-      .from('facts')
-      .update(updates)
-      .eq('id', factId)
-      .select()
-      .single();
+    db.runSync(
+      'UPDATE facts SET label = ?, value = ?, updated_at = ? WHERE id = ?',
+      validated.label ?? existing.label,
+      validated.value ?? existing.value,
+      new Date().toISOString(),
+      factId,
+    );
 
-    if (error) {
-      return createErrorResponse(mapSupabaseError(error));
-    }
-
-    return createSuccessResponse(data);
-  } catch (validationError) {
-    return createErrorResponse(mapValidationError(validationError as any));
-  }
+    return getFactOrThrow(factId);
+  });
 }
 
 /**
  * Soft delete a fact
  */
-export async function deleteFact(
-  factId: string,
-): Promise<ServiceResponse<Fact>> {
-  const { data, error } = await supabase
-    .from('facts')
-    .update({ deleted_at: new Date().toISOString() })
-    .eq('id', factId)
-    .select()
-    .single();
+export function deleteFact(factId: string): ServiceResponse<Fact> {
+  return runServiceOperation(() => {
+    getFactOrThrow(factId);
 
-  if (error) {
-    return createErrorResponse(mapSupabaseError(error));
-  }
+    const now = new Date().toISOString();
+    db.runSync(
+      'UPDATE facts SET deleted_at = ?, updated_at = ? WHERE id = ?',
+      now,
+      now,
+      factId,
+    );
 
-  return createSuccessResponse(data);
+    const deleted = db.getFirstSync<Fact>(
+      'SELECT * FROM facts WHERE id = ?',
+      factId,
+    );
+
+    if (!deleted) {
+      throw new NotFoundError('Fact not found', ErrorCode.FACT_NOT_FOUND);
+    }
+
+    return deleted;
+  });
 }
