@@ -7,23 +7,23 @@ See `AGENTS.md` for app context, domain model, current implementation state, and
 ## Commands
 
 ```bash
-# Install dependencies (always use npx expo install for new packages)
-npm install
-npx expo install <package-name>
+# Install dependencies (always use bunx expo install for new packages)
+bun install
+bunx expo install <package-name>
 
 # Start development server
-npx expo start
-npm run start          # starts with --tunnel flag
+bunx expo start
+bun run start
 
 # Run on specific platform
-npm run ios            # expo run:ios
-npm run android        # expo run:android
+bun run ios            # expo run:ios
+bun run android        # expo run:android
 
 # Lint
-npm run lint           # expo lint
+bun run lint           # expo lint
 ```
 
-**Note:** Web target (`npm run web`) is not supported — `expo-sqlite` requires native modules.
+**Note:** Web target (`bun run web`) is not supported — `expo-sqlite` requires native modules.
 
 ## Architecture
 

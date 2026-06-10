@@ -52,7 +52,7 @@ Single-user, local-first app. No authentication — all data stored locally via 
 - **React Compiler** is on - skip manual `useMemo`/`useCallback`/`memo`, don't mutate state
 - **Expo Router** for navigation (not React Navigation directly)
 - **NativeWind** classes preferred over StyleSheet
-- **`npx expo install`** for all new dependencies
+- **`bunx expo install`** for all new dependencies
 - **ServiceResponse pattern** for all API calls (check `response.error` first)
 - **Synchronous services** — all DB operations use `expo-sqlite` sync APIs
 - **Zod** for form validation with react-hook-form
