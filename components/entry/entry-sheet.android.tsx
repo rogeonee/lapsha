@@ -1,4 +1,4 @@
-import { DatePickerDialog } from '@expo/ui/jetpack-compose';
+import { DatePickerDialog, Host } from '@expo/ui/jetpack-compose';
 import { useRouter } from 'expo-router';
 import { BottomSheet } from 'heroui-native/bottom-sheet';
 import { Button } from 'heroui-native/button';
@@ -44,10 +44,9 @@ export function EntrySheet({
     setRendered({ config, nonce: (rendered?.nonce ?? 0) + 1 });
   }
 
-  if (!rendered) {
-    return null;
-  }
-
+  // The sheet stays mounted: HeroUI's bottom sheet only animates open on
+  // an isOpen false -> true transition, so mounting it already-open
+  // (mount-on-demand) would leave it permanently closed.
   return (
     <BottomSheet
       isOpen={config !== null}
@@ -60,11 +59,13 @@ export function EntrySheet({
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
         <BottomSheet.Content keyboardBehavior="interactive">
-          <EntryForm
-            key={rendered.nonce}
-            config={rendered.config}
-            onClose={onClose}
-          />
+          {rendered && (
+            <EntryForm
+              key={rendered.nonce}
+              config={rendered.config}
+              onClose={onClose}
+            />
+          )}
         </BottomSheet.Content>
       </BottomSheet.Portal>
     </BottomSheet>
@@ -202,17 +203,28 @@ function EntryForm({
             </Text>
           </Pressable>
           {datePickerOpen && (
-            <DatePickerDialog
-              initialDate={form.pickedDate.toISOString()}
-              variant="picker"
-              showVariantToggle={false}
-              color="#F6B756"
-              onDateSelected={(date) => {
-                form.setPickedDate(date);
-                setDatePickerOpen(false);
-              }}
-              onDismissRequest={() => setDatePickerOpen(false)}
-            />
+            // The dialog renders in its own window; the Host is zero-size
+            <Host style={{ position: 'absolute', width: 0, height: 0 }}>
+              <DatePickerDialog
+                initialDate={form.pickedDate.toISOString()}
+                variant="picker"
+                showVariantToggle={false}
+                color="#F6B756"
+                onDateSelected={(date) => {
+                  // Material 3 returns UTC-midnight millis; re-read the
+                  // date in UTC or it shifts a day in western timezones
+                  form.setPickedDate(
+                    new Date(
+                      date.getUTCFullYear(),
+                      date.getUTCMonth(),
+                      date.getUTCDate(),
+                    ),
+                  );
+                  setDatePickerOpen(false);
+                }}
+                onDismissRequest={() => setDatePickerOpen(false)}
+              />
+            </Host>
           )}
 
           <View className="flex-row items-center justify-between px-1">

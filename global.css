@@ -8,6 +8,11 @@
 @source './node_modules/heroui-native/lib';
 
 @theme {
+  /* Rebrand HeroUI's accent (primary buttons, focus rings, switches) to
+     Lapsha amber; only HeroUI components consume these tokens. Static
+     override here because HeroUI maps --color-accent in @theme. */
+  --color-accent: hsl(38 90% 65%);
+  --color-accent-foreground: hsl(240 5.9% 10%);
   --color-background: hsl(0 0% 100%);
   --color-foreground: hsl(240 10% 3.9%);
   --color-card: hsl(0 0% 100%);
@@ -29,6 +34,10 @@
 @layer theme {
   :root {
     @variant light {
+      /* Rebrand HeroUI's accent (primary buttons, focus rings, switches)
+         to Lapsha amber; only HeroUI components consume these tokens */
+      --color-accent: hsl(38 90% 65%);
+      --color-accent-foreground: hsl(240 5.9% 10%);
       --color-background: hsl(0 0% 100%);
       --color-foreground: hsl(240 10% 3.9%);
       --color-card: hsl(0 0% 100%);
@@ -48,6 +57,8 @@
     }
 
     @variant dark {
+      --color-accent: hsl(38 90% 65%);
+      --color-accent-foreground: hsl(240 5.9% 10%);
       --color-background: hsl(240 10% 3.9%);
       --color-foreground: hsl(0 0% 98%);
       --color-card: hsl(240 10% 3.9%);

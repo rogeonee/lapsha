@@ -6,6 +6,7 @@ import {
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
 import { QuickAddAccessory } from '~/components/quick-add/quick-add-accessory';
+import { QuickAddFab } from '~/components/quick-add/quick-add-fab';
 
 export default function TabLayout() {
   // The accessory is rendered twice by the system (regular + inline
@@ -51,6 +52,11 @@ export default function TabLayout() {
           <NativeTabs.Trigger.Icon sf={'gear'} drawable="ic_menu_preferences" />
         </NativeTabs.Trigger>
       </NativeTabs>
+
+      {/* Android only; iOS quick add is the BottomAccessory above */}
+      <QuickAddFab
+        onPress={() => setQuickAdd({ mode: 'create', kind: 'fact' })}
+      />
 
       <EntrySheet config={quickAdd} onClose={() => setQuickAdd(null)} />
     </>
