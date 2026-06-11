@@ -5,7 +5,7 @@ import { TextClassContext } from '~/components/ui/text';
 import { cn } from '~/lib/utils';
 
 const buttonVariants = cva(
-  'group flex items-center justify-center rounded-md web:ring-offset-background web:transition-colors web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2',
+  'flex items-center justify-center rounded-md web:ring-offset-background web:transition-colors web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2',
   {
     variants: {
       variant: {
@@ -39,11 +39,10 @@ const buttonTextVariants = cva(
       variant: {
         default: 'text-primary-foreground',
         destructive: 'text-destructive-foreground',
-        outline: 'group-active:text-accent-foreground',
-        secondary:
-          'text-secondary-foreground group-active:text-secondary-foreground',
-        ghost: 'group-active:text-accent-foreground',
-        link: 'text-primary group-active:underline',
+        outline: '',
+        secondary: 'text-secondary-foreground',
+        ghost: '',
+        link: 'text-primary',
       },
       size: {
         default: '',
