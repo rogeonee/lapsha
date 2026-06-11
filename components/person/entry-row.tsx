@@ -1,8 +1,8 @@
-import { Image } from 'expo-image';
 import { Pressable, View } from 'react-native';
 import Swipeable, {
   type SwipeableMethods,
 } from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { PlusCircleIcon, TrashIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 import { cn } from '~/lib/utils';
 
@@ -36,11 +36,7 @@ export function EntryRow({
       className="bg-destructive items-center justify-center w-20"
       accessibilityLabel={`Delete ${label || value}`}
     >
-      <Image
-        source="sf:trash.fill"
-        tintColor="white"
-        style={{ width: 18, height: 18 }}
-      />
+      <TrashIcon color="white" />
     </Pressable>
   );
 
@@ -88,11 +84,7 @@ export function AddRow({
         divider && 'border-t border-black/5',
       )}
     >
-      <Image
-        source="sf:plus.circle.fill"
-        tintColor="#F6B756"
-        style={{ width: 18, height: 18 }}
-      />
+      <PlusCircleIcon color="#F6B756" />
       <Text className="text-base" style={{ color: '#B07818' }}>
         {title}
       </Text>

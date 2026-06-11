@@ -9,8 +9,9 @@ import { Select } from 'heroui-native/select';
 import { Switch } from 'heroui-native/switch';
 import { Tabs } from 'heroui-native/tabs';
 import { TextField } from 'heroui-native/text-field';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
+import { KeyboardEvents } from 'react-native-keyboard-controller';
 import {
   useEntryForm,
   type EntryKind,
@@ -58,7 +59,12 @@ export function EntrySheet({
     >
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
-        <BottomSheet.Content keyboardBehavior="interactive">
+        <BottomSheet.Content
+          keyboardBehavior="interactive"
+          // gorhom defaults to adjustPan on Android, which leaves the
+          // sheet behind the keyboard; adjustResize lets it track height
+          android_keyboardInputMode="adjustResize"
+        >
           {rendered && (
             <EntryForm
               key={rendered.nonce}
@@ -84,6 +90,25 @@ function EntryForm({
   const { onFocus, onBlur } = useBottomSheetAwareHandlers();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
+  // Keyboard avoidance: react-native-keyboard-controller owns the window
+  // insets (root KeyboardProvider), which starves gorhom's own keyboard
+  // tracking — its computed in-container height resolves to 0 and the
+  // sheet never lifts. Pad the content from keyboard-controller's events
+  // instead; dynamic sizing re-snaps the sheet above the keyboard.
+  const [keyboardPad, setKeyboardPad] = useState(0);
+  useEffect(() => {
+    const show = KeyboardEvents.addListener('keyboardWillShow', (e) =>
+      setKeyboardPad(e.height),
+    );
+    const hide = KeyboardEvents.addListener('keyboardWillHide', () =>
+      setKeyboardPad(0),
+    );
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
   if (form.showPersonPicker && form.people.length === 0) {
     return (
       <View className="gap-4 pb-2">
@@ -106,9 +131,11 @@ function EntryForm({
   const selectedPerson = form.people.find((p) => p.id === form.personId);
 
   return (
-    <View className="gap-5 pb-2">
+    <View className="gap-5 pb-2" style={{ paddingBottom: keyboardPad }}>
       {form.showPersonPicker && (
         <Select
+          // Must match Select.Content's presentation or HeroUI throws
+          presentation="dialog"
           value={
             selectedPerson
               ? { value: selectedPerson.id, label: selectedPerson.name }

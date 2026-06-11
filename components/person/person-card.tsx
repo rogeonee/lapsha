@@ -1,5 +1,5 @@
-import { Image } from 'expo-image';
 import { View } from 'react-native';
+import { ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 import type { Person } from '~/types/db';
 
@@ -25,11 +25,7 @@ export function PersonCard({ person }: { person: Person }) {
       <Text className="text-lg font-medium flex-1" numberOfLines={1}>
         {person.name}
       </Text>
-      <Image
-        source="sf:chevron.right"
-        tintColor="#C9C2B6"
-        style={{ width: 13, height: 13 }}
-      />
+      <ChevronRightIcon color="#C9C2B6" />
     </View>
   );
 }
