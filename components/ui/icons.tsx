@@ -62,6 +62,25 @@ export function TrashIcon({ size = 18, color }: IconProps) {
   );
 }
 
+export function CheckIcon({ size = 18, color }: IconProps) {
+  if (isIOS) {
+    return (
+      <Image
+        source="sf:checkmark"
+        tintColor={String(color)}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <MaterialIcon
+      size={size}
+      color={color}
+      d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+    />
+  );
+}
+
 export function ChevronRightIcon({ size = 13, color }: IconProps) {
   if (isIOS) {
     return (

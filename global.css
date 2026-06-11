@@ -9,8 +9,10 @@
 
 @theme {
   /* Rebrand HeroUI's accent (primary buttons, focus rings, switches) to
-     Lapsha amber; only HeroUI components consume these tokens. Static
-     override here because HeroUI maps --color-accent in @theme. */
+     Lapsha amber. HeroUI maps --color-accent in @theme; hover/soft
+     variants are color-mixed from the RAW --accent var, so the raw vars
+     are overridden too (in the @variant blocks below) or pressed states
+     flash HeroUI blue. */
   --color-accent: hsl(38 90% 65%);
   --color-accent-foreground: hsl(240 5.9% 10%);
   --color-background: hsl(0 0% 100%);
@@ -34,8 +36,8 @@
 @layer theme {
   :root {
     @variant light {
-      /* Rebrand HeroUI's accent (primary buttons, focus rings, switches)
-         to Lapsha amber; only HeroUI components consume these tokens */
+      --accent: hsl(38 90% 65%);
+      --accent-foreground: hsl(240 5.9% 10%);
       --color-accent: hsl(38 90% 65%);
       --color-accent-foreground: hsl(240 5.9% 10%);
       --color-background: hsl(0 0% 100%);
@@ -57,6 +59,8 @@
     }
 
     @variant dark {
+      --accent: hsl(38 90% 65%);
+      --accent-foreground: hsl(240 5.9% 10%);
       --color-accent: hsl(38 90% 65%);
       --color-accent-foreground: hsl(240 5.9% 10%);
       --color-background: hsl(240 10% 3.9%);

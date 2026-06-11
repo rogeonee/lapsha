@@ -5,18 +5,18 @@ import { Button } from 'heroui-native/button';
 import { useBottomSheetAwareHandlers } from 'heroui-native/hooks';
 import { Input } from 'heroui-native/input';
 import { Label } from 'heroui-native/label';
-import { Select } from 'heroui-native/select';
 import { Switch } from 'heroui-native/switch';
 import { Tabs } from 'heroui-native/tabs';
 import { TextField } from 'heroui-native/text-field';
-import { useEffect, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Keyboard, Pressable, View, type TextInput } from 'react-native';
 import { KeyboardEvents } from 'react-native-keyboard-controller';
 import {
   useEntryForm,
   type EntryKind,
   type EntrySheetConfig,
 } from '~/components/entry/use-entry-form';
+import { CheckIcon, ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 
 export type { EntrySheetConfig };
@@ -45,6 +45,16 @@ export function EntrySheet({
     setRendered({ config, nonce: (rendered?.nonce ?? 0) + 1 });
   }
 
+  // The keyboard outlives the sheet otherwise (overlay tap, save, swipe)
+  const handleClose = () => {
+    Keyboard.dismiss();
+    onClose();
+  };
+
+  // Settled signal drives the deferred autofocus: focusing during the
+  // open animation makes the sheet and keyboard race (visible stutter)
+  const [settled, setSettled] = useState(false);
+
   // The sheet stays mounted: HeroUI's bottom sheet only animates open on
   // an isOpen false -> true transition, so mounting it already-open
   // (mount-on-demand) would leave it permanently closed.
@@ -53,7 +63,7 @@ export function EntrySheet({
       isOpen={config !== null}
       onOpenChange={(open) => {
         if (!open) {
-          onClose();
+          handleClose();
         }
       }}
     >
@@ -61,15 +71,18 @@ export function EntrySheet({
         <BottomSheet.Overlay />
         <BottomSheet.Content
           keyboardBehavior="interactive"
-          // gorhom defaults to adjustPan on Android, which leaves the
-          // sheet behind the keyboard; adjustResize lets it track height
+          // Keeps gorhom's own keyboard lift inert (its in-container
+          // height math is broken under the root KeyboardProvider), so
+          // it can't fight the KeyboardEvents padding in EntryForm
           android_keyboardInputMode="adjustResize"
+          onChange={(index) => setSettled(index >= 0)}
         >
           {rendered && (
             <EntryForm
               key={rendered.nonce}
               config={rendered.config}
-              onClose={onClose}
+              onClose={handleClose}
+              canFocus={settled}
             />
           )}
         </BottomSheet.Content>
@@ -81,14 +94,27 @@ export function EntrySheet({
 function EntryForm({
   config,
   onClose,
+  canFocus,
 }: {
   config: EntrySheetConfig;
   onClose: () => void;
+  canFocus: boolean;
 }) {
   const router = useRouter();
   const form = useEntryForm(config, onClose);
   const { onFocus, onBlur } = useBottomSheetAwareHandlers();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [personListOpen, setPersonListOpen] = useState(false);
+
+  // Deferred autofocus: focus the fact field once the sheet has settled
+  const factInputRef = useRef<TextInput>(null);
+  const focusedOnce = useRef(false);
+  useEffect(() => {
+    if (canFocus && !focusedOnce.current && config.mode === 'create') {
+      focusedOnce.current = true;
+      factInputRef.current?.focus();
+    }
+  }, [canFocus, config.mode]);
 
   // Keyboard avoidance: react-native-keyboard-controller owns the window
   // insets (root KeyboardProvider), which starves gorhom's own keyboard
@@ -133,33 +159,45 @@ function EntryForm({
   return (
     <View className="gap-5 pb-2" style={{ paddingBottom: keyboardPad }}>
       {form.showPersonPicker && (
-        <Select
-          // Must match Select.Content's presentation or HeroUI throws
-          presentation="dialog"
-          value={
-            selectedPerson
-              ? { value: selectedPerson.id, label: selectedPerson.name }
-              : undefined
-          }
-          onValueChange={(option) => {
-            if (option && !Array.isArray(option)) {
-              form.setPersonId(String(option.value));
-            }
-          }}
-        >
-          <Select.Trigger>
-            <Select.Value placeholder="Person" />
-            <Select.TriggerIndicator />
-          </Select.Trigger>
-          <Select.Portal>
-            <Select.Overlay />
-            <Select.Content presentation="dialog">
-              {form.people.map((p) => (
-                <Select.Item key={p.id} value={p.id} label={p.name} />
-              ))}
-            </Select.Content>
-          </Select.Portal>
-        </Select>
+        // Inline expanding picker. HeroUI Select's overlays all misbehave
+        // inside the sheet (popover renders broken, dialog floats over
+        // the form, nested bottom sheet is poor UX); expanding in place
+        // keeps one surface and dynamic sizing grows the sheet with it.
+        <View className="rounded-xl bg-secondary">
+          <Pressable
+            onPress={() => {
+              Keyboard.dismiss();
+              setPersonListOpen((open) => !open);
+            }}
+            className="flex-row items-center justify-between px-4 py-3"
+            accessibilityLabel="Choose person"
+          >
+            <Text className="text-base">
+              {selectedPerson?.name ?? 'Person'}
+            </Text>
+            <View
+              style={{
+                transform: [{ rotate: personListOpen ? '270deg' : '90deg' }],
+              }}
+            >
+              <ChevronRightIcon color="#8A8577" />
+            </View>
+          </Pressable>
+          {personListOpen &&
+            form.people.map((p) => (
+              <Pressable
+                key={p.id}
+                onPress={() => {
+                  form.setPersonId(p.id);
+                  setPersonListOpen(false);
+                }}
+                className="flex-row items-center justify-between border-t border-black/5 px-4 py-3 active:bg-black/5"
+              >
+                <Text className="text-base">{p.name}</Text>
+                {p.id === form.personId && <CheckIcon color="#B07818" />}
+              </Pressable>
+            ))}
+        </View>
       )}
 
       {config.mode === 'create' && (
@@ -184,10 +222,10 @@ function EntryForm({
           <TextField>
             <Label>{form.editFact ? 'Edit fact' : 'New fact'}</Label>
             <Input
+              ref={factInputRef}
               placeholder="The fact itself"
               defaultValue={form.initialFactValue}
               onChangeText={form.setFactValue}
-              autoFocus={config.mode === 'create'}
               onFocus={onFocus}
               onBlur={onBlur}
             />
