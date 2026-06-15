@@ -5,8 +5,9 @@ export const createFactSchema = z.object({
   label: z
     .string()
     .trim()
-    .min(1, 'Label is required')
-    .max(100, 'Label must be 100 characters or less'),
+    .min(1, 'Label cannot be empty')
+    .max(100, 'Label must be 100 characters or less')
+    .nullish(),
   value: z
     .string()
     .trim()
@@ -18,9 +19,9 @@ export const updateFactSchema = z.object({
   label: z
     .string()
     .trim()
-    .min(1, 'Label is required')
+    .min(1, 'Label cannot be empty')
     .max(100, 'Label must be 100 characters or less')
-    .optional(),
+    .nullish(),
   value: z
     .string()
     .trim()
