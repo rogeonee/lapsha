@@ -5,14 +5,18 @@ import {
   EntrySheet,
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
-import { QuickAddAccessory } from '~/components/quick-add/quick-add-accessory';
 import { QuickAddFab } from '~/components/quick-add/quick-add-fab';
 
+// iOS 26 renders a `role="search"` tab as a detached circular button on the
+// right of the tab bar (build with Xcode 26). We co-opt it as the quick-add
+// button there. On older iOS the same role would show as a plain inline tab,
+// so we hide it; Android keeps the FAB.
+const SEARCH_TAB_QUICK_ADD =
+  Platform.OS === 'ios' && Number.parseInt(String(Platform.Version), 10) >= 26;
+
 export default function TabLayout() {
-  // The accessory is rendered twice by the system (regular + inline
-  // placements) with no shared internal state, so the quick-add sheet and
-  // its state are hoisted here and mounted once, outside the accessory.
   const [quickAdd, setQuickAdd] = useState<EntrySheetConfig | null>(null);
+  const openQuickAdd = () => setQuickAdd({ mode: 'create', kind: 'fact' });
 
   return (
     <>
@@ -23,14 +27,12 @@ export default function TabLayout() {
             ? DynamicColorIOS({ light: '#F6B756', dark: '#F6B756' })
             : undefined
         }
+        unstable_nativeProps={
+          SEARCH_TAB_QUICK_ADD
+            ? { onTabSelectionPrevented: openQuickAdd }
+            : undefined
+        }
       >
-        {/* iOS 26+ only; older iOS and Android never render it */}
-        <NativeTabs.BottomAccessory>
-          <QuickAddAccessory
-            onPress={() => setQuickAdd({ mode: 'create', kind: 'fact' })}
-          />
-        </NativeTabs.BottomAccessory>
-
         <NativeTabs.Trigger name="index">
           <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
           <NativeTabs.Trigger.Icon
@@ -51,12 +53,24 @@ export default function TabLayout() {
           <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
           <NativeTabs.Trigger.Icon sf={'gear'} drawable="ic_menu_preferences" />
         </NativeTabs.Trigger>
+
+        {/* Quick-add as a detached search-role button (iOS 26 only). `disabled`
+            maps to react-native-screens' preventNativeSelection: UIKit keeps
+            the current tab active and emits onTabSelectionPrevented, which
+            opens the sheet above. The route still needs a trigger so Expo
+            Router does not surface it automatically. */}
+        <NativeTabs.Trigger
+          name="quick-add"
+          role={SEARCH_TAB_QUICK_ADD ? 'search' : undefined}
+          hidden={!SEARCH_TAB_QUICK_ADD}
+          disabled={SEARCH_TAB_QUICK_ADD}
+        >
+          <NativeTabs.Trigger.Icon sf={'plus'} />
+        </NativeTabs.Trigger>
       </NativeTabs>
 
-      {/* Android only; iOS quick add is the BottomAccessory above */}
-      <QuickAddFab
-        onPress={() => setQuickAdd({ mode: 'create', kind: 'fact' })}
-      />
+      {/* Android only; iOS 26+ quick add is the search-role tab above */}
+      <QuickAddFab onPress={openQuickAdd} />
 
       <EntrySheet config={quickAdd} onClose={() => setQuickAdd(null)} />
     </>
