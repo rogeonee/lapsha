@@ -28,7 +28,12 @@ export default function PeopleScreen() {
     <>
       <Stack.Toolbar placement="right">
         <Stack.Toolbar.Button
-          icon="plus"
+          // Android ignores SF Symbol names; it needs an image source
+          icon={
+            process.env.EXPO_OS === 'ios'
+              ? 'plus'
+              : require('~/assets/icons/add.xml')
+          }
           accessibilityLabel="Add person"
           onPress={() => router.push('/add-person')}
         />

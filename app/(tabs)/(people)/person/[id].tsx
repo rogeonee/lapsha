@@ -140,7 +140,12 @@ export default function PersonScreen() {
       <Stack.Screen options={{ title: person?.name ?? '' }} />
       <Stack.Toolbar placement="right">
         <Stack.Toolbar.Menu
-          icon="arrow.up.arrow.down"
+          // Android ignores SF Symbol names; it needs an image source
+          icon={
+            process.env.EXPO_OS === 'ios'
+              ? 'arrow.up.arrow.down'
+              : require('~/assets/icons/swap_vert.xml')
+          }
           accessibilityLabel="Sort"
         >
           <Stack.Toolbar.Menu title="Sort facts" inline>
