@@ -8,6 +8,13 @@
 @source './node_modules/heroui-native/lib';
 
 @theme {
+  /* Lapsha palette (DESIGN.md § Colors). Raw values are mirrored in
+     lib/theme.ts for native props — keep both in sync. The app is locked
+     to light mode, so these have no dark variants yet. */
+  --color-paper: #f9f7f4;
+  --color-broth: #b07818;
+  --color-cream-swirl: #fbeac9;
+
   /* Rebrand HeroUI's accent (primary buttons, focus rings, switches) to
      Lapsha amber. HeroUI maps --color-accent in @theme; hover/soft
      variants are color-mixed from the RAW --accent var, so the raw vars

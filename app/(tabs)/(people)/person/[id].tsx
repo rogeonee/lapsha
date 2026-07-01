@@ -16,12 +16,13 @@ import { AddRow, EntryRow } from '~/components/person/entry-row';
 import { Text } from '~/components/ui/text';
 import { formatDisplayDate } from '~/lib/dates';
 import { getSortPref, setSortPref } from '~/lib/prefs';
+import { shadows } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import type { EntrySort, Fact, Person, Date as PersonDate } from '~/types/db';
 
 const cardStyle = {
   borderCurve: 'continuous',
-  boxShadow: '0 1px 3px rgba(28, 20, 8, 0.06)',
+  boxShadow: shadows.whisper,
 } as const;
 
 // Synchronous reads, derived during render. The unused version arg is an

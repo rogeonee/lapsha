@@ -6,6 +6,7 @@ import {
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
 import { QuickAddFab } from '~/components/quick-add/quick-add-fab';
+import { palette } from '~/lib/theme';
 
 // iOS 26 renders a `role="search"` tab as a detached circular button on the
 // right of the tab bar (build with Xcode 26). We co-opt it as the quick-add
@@ -24,7 +25,10 @@ export default function TabLayout() {
         minimizeBehavior="onScrollDown"
         tintColor={
           Platform.OS === 'ios'
-            ? DynamicColorIOS({ light: '#F6B756', dark: '#F6B756' })
+            ? DynamicColorIOS({
+                light: palette.noodleGold,
+                dark: palette.noodleGold,
+              })
             : undefined
         }
         unstable_nativeProps={

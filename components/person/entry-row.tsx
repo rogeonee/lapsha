@@ -4,6 +4,7 @@ import Swipeable, {
 } from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { PlusCircleIcon, TrashIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
+import { palette } from '~/lib/theme';
 import { cn } from '~/lib/utils';
 
 /**
@@ -84,10 +85,8 @@ export function AddRow({
         divider && 'border-t border-black/5',
       )}
     >
-      <PlusCircleIcon color="#F6B756" />
-      <Text className="text-base" style={{ color: '#B07818' }}>
-        {title}
-      </Text>
+      <PlusCircleIcon color={palette.noodleGold} />
+      <Text className="text-base text-broth">{title}</Text>
     </Pressable>
   );
 }

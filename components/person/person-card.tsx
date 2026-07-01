@@ -1,6 +1,7 @@
 import { View } from 'react-native';
 import { ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
+import { palette, shadows } from '~/lib/theme';
 import type { Person } from '~/types/db';
 
 export function PersonCard({ person }: { person: Person }) {
@@ -11,21 +12,16 @@ export function PersonCard({ person }: { person: Person }) {
       className="flex-row items-center bg-white rounded-2xl p-4"
       style={{
         borderCurve: 'continuous',
-        boxShadow: '0 1px 3px rgba(28, 20, 8, 0.06)',
+        boxShadow: shadows.whisper,
       }}
     >
-      <View
-        className="w-12 h-12 rounded-full items-center justify-center mr-4"
-        style={{ backgroundColor: '#FBEAC9' }}
-      >
-        <Text className="text-lg font-semibold" style={{ color: '#B07818' }}>
-          {initial}
-        </Text>
+      <View className="w-12 h-12 rounded-full items-center justify-center mr-4 bg-cream-swirl">
+        <Text className="text-lg font-semibold text-broth">{initial}</Text>
       </View>
       <Text className="text-lg font-medium flex-1" numberOfLines={1}>
         {person.name}
       </Text>
-      <ChevronRightIcon color="#C9C2B6" />
+      <ChevronRightIcon color={palette.warmGray} />
     </View>
   );
 }

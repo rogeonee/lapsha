@@ -103,17 +103,17 @@ export default function AddPersonModal() {
   };
 
   return (
-    <View className="flex-1 bg-[#F9F7F4]">
+    <View className="flex-1 bg-paper">
       {/* Header */}
-      <View className="flex-row items-center justify-between p-4 pt-16 border-red-500 border-gray-200">
+      <View className="flex-row items-center justify-between p-4 pt-16">
         <Text className="text-lg font-semibold">Add New Person</Text>
         <Button
           variant="outline"
           size="sm"
           onPress={handleClose}
-          className="bg-transparent border-gray-300"
+          className="bg-transparent border-border"
         >
-          <Text className="text-gray-600">×</Text>
+          <Text className="text-muted-foreground">×</Text>
         </Button>
       </View>
 
@@ -137,12 +137,12 @@ export default function AddPersonModal() {
                 autoFocus
                 maxLength={60}
                 accessibilityLabel="Person's name"
-                className={errors.name ? 'border-red-500' : ''}
+                className={errors.name ? 'border-destructive' : ''}
               />
             )}
           />
           {errors.name && (
-            <Text className="text-red-500 text-sm mt-1">
+            <Text className="text-destructive text-sm mt-1">
               {errors.name.message}
             </Text>
           )}
@@ -178,7 +178,7 @@ export default function AddPersonModal() {
       </ScrollView>
 
       {/* Sticky Save Button */}
-      <View className="p-6 mb-6 border-t border-gray-200 bg-[#F9F7F4]">
+      <View className="p-6 mb-6 border-t border-border bg-paper">
         <Button
           onPress={handleSubmit(onSubmit)}
           disabled={!isValid || !nameValue?.trim()}

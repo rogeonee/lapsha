@@ -106,6 +106,8 @@ This system explicitly rejects the sales-CRM look (data tables, pipelines, "cont
 
 A restrained warm palette: near-neutral surfaces, zinc-cool ink, and a single amber family used only where it means something.
 
+Tokens live in two mirrored places: `global.css` `@theme` for Tailwind classes (`bg-paper`, `text-broth`, `bg-cream-swirl`, plus the shadcn/HeroUI semantic set) and `lib/theme.ts` (`palette`, `shadows`) for native props — header tints, icon colors, the Android FAB, shadows. Never hard-code a hex from this palette in a component; add a token instead and keep both files in sync.
+
 ### Primary
 - **Noodle Gold** (#F6B756): The brand amber. Tab bar tint, plus/add icons, the FAB glyph. It marks "this is Lapsha and this is touchable." Never used as text — too light against any surface here.
 - **Broth** (#B07818): The deep, concentrated amber. The only amber allowed as text: navigation header tint, "Add fact / Add date" row labels, avatar initials, selection checkmarks. Use at ≥14px; at small sizes it thins out against Paper (~3.6:1 — acceptable for accent labels now, revisit before App Store release).

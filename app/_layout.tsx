@@ -28,7 +28,7 @@ const DARK_THEME: Theme = {
 
 export { ErrorBoundary } from 'expo-router';
 
-// Lock to light: screens hardcode light surfaces (#F9F7F4, bg-white) and
+// Lock to light: screens use light surfaces (bg-paper, bg-white) and
 // the warm palette has no designed dark counterpart yet, so system dark
 // mode renders foreground text nearly invisible. Uniwind needs its own
 // explicit lock — on cold start it captures the system scheme before the

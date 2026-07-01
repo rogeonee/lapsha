@@ -18,6 +18,7 @@ import {
 } from '~/components/entry/use-entry-form';
 import { CheckIcon, ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
+import { palette } from '~/lib/theme';
 
 export type { EntrySheetConfig };
 
@@ -180,7 +181,7 @@ function EntryForm({
                 transform: [{ rotate: personListOpen ? '270deg' : '90deg' }],
               }}
             >
-              <ChevronRightIcon color="#8A8577" />
+              <ChevronRightIcon color={palette.warmGrayDeep} />
             </View>
           </Pressable>
           {personListOpen &&
@@ -194,7 +195,7 @@ function EntryForm({
                 className="flex-row items-center justify-between border-t border-black/5 px-4 py-3 active:bg-black/5"
               >
                 <Text className="text-base">{p.name}</Text>
-                {p.id === form.personId && <CheckIcon color="#B07818" />}
+                {p.id === form.personId && <CheckIcon color={palette.broth} />}
               </Pressable>
             ))}
         </View>
@@ -274,7 +275,7 @@ function EntryForm({
                 initialDate={form.pickedDate.toISOString()}
                 variant="picker"
                 showVariantToggle={false}
-                color="#F6B756"
+                color={palette.noodleGold}
                 onDateSelected={(date) => {
                   // Material 3 returns UTC-midnight millis; re-read the
                   // date in UTC or it shifts a day in western timezones

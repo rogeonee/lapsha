@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router';
+import { palette } from '~/lib/theme';
 
 export const unstable_settings = {
   initialRouteName: 'people',
@@ -10,8 +11,8 @@ export default function PeopleStackLayout() {
   return (
     <Stack
       screenOptions={{
-        headerTintColor: '#B07818',
-        contentStyle: { backgroundColor: '#F9F7F4' },
+        headerTintColor: palette.broth,
+        contentStyle: { backgroundColor: palette.paper },
         ...(isIOS && {
           headerTransparent: true,
           headerShadowVisible: false,

@@ -29,7 +29,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-[#F9F7F4]"
+      className="flex-1 bg-paper"
       contentContainerStyle={{ padding: 24, gap: 24 }}
     >
       <View className="gap-3">
