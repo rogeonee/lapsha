@@ -2,6 +2,7 @@
 
 See `CLAUDE.md` for commands, architecture, and technical patterns.
 See `notebook.md` for the running log of decisions, gotchas, and product direction.
+See `PRODUCT.md` (strategic design context) and `DESIGN.md` (visual system) before any UI/design work.
 
 ## What is Lapsha?
 

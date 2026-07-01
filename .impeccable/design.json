@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-01T00:00:00Z",
+  "title": "Design System: Lapsha",
+  "extensions": {
+    "colorMeta": {
+      "noodle-gold": {
+        "role": "primary",
+        "displayName": "Noodle Gold",
+        "canonical": "hsl(38 90% 65%)",
+        "tonalRamp": ["oklch(25% 0.07 75)", "oklch(38% 0.1 75)", "oklch(50% 0.12 75)", "oklch(62% 0.13 75)", "oklch(72% 0.13 75)", "oklch(82% 0.11 75)", "oklch(90% 0.07 75)", "oklch(96% 0.03 75)"]
+      },
+      "broth": {
+        "role": "primary",
+        "displayName": "Broth",
+        "canonical": "#B07818",
+        "tonalRamp": ["oklch(22% 0.06 75)", "oklch(33% 0.09 75)", "oklch(44% 0.11 75)", "oklch(56% 0.12 75)", "oklch(67% 0.12 75)", "oklch(78% 0.1 75)", "oklch(88% 0.06 75)", "oklch(95% 0.03 75)"]
+      },
+      "cream-swirl": {
+        "role": "primary",
+        "displayName": "Cream Swirl",
+        "canonical": "#FBEAC9",
+        "tonalRamp": ["oklch(30% 0.05 80)", "oklch(45% 0.07 80)", "oklch(60% 0.08 80)", "oklch(72% 0.08 80)", "oklch(82% 0.07 80)", "oklch(89% 0.06 80)", "oklch(93% 0.05 80)", "oklch(97% 0.02 80)"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#F9F7F4",
+        "tonalRamp": ["oklch(20% 0.005 80)", "oklch(35% 0.005 80)", "oklch(50% 0.006 80)", "oklch(65% 0.007 80)", "oklch(78% 0.007 80)", "oklch(88% 0.007 80)", "oklch(94% 0.006 80)", "oklch(98% 0.004 80)"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "hsl(240 10% 3.9%)",
+        "tonalRamp": ["oklch(15% 0.006 285)", "oklch(28% 0.008 285)", "oklch(42% 0.01 285)", "oklch(55% 0.01 285)", "oklch(68% 0.008 285)", "oklch(80% 0.006 285)", "oklch(90% 0.004 285)", "oklch(96% 0.002 285)"]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "hsl(240 3.8% 46.1%)",
+        "tonalRamp": ["oklch(20% 0.008 285)", "oklch(32% 0.009 285)", "oklch(45% 0.01 285)", "oklch(58% 0.01 285)", "oklch(70% 0.008 285)", "oklch(81% 0.006 285)", "oklch(90% 0.004 285)", "oklch(96% 0.002 285)"]
+      },
+      "destructive": {
+        "role": "error",
+        "displayName": "Destructive Red",
+        "canonical": "hsl(0 84.2% 60.2%)",
+        "tonalRamp": ["oklch(25% 0.1 27)", "oklch(38% 0.15 27)", "oklch(50% 0.19 27)", "oklch(60% 0.21 27)", "oklch(68% 0.19 27)", "oklch(78% 0.13 27)", "oklch(88% 0.07 27)", "oklch(95% 0.03 27)"]
+      }
+    },
+    "typographyMeta": {
+      "title": { "displayName": "Title", "purpose": "Native large-title headers; platform-rendered, never hand-rolled." },
+      "headline": { "displayName": "Headline", "purpose": "Person names in cards, large button text." },
+      "body": { "displayName": "Body", "purpose": "Fact values, notes, row content. 1rem = 14px (Uniwind rem polyfill)." },
+      "label": { "displayName": "Label", "purpose": "Caption above a fact value; Ink Muted, sentence case." }
+    },
+    "shadows": [
+      { "name": "whisper", "value": "0 1px 3px rgba(28, 20, 8, 0.06)", "purpose": "The only shadow. Warm-tinted; applied to cards sitting on Paper." }
+    ],
+    "motion": [
+      { "name": "pressed-state", "value": "opacity 0.9 / background black-5%, ~150ms", "purpose": "Instant, plain pressed feedback. No springs, no scale, no choreography." }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Calm ink fill for primary actions — deliberately not amber.",
+      "html": "<button class=\"ds-btn-primary\">Save</button>",
+      "css": ".ds-btn-primary { background: #18181B; color: #FAFAFA; height: 48px; padding: 12px 20px; border: none; border-radius: 5px; font-family: system-ui, sans-serif; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.15s; } .ds-btn-primary:hover { opacity: 0.9; } .ds-btn-primary:active { opacity: 0.9; } .ds-btn-primary:focus-visible { outline: 2px solid #18181B; outline-offset: 2px; }"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "Delete confirmations; the only non-amber saturated color.",
+      "html": "<button class=\"ds-btn-destructive\">Delete</button>",
+      "css": ".ds-btn-destructive { background: #EF4444; color: #FAFAFA; height: 48px; padding: 12px 20px; border: none; border-radius: 5px; font-family: system-ui, sans-serif; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.15s; } .ds-btn-destructive:hover { opacity: 0.9; } .ds-btn-destructive:focus-visible { outline: 2px solid #EF4444; outline-offset: 2px; }"
+    },
+    {
+      "name": "Person Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "List card: Cream Swirl avatar, name, warm-gray chevron, whisper shadow on Paper.",
+      "html": "<div class=\"ds-person-card\"><span class=\"ds-avatar\">A</span><span class=\"ds-person-name\">Anna Petrova</span><svg class=\"ds-chevron\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#C9C2B6\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 18 6-6-6-6\"/></svg></div>",
+      "css": ".ds-person-card { display: flex; align-items: center; background: #FFFFFF; border-radius: 14px; padding: 14px; box-shadow: 0 1px 3px rgba(28, 20, 8, 0.06); font-family: system-ui, sans-serif; transition: background 0.15s; } .ds-person-card:hover { background: #FCFAF7; } .ds-avatar { width: 48px; height: 48px; border-radius: 9999px; background: #FBEAC9; color: #B07818; font-size: 16px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; margin-right: 14px; flex-shrink: 0; } .ds-person-name { font-size: 16px; font-weight: 500; color: #09090B; flex: 1; } .ds-chevron { flex-shrink: 0; }"
+    },
+    {
+      "name": "Entry Row",
+      "kind": "custom",
+      "refersTo": "entry-row",
+      "description": "The atom of the person screen: label over value, tap to edit.",
+      "html": "<div class=\"ds-entry-row\"><span class=\"ds-entry-label\">Favorite coffee</span><span class=\"ds-entry-value\">Flat white, oat milk</span></div>",
+      "css": ".ds-entry-row { display: flex; flex-direction: column; background: #FFFFFF; padding: 10px 14px; font-family: system-ui, sans-serif; cursor: pointer; transition: background 0.15s; } .ds-entry-row:hover { background: rgba(0, 0, 0, 0.05); } .ds-entry-row:active { background: rgba(0, 0, 0, 0.05); } .ds-entry-label { font-size: 11px; color: #71717A; margin-bottom: 2px; } .ds-entry-value { font-size: 14px; color: #09090B; }"
+    },
+    {
+      "name": "Add Row",
+      "kind": "custom",
+      "refersTo": "entry-row",
+      "description": "Card foot action: Noodle Gold plus icon with Broth label — the Golden Thread.",
+      "html": "<div class=\"ds-add-row\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#F6B756\" stroke-width=\"2\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M8 12h8M12 8v8\"/></svg><span>Add fact</span></div>",
+      "css": ".ds-add-row { display: flex; align-items: center; gap: 7px; background: #FFFFFF; padding: 10px 14px; border-top: 1px solid rgba(0, 0, 0, 0.05); font-family: system-ui, sans-serif; font-size: 14px; color: #B07818; cursor: pointer; transition: background 0.15s; } .ds-add-row:hover { background: rgba(0, 0, 0, 0.05); } .ds-add-row:active { background: rgba(0, 0, 0, 0.05); }"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Text field: white fill, hairline border, quiet focus.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"The fact itself\" />",
+      "css": ".ds-input { background: #FFFFFF; color: #09090B; border: 1px solid #E4E4E7; border-radius: 5px; height: 48px; padding: 0 10px; font-family: system-ui, sans-serif; font-size: 16px; width: 100%; box-sizing: border-box; } .ds-input::placeholder { color: #71717A; } .ds-input:focus-visible { outline: 2px solid #18181B; outline-offset: 1px; } .ds-input:disabled { opacity: 0.5; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Well-Kept Notebook",
+    "overview": "Lapsha looks like a notebook someone actually keeps: quiet warm paper, tidy white cards, and one golden thread of amber running through everything touchable. The content — people and the details you've saved about them — is intimate, so the interface stays out of the way. Chrome is native wherever the platform provides it, and the custom layer on top is deliberately plain: white cards on paper, hairline dividers, system type. This system explicitly rejects the sales-CRM look, the generic web-app-in-a-wrapper feel, and social-network profile aesthetics.",
+    "keyCharacteristics": [
+      "Warm paper background with white cards; separation by tone, not lines or heavy shadows",
+      "One amber family (Noodle Gold / Broth / Cream Swirl) carries all warmth and interactivity",
+      "System fonts only; the platform's own voice",
+      "Continuous-curve corners on every card — iOS-squircle softness",
+      "Density is low; every screen has one job"
+    ],
+    "rules": [
+      { "name": "The Golden Thread Rule", "body": "Amber appears only on things that are interactive or identity-bearing (add actions, tints, avatars, selection). Amber as decoration — backgrounds, dividers, flourishes — is forbidden.", "section": "colors" },
+      { "name": "The Paper Rule", "body": "Screens sit on Paper (#F9F7F4); pure white is earned by being a card. Never place a screen on #FFFFFF and never place a card on a card.", "section": "colors" },
+      { "name": "The System Voice Rule", "body": "No custom or display fonts, ever. If a screen needs more hierarchy, use weight and the tonal Paper/White step, not a new typeface.", "section": "typography" },
+      { "name": "The Whisper Rule", "body": "One shadow token exists. If a surface needs more separation than Whisper provides, the answer is layout (spacing, tonal grouping), never a bigger shadow. If it looks lifted, it's wrong.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep every screen on Paper (#F9F7F4) with Card White groups — the tonal step is the layout system.",
+      "Do route all interactivity signaling through the amber family: Noodle Gold for icons/tints, Broth for accent text, Cream Swirl for soft fills.",
+      "Do use platform components first (sheets, pickers, swipe actions, large titles); reach for custom chrome only when the platform has no answer — and then keep it quiet.",
+      "Do use borderCurve: 'continuous' on every rounded card.",
+      "Do keep body text at full Ink (#09090B); labels may be Ink Muted, values never are.",
+      "Do keep pressed states instant and plain: opacity or black/5, 150–250ms, nothing choreographed."
+    ],
+    "donts": [
+      "Don't let Lapsha look like a sales CRM (Salesforce, HubSpot) — no data tables of people, no pipelines, no stat dashboards about relationships.",
+      "Don't ship generic cross-platform chrome — no web-app-in-a-wrapper components, no identical custom UI on both platforms where native affordances differ.",
+      "Don't style person screens like social network profiles — no cover photos, follower-style counts, or public-profile layouts; these are private notes.",
+      "Don't use Noodle Gold (#F6B756) as text on any surface — it fails contrast everywhere; Broth is the only text amber.",
+      "Don't add a second shadow token, darken Whisper, or lift elements on press. If it looks elevated, it's too much.",
+      "Don't introduce custom fonts, uppercase-tracked labels, or decorative color. Warmth is amber + copy, never ornament.",
+      "Don't nest cards or put white on white — one Paper, one card layer, done."
+    ]
+  }
+}

@@ -5,6 +5,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 See `AGENTS.md` for app context, domain model, current implementation state, and MVP gaps.
 See `notebook.md` for the running log of decisions, gotchas, and product direction.
 
+## Design Context
+
+- `PRODUCT.md` — strategic design context: register (product), users, brand personality ("warm, personal, native"), anti-references, design principles. Read before any UI/design work.
+- `DESIGN.md` — the visual system ("The Well-Kept Notebook"): color tokens (Noodle Gold / Broth / Cream Swirl amber family, Paper background), typography, elevation, component rules.
+
 ## Commands
 
 ```bash
