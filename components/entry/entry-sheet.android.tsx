@@ -10,7 +10,8 @@ import { Tabs } from 'heroui-native/tabs';
 import { TextField } from 'heroui-native/text-field';
 import { useEffect, useRef, useState } from 'react';
 import { Keyboard, Pressable, View, type TextInput } from 'react-native';
-import { KeyboardEvents } from 'react-native-keyboard-controller';
+import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import {
   useEntryForm,
   type EntryKind,
@@ -52,9 +53,11 @@ export function EntrySheet({
     onClose();
   };
 
-  // Settled signal drives the deferred autofocus: focusing during the
-  // open animation makes the sheet and keyboard race (visible stutter)
-  const [settled, setSettled] = useState(false);
+  // Autofocus fires at animation start (onAnimate), not on settle: the
+  // per-frame keyboard padding lets the sheet and keyboard animate
+  // together, and waiting for the sheet to settle first serialized the
+  // two animations into a visible pause
+  const [opening, setOpening] = useState(false);
 
   // The sheet stays mounted: HeroUI's bottom sheet only animates open on
   // an isOpen false -> true transition, so mounting it already-open
@@ -76,14 +79,14 @@ export function EntrySheet({
           // height math is broken under the root KeyboardProvider), so
           // it can't fight the KeyboardEvents padding in EntryForm
           android_keyboardInputMode="adjustResize"
-          onChange={(index) => setSettled(index >= 0)}
+          onAnimate={(_fromIndex, toIndex) => setOpening(toIndex >= 0)}
         >
           {rendered && (
             <EntryForm
               key={rendered.nonce}
               config={rendered.config}
               onClose={handleClose}
-              canFocus={settled}
+              canFocus={opening}
             />
           )}
         </BottomSheet.Content>
@@ -107,34 +110,31 @@ function EntryForm({
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [personListOpen, setPersonListOpen] = useState(false);
 
-  // Deferred autofocus: focus the fact field once the sheet has settled
+  // Autofocus the fact field shortly after the open animation starts:
+  // the head start lets the sheet establish its spring before dynamic
+  // sizing retargets it for the keyboard, without serializing the two
+  // animations into a full pause
   const factInputRef = useRef<TextInput>(null);
   const focusedOnce = useRef(false);
   useEffect(() => {
     if (canFocus && !focusedOnce.current && config.mode === 'create') {
       focusedOnce.current = true;
-      factInputRef.current?.focus();
+      const timer = setTimeout(() => factInputRef.current?.focus(), 100);
+      return () => clearTimeout(timer);
     }
   }, [canFocus, config.mode]);
 
   // Keyboard avoidance: react-native-keyboard-controller owns the window
   // insets (root KeyboardProvider), which starves gorhom's own keyboard
   // tracking — its computed in-container height resolves to 0 and the
-  // sheet never lifts. Pad the content from keyboard-controller's events
-  // instead; dynamic sizing re-snaps the sheet above the keyboard.
-  const [keyboardPad, setKeyboardPad] = useState(0);
-  useEffect(() => {
-    const show = KeyboardEvents.addListener('keyboardWillShow', (e) =>
-      setKeyboardPad(e.height),
-    );
-    const hide = KeyboardEvents.addListener('keyboardWillHide', () =>
-      setKeyboardPad(0),
-    );
-    return () => {
-      show.remove();
-      hide.remove();
-    };
-  }, []);
+  // sheet never lifts. Pad the content from keyboard-controller's
+  // animated height (per-frame, UI thread) so it tracks the keyboard
+  // instead of jumping; dynamic sizing re-snaps the sheet above it.
+  const { height: keyboardHeight } = useReanimatedKeyboardAnimation();
+  const keyboardPad = useAnimatedStyle(() => ({
+    // height runs 0 -> -keyboardHeight as the keyboard animates in
+    paddingBottom: Math.max(0, -keyboardHeight.value),
+  }));
 
   if (form.showPersonPicker && form.people.length === 0) {
     return (
@@ -158,7 +158,7 @@ function EntryForm({
   const selectedPerson = form.people.find((p) => p.id === form.personId);
 
   return (
-    <View className="gap-5 pb-2" style={{ paddingBottom: keyboardPad }}>
+    <Animated.View className="gap-5 pb-2" style={keyboardPad}>
       {form.showPersonPicker && (
         // Inline expanding picker. HeroUI Select's overlays all misbehave
         // inside the sheet (popover renders broken, dialog floats over
@@ -306,6 +306,6 @@ function EntryForm({
       <Button isDisabled={!form.isValid} onPress={form.handleSave}>
         {config.mode === 'edit' ? 'Save changes' : 'Save'}
       </Button>
-    </View>
+    </Animated.View>
   );
 }
