@@ -12,19 +12,15 @@ import { cn } from '~/lib/utils';
 import type { TimelineEntry } from '~/types/db';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-/** Beyond this the month header carries the "when"; a countdown is noise. */
 const COUNTDOWN_WINDOW_DAYS = 30;
 
 interface UpcomingEntry {
   entry: TimelineEntry;
-  /** Next occurrence of the date's month/day, today or later */
   next: Date;
   daysUntil: number;
-  /** Age being turned (birthday) / years since (other), null when unknown */
   years: number | null;
 }
 
-/** One row: a person's dates that land on the same day, stacked */
 interface RowGroup {
   key: string;
   personId: string;
@@ -37,9 +33,7 @@ interface RowGroup {
 interface TimelineSection {
   key: string;
   title: string;
-  /** Concrete date shown after Today/Tomorrow ("July 1") */
   subtitle?: string;
-  /** Today/Tomorrow headers already say when; month rows show the day */
   showDay: boolean;
   items: RowGroup[];
 }
@@ -49,7 +43,6 @@ function startOfToday(): Date {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
-/** Project every date onto its next occurrence and sort soonest-first */
 function projectUpcoming(entries: TimelineEntry[]): UpcomingEntry[] {
   const today = startOfToday();
 
@@ -59,7 +52,6 @@ function projectUpcoming(entries: TimelineEntry[]): UpcomingEntry[] {
       if (next < today) {
         next = new Date(today.getFullYear() + 1, entry.month - 1, entry.day);
       }
-      // Rounding absorbs DST-shifted days (23h/25h)
       const daysUntil = Math.round((next.getTime() - today.getTime()) / DAY_MS);
       const originalYear = Number(entry.date.slice(0, 4));
       const elapsed = next.getFullYear() - originalYear;
@@ -71,12 +63,10 @@ function projectUpcoming(entries: TimelineEntry[]): UpcomingEntry[] {
       (a, b) =>
         a.daysUntil - b.daysUntil ||
         a.entry.person.name.localeCompare(b.entry.person.name) ||
-        // Keep one person's same-day dates adjacent so they merge into one row
         a.entry.person_id.localeCompare(b.entry.person_id),
     );
 }
 
-/** Group projected dates into Today / Tomorrow / month sections, in upcoming order */
 function buildSections(upcoming: UpcomingEntry[]): TimelineSection[] {
   const currentYear = new Date().getFullYear();
   const sections: TimelineSection[] = [];
@@ -135,7 +125,6 @@ function formatLabel(entry: TimelineEntry): string {
   return entry.label.charAt(0).toUpperCase() + entry.label.slice(1);
 }
 
-/** Derived timing info: "turns 32" (birthday), "5 years" (anniversary) */
 function formatSuffix({ entry, years }: UpcomingEntry): string | null {
   if (years === null) return null;
   return entry.label.toLowerCase() === 'birthday'
@@ -143,7 +132,6 @@ function formatSuffix({ entry, years }: UpcomingEntry): string | null {
     : `${years} ${years === 1 ? 'year' : 'years'}`;
 }
 
-/** "Birthday · turns 32", "Wedding anniversary · 5 years", "First met" */
 function formatDetail(item: UpcomingEntry): string {
   const suffix = formatSuffix(item);
   const label = formatLabel(item.entry);
@@ -151,7 +139,6 @@ function formatDetail(item: UpcomingEntry): string {
 }
 
 function Countdown({ daysUntil }: { daysUntil: number }) {
-  // Today and tomorrow live under their own section headers
   if (daysUntil < 2 || daysUntil > COUNTDOWN_WINDOW_DAYS) return null;
   return (
     <Text className="text-sm text-muted-foreground">
@@ -172,8 +159,6 @@ function UpcomingRow({
   onPress: () => void;
 }) {
   const initial = group.personName.trim().charAt(0).toUpperCase() || '?';
-  // Stacked rows top-align; the h-12 wrappers keep avatar/chevron centered
-  // on the name + first label, matching single-row optics
   const stacked = group.entries.length > 1;
 
   return (
@@ -254,8 +239,6 @@ function UpcomingRow({
   );
 }
 
-// Synchronous reads, derived during render. The unused args are
-// invalidation tokens: React Compiler re-runs this when they change.
 function loadTimeline(_datesVersion: number, _retryNonce: number) {
   return getTimeline();
 }

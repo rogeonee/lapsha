@@ -25,8 +25,6 @@ const cardStyle = {
   boxShadow: shadows.whisper,
 } as const;
 
-// Synchronous reads, derived during render. The unused version arg is an
-// invalidation token: React Compiler re-runs this when the db changes.
 function loadPersonData(
   id: string | undefined,
   factSort: EntrySort,
