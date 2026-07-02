@@ -1,0 +1,341 @@
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Pressable, ScrollView, View } from 'react-native';
+import { getPeople } from '~/api/people/people-service';
+import { getTimeline } from '~/api/timeline/timeline-service';
+import { Button } from '~/components/ui/button';
+import { ChevronRightIcon } from '~/components/ui/icons';
+import { Text } from '~/components/ui/text';
+import { palette, shadows } from '~/lib/theme';
+import { useTableVersion } from '~/lib/use-table-version';
+import { cn } from '~/lib/utils';
+import type { TimelineEntry } from '~/types/db';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+/** Beyond this the month header carries the "when"; a countdown is noise. */
+const COUNTDOWN_WINDOW_DAYS = 30;
+
+interface UpcomingEntry {
+  entry: TimelineEntry;
+  /** Next occurrence of the date's month/day, today or later */
+  next: Date;
+  daysUntil: number;
+  /** Age being turned (birthday) / years since (other), null when unknown */
+  years: number | null;
+}
+
+/** One row: a person's dates that land on the same day, stacked */
+interface RowGroup {
+  key: string;
+  personId: string;
+  personName: string;
+  next: Date;
+  daysUntil: number;
+  entries: UpcomingEntry[];
+}
+
+interface TimelineSection {
+  key: string;
+  title: string;
+  /** Concrete date shown after Today/Tomorrow ("July 1") */
+  subtitle?: string;
+  /** Today/Tomorrow headers already say when; month rows show the day */
+  showDay: boolean;
+  items: RowGroup[];
+}
+
+function startOfToday(): Date {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+/** Project every date onto its next occurrence and sort soonest-first */
+function projectUpcoming(entries: TimelineEntry[]): UpcomingEntry[] {
+  const today = startOfToday();
+
+  return entries
+    .map((entry) => {
+      let next = new Date(today.getFullYear(), entry.month - 1, entry.day);
+      if (next < today) {
+        next = new Date(today.getFullYear() + 1, entry.month - 1, entry.day);
+      }
+      // Rounding absorbs DST-shifted days (23h/25h)
+      const daysUntil = Math.round((next.getTime() - today.getTime()) / DAY_MS);
+      const originalYear = Number(entry.date.slice(0, 4));
+      const elapsed = next.getFullYear() - originalYear;
+      const years = entry.year_known && elapsed > 0 ? elapsed : null;
+
+      return { entry, next, daysUntil, years };
+    })
+    .sort(
+      (a, b) =>
+        a.daysUntil - b.daysUntil ||
+        a.entry.person.name.localeCompare(b.entry.person.name) ||
+        // Keep one person's same-day dates adjacent so they merge into one row
+        a.entry.person_id.localeCompare(b.entry.person_id),
+    );
+}
+
+/** Group projected dates into Today / Tomorrow / month sections, in upcoming order */
+function buildSections(upcoming: UpcomingEntry[]): TimelineSection[] {
+  const currentYear = new Date().getFullYear();
+  const sections: TimelineSection[] = [];
+
+  for (const item of upcoming) {
+    let key: string;
+    let title: string;
+    let subtitle: string | undefined;
+    let showDay = true;
+
+    if (item.daysUntil <= 1) {
+      key = item.daysUntil === 0 ? 'today' : 'tomorrow';
+      title = item.daysUntil === 0 ? 'Today' : 'Tomorrow';
+      subtitle = item.next.toLocaleDateString(undefined, {
+        month: 'long',
+        day: 'numeric',
+      });
+      showDay = false;
+    } else {
+      key = `${item.next.getFullYear()}-${item.next.getMonth()}`;
+      title = item.next.toLocaleDateString(undefined, {
+        month: 'long',
+        ...(item.next.getFullYear() !== currentYear ? { year: 'numeric' } : {}),
+      });
+    }
+
+    let section = sections[sections.length - 1];
+    if (!section || section.key !== key) {
+      section = { key, title, subtitle, showDay, items: [] };
+      sections.push(section);
+    }
+
+    const lastRow = section.items[section.items.length - 1];
+    if (
+      lastRow &&
+      lastRow.personId === item.entry.person_id &&
+      lastRow.next.getTime() === item.next.getTime()
+    ) {
+      lastRow.entries.push(item);
+    } else {
+      section.items.push({
+        key: item.entry.id,
+        personId: item.entry.person_id,
+        personName: item.entry.person.name,
+        next: item.next,
+        daysUntil: item.daysUntil,
+        entries: [item],
+      });
+    }
+  }
+
+  return sections;
+}
+
+function formatLabel(entry: TimelineEntry): string {
+  return entry.label.charAt(0).toUpperCase() + entry.label.slice(1);
+}
+
+/** Derived timing info: "turns 32" (birthday), "5 years" (anniversary) */
+function formatSuffix({ entry, years }: UpcomingEntry): string | null {
+  if (years === null) return null;
+  return entry.label.toLowerCase() === 'birthday'
+    ? `turns ${years}`
+    : `${years} ${years === 1 ? 'year' : 'years'}`;
+}
+
+/** "Birthday · turns 32", "Wedding anniversary · 5 years", "First met" */
+function formatDetail(item: UpcomingEntry): string {
+  const suffix = formatSuffix(item);
+  const label = formatLabel(item.entry);
+  return suffix ? `${label} · ${suffix}` : label;
+}
+
+function Countdown({ daysUntil }: { daysUntil: number }) {
+  // Today and tomorrow live under their own section headers
+  if (daysUntil < 2 || daysUntil > COUNTDOWN_WINDOW_DAYS) return null;
+  return (
+    <Text className="text-sm text-muted-foreground">
+      {`In ${daysUntil} days`}
+    </Text>
+  );
+}
+
+function UpcomingRow({
+  group,
+  showDay,
+  divider,
+  onPress,
+}: {
+  group: RowGroup;
+  showDay: boolean;
+  divider: boolean;
+  onPress: () => void;
+}) {
+  const initial = group.personName.trim().charAt(0).toUpperCase() || '?';
+  // Stacked rows top-align; the h-12 wrappers keep avatar/chevron centered
+  // on the name + first label, matching single-row optics
+  const stacked = group.entries.length > 1;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${group.personName}, ${group.entries
+        .map(formatDetail)
+        .join(', ')}`}
+      className={cn(
+        'flex-row gap-3 px-4 py-3 active:bg-black/5',
+        stacked ? 'items-start' : 'items-center',
+        divider && 'border-t border-black/5',
+      )}
+    >
+      <View className={cn(stacked && 'h-12 justify-center')}>
+        {showDay ? (
+          <View className="w-11 items-center">
+            <Text className="text-lg font-semibold">
+              {group.next.getDate()}
+            </Text>
+            <Text className="text-sm text-muted-foreground">
+              {group.next.toLocaleDateString(undefined, { weekday: 'short' })}
+            </Text>
+          </View>
+        ) : (
+          <View className="h-10 w-10 items-center justify-center rounded-full bg-cream-swirl">
+            <Text className="text-base font-semibold text-broth">
+              {initial}
+            </Text>
+          </View>
+        )}
+      </View>
+      <View className="flex-1">
+        <Text className="text-lg font-medium" numberOfLines={1}>
+          {group.personName}
+        </Text>
+        {group.entries.map((item, index) => (
+          <Text
+            key={item.entry.id}
+            className={cn('text-base', index === 0 ? 'mt-0.5' : 'mt-1')}
+            numberOfLines={1}
+          >
+            {formatLabel(item.entry)}
+            {formatSuffix(item) ? (
+              <Text className="text-base text-muted-foreground">
+                {` · ${formatSuffix(item)}`}
+              </Text>
+            ) : null}
+          </Text>
+        ))}
+      </View>
+      <View className={cn('flex-row items-center gap-3', stacked && 'h-12')}>
+        <Countdown daysUntil={group.daysUntil} />
+        <ChevronRightIcon color={palette.warmGray} />
+      </View>
+    </Pressable>
+  );
+}
+
+// Synchronous reads, derived during render. The unused args are
+// invalidation tokens: React Compiler re-runs this when they change.
+function loadTimeline(_datesVersion: number, _retryNonce: number) {
+  return getTimeline();
+}
+
+function loadPeople(_datesVersion: number, _retryNonce: number) {
+  return getPeople();
+}
+
+export default function HomeScreen() {
+  const router = useRouter();
+  const datesVersion = useTableVersion(['dates', 'persons']);
+  const [retryNonce, setRetryNonce] = useState(0);
+
+  const timelineResponse = loadTimeline(datesVersion, retryNonce);
+  const peopleResponse = loadPeople(datesVersion, retryNonce);
+
+  const error = timelineResponse.error
+    ? timelineResponse.error.message || 'Failed to load upcoming dates'
+    : null;
+  const hasPeople = (peopleResponse.data?.length ?? 0) > 0;
+  const sections = buildSections(projectUpcoming(timelineResponse.data ?? []));
+
+  if (error) {
+    return (
+      <View className="flex-1 items-center justify-center px-8">
+        <Text className="mb-4 text-center text-lg text-red-600">
+          Error loading upcoming dates
+        </Text>
+        <Text
+          selectable
+          className="mb-6 text-center text-sm text-muted-foreground"
+        >
+          {error}
+        </Text>
+        <Button onPress={() => setRetryNonce((n) => n + 1)} variant="outline">
+          <Text className="font-medium">Try Again</Text>
+        </Button>
+      </View>
+    );
+  }
+
+  if (sections.length === 0) {
+    return (
+      <View className="flex-1 items-center justify-center px-8">
+        <Text className="mb-6 text-center text-lg text-muted-foreground">
+          {hasPeople ? 'No dates yet.' : 'No people added yet.'}
+        </Text>
+        <Text className="mb-8 text-center text-sm text-muted-foreground">
+          {hasPeople
+            ? 'Add a birthday or an anniversary to someone, and it will show up here — whoever’s day comes next, first.'
+            : 'Add people and their important dates, and this screen will keep track of whose day is coming up.'}
+        </Text>
+        <Button
+          onPress={() => router.push(hasPeople ? '/people' : '/add-person')}
+          variant="outline"
+        >
+          <Text className="font-medium">
+            {hasPeople ? 'Open People' : 'Add Your First Person'}
+          </Text>
+        </Button>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerClassName="p-4 gap-5"
+    >
+      {sections.map((section) => (
+        <View key={section.key}>
+          <Text
+            className={cn(
+              'mb-2 px-1 text-base font-medium',
+              section.key === 'today' && 'text-broth',
+            )}
+          >
+            {section.title}
+            {section.subtitle ? (
+              <Text className="text-base font-normal text-muted-foreground">
+                {` · ${section.subtitle}`}
+              </Text>
+            ) : null}
+          </Text>
+          <View
+            className="overflow-hidden rounded-2xl bg-white"
+            style={{ borderCurve: 'continuous', boxShadow: shadows.whisper }}
+          >
+            {section.items.map((group, index) => (
+              <UpcomingRow
+                key={group.key}
+                group={group}
+                showDay={section.showDay}
+                divider={index > 0}
+                onPress={() => router.push(`/person/${group.personId}`)}
+              />
+            ))}
+          </View>
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
