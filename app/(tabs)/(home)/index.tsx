@@ -211,24 +211,44 @@ function UpcomingRow({
         <Text className="text-lg font-medium" numberOfLines={1}>
           {group.personName}
         </Text>
-        {group.entries.map((item, index) => (
-          <Text
-            key={item.entry.id}
-            className={cn('text-base', index === 0 ? 'mt-0.5' : 'mt-1')}
-            numberOfLines={1}
-          >
-            {formatLabel(item.entry)}
-            {formatSuffix(item) ? (
-              <Text className="text-base text-muted-foreground">
-                {` · ${formatSuffix(item)}`}
-              </Text>
-            ) : null}
-          </Text>
-        ))}
+        {group.entries.map((item, index) => {
+          const suffix = formatSuffix(item);
+          const detail = (
+            <Text className="text-base leading-5" numberOfLines={1}>
+              {formatLabel(item.entry)}
+              {suffix ? (
+                <Text className="text-base leading-5 text-muted-foreground">
+                  {` · ${suffix}`}
+                </Text>
+              ) : null}
+            </Text>
+          );
+
+          if (!stacked) {
+            return (
+              <View key={item.entry.id} className="mt-0.5">
+                {detail}
+              </View>
+            );
+          }
+
+          return (
+            <View
+              key={item.entry.id}
+              className={cn(
+                'flex-row items-center gap-2',
+                index === 0 ? 'mt-0.5' : 'mt-1',
+              )}
+            >
+              <View className="h-1 w-1 rounded-full bg-muted-foreground/60" />
+              <View className="flex-1">{detail}</View>
+            </View>
+          );
+        })}
       </View>
       <View className={cn('flex-row items-center gap-3', stacked && 'h-12')}>
         <Countdown daysUntil={group.daysUntil} />
-        <ChevronRightIcon color={palette.warmGray} />
+        <ChevronRightIcon color={palette.warmGrayDeep} />
       </View>
     </Pressable>
   );
@@ -330,7 +350,12 @@ export default function HomeScreen() {
                 group={group}
                 showDay={section.showDay}
                 divider={index > 0}
-                onPress={() => router.push(`/person/${group.personId}`)}
+                onPress={() =>
+                  router.push({
+                    pathname: '/(tabs)/(home)/person/[id]',
+                    params: { id: group.personId },
+                  })
+                }
               />
             ))}
           </View>

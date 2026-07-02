@@ -27,6 +27,7 @@ export default function HomeStackLayout() {
         name="index"
         options={{ title: 'Upcoming', headerLargeTitle: true }}
       />
+      <Stack.Screen name="person/[id]" options={{ headerLargeTitle: false }} />
     </Stack>
   );
 }

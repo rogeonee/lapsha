@@ -60,7 +60,14 @@ export default function PeopleScreen() {
           contentContainerClassName="p-4 gap-3"
         >
           {people.map((person) => (
-            <Link key={person.id} href={`/person/${person.id}`} asChild>
+            <Link
+              key={person.id}
+              href={{
+                pathname: '/(tabs)/(people)/person/[id]',
+                params: { id: person.id },
+              }}
+              asChild
+            >
               <Link.Trigger>
                 <Pressable>
                   <PersonCard person={person} />
