@@ -37,7 +37,7 @@ export default function TabLayout() {
             : undefined
         }
       >
-        <NativeTabs.Trigger name="index">
+        <NativeTabs.Trigger name="(home)">
           <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
           <NativeTabs.Trigger.Icon
             sf={{ default: 'house', selected: 'house.fill' }}

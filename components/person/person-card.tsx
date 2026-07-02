@@ -21,7 +21,7 @@ export function PersonCard({ person }: { person: Person }) {
       <Text className="text-lg font-medium flex-1" numberOfLines={1}>
         {person.name}
       </Text>
-      <ChevronRightIcon color={palette.warmGray} />
+      <ChevronRightIcon color={palette.warmGrayDeep} />
     </View>
   );
 }
