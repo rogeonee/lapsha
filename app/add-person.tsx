@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Alert, ScrollView, Switch, View } from 'react-native';
+import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { createDate } from '~/api/dates/dates-service';
 import { createPerson } from '~/api/people/people-service';
 import {
@@ -42,6 +43,7 @@ export default function AddPersonModal() {
     mode: 'onChange',
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const nameValue = watch('name');
 
   useEffect(() => {
@@ -111,14 +113,18 @@ export default function AddPersonModal() {
           variant="outline"
           size="sm"
           onPress={handleClose}
-          className="bg-transparent border-border"
+          className="border-border bg-transparent"
         >
           <Text className="text-muted-foreground">×</Text>
         </Button>
       </View>
 
       {/* Content */}
-      <ScrollView className="flex-1 p-6">
+      <ScrollView
+        className="flex-1 p-6"
+        keyboardDismissMode="interactive"
+        keyboardShouldPersistTaps="handled"
+      >
         {/* Name Input */}
         <View className="mb-6">
           <Label htmlFor="name" className="mb-2">
@@ -142,11 +148,11 @@ export default function AddPersonModal() {
             )}
           />
           {errors.name && (
-            <Text className="text-destructive text-sm mt-1">
+            <Text className="mt-1 text-sm text-destructive">
               {errors.name.message}
             </Text>
           )}
-          <Text className="text-xs text-muted-foreground mt-1">
+          <Text className="mt-1 text-xs text-muted-foreground">
             This is the name that will appear in your people list
           </Text>
         </View>
@@ -177,16 +183,18 @@ export default function AddPersonModal() {
         </View>
       </ScrollView>
 
-      {/* Sticky Save Button */}
-      <View className="p-6 mb-6 border-t border-border bg-paper">
-        <Button
-          onPress={handleSubmit(onSubmit)}
-          disabled={!isValid || !nameValue?.trim()}
-          className="w-full"
-        >
-          <Text className="text-white font-medium">Add Person</Text>
-        </Button>
-      </View>
+      {/* Sticky Save Button: rides above the keyboard via translation */}
+      <KeyboardStickyView>
+        <View className="mb-6 border-t border-border bg-paper p-6">
+          <Button
+            onPress={handleSubmit(onSubmit)}
+            disabled={!isValid || !nameValue?.trim()}
+            className="w-full"
+          >
+            <Text className="font-medium text-white">Add Person</Text>
+          </Button>
+        </View>
+      </KeyboardStickyView>
     </View>
   );
 }
