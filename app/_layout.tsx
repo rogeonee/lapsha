@@ -14,8 +14,11 @@ import { Uniwind } from 'uniwind';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { UIProviders } from '~/components/ui-providers';
 import { NAV_THEME } from '~/lib/constants';
+import { palette } from '~/lib/theme';
 import { useColorScheme } from '~/lib/useColorScheme';
 import '../global.css';
+
+const isIOS = process.env.EXPO_OS === 'ios';
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -57,9 +60,15 @@ export default function Root() {
               <Stack.Screen
                 name="add-person"
                 options={{
-                  title: 'Add New Person',
+                  title: 'New Person',
                   presentation: 'modal',
-                  headerShown: false,
+                  headerTintColor: palette.broth,
+                  contentStyle: { backgroundColor: palette.paper },
+                  ...(isIOS && {
+                    headerTransparent: true,
+                    headerShadowVisible: false,
+                    headerBlurEffect: 'none',
+                  }),
                 }}
               />
             </Stack>

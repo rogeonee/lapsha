@@ -81,6 +81,25 @@ export function CheckIcon({ size = 18, color }: IconProps) {
   );
 }
 
+export function PersonIcon({ size = 18, color }: IconProps) {
+  if (isIOS) {
+    return (
+      <Image
+        source="sf:person.fill"
+        tintColor={String(color)}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <MaterialIcon
+      size={size}
+      color={color}
+      d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+    />
+  );
+}
+
 export function ChevronRightIcon({ size = 13, color }: IconProps) {
   if (isIOS) {
     return (
