@@ -1,24 +1,17 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Stack, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { Alert, ScrollView, Switch, View } from 'react-native';
+import { Controller } from 'react-hook-form';
+import { ScrollView, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { createDate } from '~/api/dates/dates-service';
-import { createPerson } from '~/api/people/people-service';
-import {
-  type CreatePersonForm,
-  createPersonSchema,
-} from '~/api/people/person-schema';
+import { AddPersonSheet } from '~/components/person/add-person-sheet';
 import { BirthdayDateRow } from '~/components/person/birthday-date-row';
+import { useAddPersonForm } from '~/components/person/use-add-person-form';
 import { PersonIcon } from '~/components/ui/icons';
 import { Input } from '~/components/ui/input';
+import { Switch } from '~/components/ui/switch';
 import { Text } from '~/components/ui/text';
-import { toStorageDate } from '~/lib/dates';
 import { palette, shadows } from '~/lib/theme';
 
-// Placeholder until real analytics lands; silent so it doesn't spam the console
-const trackEvent = (_event: Record<string, unknown>) => {};
+const isIOS = process.env.EXPO_OS === 'ios';
 
 const cardStyle = {
   borderCurve: 'continuous',
@@ -26,81 +19,19 @@ const cardStyle = {
 } as const;
 
 export default function AddPersonModal() {
+  // Android renders the HeroUI bottom sheet (the app's Android sheet
+  // vocabulary, shared with quick add); the route itself is a
+  // transparentModal that the sheet pops on close
+  if (!isIOS) {
+    return <AddPersonSheet />;
+  }
+  return <AddPersonScreen />;
+}
+
+/** iOS: native pageSheet modal with header bar buttons (Contacts-style). */
+function AddPersonScreen() {
   const router = useRouter();
-  const [withBirthday, setWithBirthday] = useState(false);
-  const [birthday, setBirthday] = useState(() => new Date());
-  const [includeYear, setIncludeYear] = useState(true);
-
-  const {
-    control,
-    handleSubmit,
-    formState: { errors, isValid },
-    watch,
-  } = useForm<CreatePersonForm>({
-    resolver: zodResolver(createPersonSchema),
-    defaultValues: {
-      name: '',
-    },
-    mode: 'onChange',
-  });
-
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const initial = watch('name').trim().charAt(0).toUpperCase();
-
-  useEffect(() => {
-    trackEvent({ type: 'person_create_started' });
-  }, []);
-
-  const onSubmit = (data: CreatePersonForm) => {
-    const response = createPerson({ name: data.name.trim() });
-
-    if (response.error || !response.data) {
-      trackEvent({
-        type: 'person_create_error',
-        errorCode: response.error?.code,
-        errorMessage: response.error?.message,
-      });
-
-      const errorMessage =
-        response.error?.code === 'VALIDATION_ERROR'
-          ? 'Please check the name and try again.'
-          : "Something went wrong and this person couldn't be saved.";
-
-      Alert.alert("Couldn't add person", errorMessage, [
-        { text: 'OK', style: 'cancel' },
-        { text: 'Retry', onPress: () => onSubmit(data) },
-      ]);
-      return;
-    }
-
-    trackEvent({
-      type: 'person_create_success',
-      personId: response.data.id,
-    });
-
-    if (withBirthday) {
-      const dateResponse = createDate({
-        person_id: response.data.id,
-        label: 'Birthday',
-        date: toStorageDate(birthday, includeYear),
-      });
-
-      if (dateResponse.error) {
-        Alert.alert(
-          'Person saved',
-          "The birthday couldn't be added — you can add it from their screen.",
-        );
-      }
-    }
-
-    // Land on the new person: the natural next step is adding facts,
-    // and that's where the entry sheet lives
-    router.dismiss();
-    router.push({
-      pathname: '/(tabs)/(people)/person/[id]',
-      params: { id: response.data.id },
-    });
-  };
+  const form = useAddPersonForm();
 
   return (
     <>
@@ -116,8 +47,8 @@ export default function AddPersonModal() {
         <Stack.Toolbar.Button
           variant="done"
           tintColor={palette.broth}
-          disabled={!isValid}
-          onPress={handleSubmit(onSubmit)}
+          disabled={!form.isValid}
+          onPress={form.save}
         >
           Add
         </Stack.Toolbar.Button>
@@ -136,9 +67,9 @@ export default function AddPersonModal() {
             className="items-center justify-center rounded-full bg-cream-swirl"
             style={{ width: 72, height: 72 }}
           >
-            {initial ? (
+            {form.initial ? (
               <Text className="text-3xl font-semibold text-broth">
-                {initial}
+                {form.initial}
               </Text>
             ) : (
               <PersonIcon size={30} color={palette.broth} />
@@ -148,7 +79,7 @@ export default function AddPersonModal() {
 
         <View className="rounded-2xl bg-white" style={cardStyle}>
           <Controller
-            control={control}
+            control={form.control}
             name="name"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
@@ -161,16 +92,16 @@ export default function AddPersonModal() {
                 autoCapitalize="words"
                 autoComplete="name"
                 returnKeyType="done"
-                onSubmitEditing={handleSubmit(onSubmit)}
+                onSubmitEditing={form.save}
                 accessibilityLabel="Person's name"
                 className="border-0 bg-transparent px-4"
               />
             )}
           />
         </View>
-        {errors.name && (
+        {form.errors.name && (
           <Text className="-mt-2 px-4 text-sm text-destructive">
-            {errors.name.message}
+            {form.errors.name.message}
           </Text>
         )}
 
@@ -178,27 +109,25 @@ export default function AddPersonModal() {
           <View className="flex-row items-center justify-between px-4 py-3">
             <Text className="text-base">Birthday</Text>
             <Switch
-              value={withBirthday}
-              onValueChange={setWithBirthday}
-              trackColor={{ true: palette.noodleGold }}
+              value={form.withBirthday}
+              onValueChange={form.setWithBirthday}
             />
           </View>
-          {withBirthday && (
+          {form.withBirthday && (
             <Animated.View
               entering={FadeIn.duration(200)}
               exiting={FadeOut.duration(150)}
             >
               <BirthdayDateRow
-                date={birthday}
-                includeYear={includeYear}
-                onChange={setBirthday}
+                date={form.birthday}
+                includeYear={form.includeYear}
+                onChange={form.setBirthday}
               />
               <View className="flex-row items-center justify-between border-t border-black/5 px-4 py-3">
                 <Text className="text-base">Include year</Text>
                 <Switch
-                  value={includeYear}
-                  onValueChange={setIncludeYear}
-                  trackColor={{ true: palette.noodleGold }}
+                  value={form.includeYear}
+                  onValueChange={form.setIncludeYear}
                 />
               </View>
             </Animated.View>

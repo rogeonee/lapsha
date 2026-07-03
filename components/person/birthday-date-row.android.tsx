@@ -11,8 +11,9 @@ type BirthdayDateRowProps = {
 };
 
 /**
- * Date row inside the birthday card: tappable value opening the
- * Material 3 date picker dialog (same pattern as the Android entry sheet).
+ * Date row for the Android add-person sheet: tappable value opening the
+ * Material 3 date picker dialog — same row style and dialog handling as
+ * the entry sheet.
  */
 export function BirthdayDateRow({
   date,
@@ -25,10 +26,10 @@ export function BirthdayDateRow({
     <>
       <Pressable
         onPress={() => setPickerOpen(true)}
-        className="flex-row items-center justify-between border-t border-black/5 px-4 py-3 active:bg-black/5"
+        className="flex-row items-center justify-between rounded-xl bg-secondary px-4 py-3"
         accessibilityLabel="Pick birthday date"
       >
-        <Text className="text-base">Date</Text>
+        <Text className="text-sm text-muted-foreground">Date</Text>
         <Text className="text-base">
           {date.toLocaleDateString(undefined, {
             month: 'long',
