@@ -41,7 +41,7 @@ export default function PeopleScreen() {
 
       {error ? (
         <View className="flex-1 items-center justify-center px-8">
-          <Text className="text-lg text-red-600 text-center mb-4">
+          <Text className="mb-4 text-center text-lg text-destructive">
             Error loading people
           </Text>
           <Text

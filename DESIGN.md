@@ -12,7 +12,6 @@ colors:
   ink-muted: "#71717A"
   hairline: "#E4E4E7"
   pressed-fill: "#F4F4F5"
-  warm-gray: "#C9C2B6"
   warm-gray-deep: "#8A8577"
   destructive: "#EF4444"
 typography:
@@ -91,13 +90,13 @@ components:
 
 **Creative North Star: "The Well-Kept Notebook"**
 
-Lapsha looks like a notebook someone actually keeps: quiet warm paper, tidy white cards, and one golden thread of amber running through everything touchable. The content — people and the details you've saved about them — is intimate, so the interface stays out of the way. Chrome is native wherever the platform provides it (large-title headers, sheets, swipe actions on iOS; Material 3 on Android), and the custom layer on top is deliberately plain: white cards on paper, hairline dividers, system type. Components are **native and quiet** — system affordances first, custom chrome only where the platform has no answer.
+Lapsha looks like a notebook someone actually keeps: quiet warm paper, tidy white cards, and one golden thread of amber marking identity and accent actions. The content — people and the details you've saved about them — is intimate, so the interface stays out of the way. Chrome is native wherever the platform provides it (large-title headers, sheets, swipe actions on iOS; Material 3 on Android), and the custom layer on top is deliberately plain: white cards on paper, hairline dividers, system type. Components are **native and quiet** — system affordances first, custom chrome only where the platform has no answer.
 
 This system explicitly rejects the sales-CRM look (data tables, pipelines, "contacts as leads" coldness), the generic web-app-in-a-wrapper feel, and social-network profile aesthetics. A person's screen should read as "my notes about Anna," never as a database record or a public profile.
 
 **Key Characteristics:**
 - Warm paper background with white cards; separation by tone, not lines or heavy shadows
-- One amber family (Noodle Gold / Broth / Cream Swirl) carries all warmth and interactivity
+- One amber family (Noodle Gold / Broth / Cream Swirl) carries warmth, identity, and accent interactions
 - System fonts only; the platform's own voice
 - Continuous-curve corners (`borderCurve: 'continuous'`) on every card — iOS-squircle softness
 - Density is low; every screen has one job
@@ -109,8 +108,8 @@ A restrained warm palette: near-neutral surfaces, zinc-cool ink, and a single am
 Tokens live in two mirrored places: `global.css` `@theme` for Tailwind classes (`bg-paper`, `text-broth`, `bg-cream-swirl`, plus the shadcn/HeroUI semantic set) and `lib/theme.ts` (`palette`, `shadows`) for native props — header tints, icon colors, the Android FAB, shadows. Never hard-code a hex from this palette in a component; add a token instead and keep both files in sync.
 
 ### Primary
-- **Noodle Gold** (#F6B756): The brand amber. Tab bar tint, plus/add icons, the FAB glyph. It marks "this is Lapsha and this is touchable." Never used as text — too light against any surface here.
-- **Broth** (#B07818): The deep, concentrated amber. The only amber allowed as text: navigation header tint, "Add fact / Add date" row labels, avatar initials, selection checkmarks. Use at ≥14px; at small sizes it thins out against Paper (~3.6:1 — acceptable for accent labels now, revisit before App Store release).
+- **Noodle Gold** (#F6B756): The brand amber. The iOS selected-tab tint, plus-circle actions, switches, and picker accents. It marks "this is Lapsha and this is touchable." Never used as text — too light against any surface here.
+- **Broth** (#B07818): The deep, concentrated amber. The only amber allowed as text: navigation header tint, "Add fact / Add date" row labels, avatar initials, and selection checkmarks; it also colors the Android FAB glyph. Use at ≥14px; at small sizes it thins out against Paper (~3.6:1 — acceptable for accent labels now, revisit before App Store release).
 - **Cream Swirl** (#FBEAC9): The soft amber fill. Avatar circles, the Android FAB container. Always paired with Broth content on top of it.
 
 ### Neutral
@@ -121,7 +120,7 @@ Tokens live in two mirrored places: `global.css` `@theme` for Tailwind classes (
 - **Ink Muted** (#71717A): Caption labels over values (the small label above a fact), placeholder text.
 - **Hairline** (#E4E4E7): Input borders. Row dividers use `black/5` overlay instead — dividers should be felt, not seen.
 - **Pressed Fill** (#F4F4F5): Secondary button fill; `black/5` serves the same role as the pressed state on white rows.
-- **Warm Gray** (#C9C2B6) / **Warm Gray Deep** (#8A8577): Disclosure chevrons only (light on iOS, deeper on Android). Decorative wayfinding, never text.
+- **Warm Gray Deep** (#8A8577): Disclosure chevrons only. The lighter predecessor did not remain visible enough on device. Decorative wayfinding, never text.
 - **Destructive** (#EF4444): Swipe-to-delete action background and destructive buttons. The only non-amber saturated color in the app.
 
 ### Named Rules
@@ -187,7 +186,7 @@ The atom of the person screen, in two forms. **Fact row:** optional Ink Muted la
 48px Cream Swirl circle with a Broth semibold initial; scales to 72px as the centered identity header on the add-person and person screens. No photos yet; when they arrive they inherit this geometry.
 
 ### Navigation
-Native tabs (SF Symbols on iOS, XML drawables on Android), Noodle Gold tint. Stack headers are native large-title with Broth tint and transparent-on-Paper large style. Quick add lives in the platform-native slot: the iOS 26+ bottom accessory, an M3 FAB (Cream Swirl container, Broth icon) on Android.
+Native tabs use SF Symbols on iOS and XML drawables on Android. iOS uses a Noodle Gold selected tint; Android keeps the platform-native tab treatment. Stack headers use native large titles with Broth tint and a transparent-on-Paper large style. Quick add lives in a platform-native affordance: a detached, disabled native-tab action on iOS 26+, and an M3 FAB with a Cream Swirl container and Broth icon on Android.
 
 ## 6. Do's and Don'ts
 

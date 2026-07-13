@@ -1,13 +1,13 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-01T00:00:00Z",
+  "generatedAt": "2026-07-13T06:11:27Z",
   "title": "Design System: Lapsha",
   "extensions": {
     "colorMeta": {
       "noodle-gold": {
         "role": "primary",
         "displayName": "Noodle Gold",
-        "canonical": "hsl(38 90% 65%)",
+        "canonical": "#F6B756",
         "tonalRamp": ["oklch(25% 0.07 75)", "oklch(38% 0.1 75)", "oklch(50% 0.12 75)", "oklch(62% 0.13 75)", "oklch(72% 0.13 75)", "oklch(82% 0.11 75)", "oklch(90% 0.07 75)", "oklch(96% 0.03 75)"]
       },
       "broth": {
@@ -82,17 +82,25 @@
       "name": "Person Card",
       "kind": "card",
       "refersTo": "card",
-      "description": "List card: Cream Swirl avatar, name, warm-gray chevron, whisper shadow on Paper.",
-      "html": "<div class=\"ds-person-card\"><span class=\"ds-avatar\">A</span><span class=\"ds-person-name\">Anna Petrova</span><svg class=\"ds-chevron\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#C9C2B6\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 18 6-6-6-6\"/></svg></div>",
+      "description": "List card: Cream Swirl avatar, name, visible warm-gray chevron, whisper shadow on Paper.",
+      "html": "<div class=\"ds-person-card\"><span class=\"ds-avatar\">A</span><span class=\"ds-person-name\">Anna Petrova</span><svg class=\"ds-chevron\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#8A8577\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 18 6-6-6-6\"/></svg></div>",
       "css": ".ds-person-card { display: flex; align-items: center; background: #FFFFFF; border-radius: 14px; padding: 14px; box-shadow: 0 1px 3px rgba(28, 20, 8, 0.06); font-family: system-ui, sans-serif; transition: background 0.15s; } .ds-person-card:hover { background: #FCFAF7; } .ds-avatar { width: 48px; height: 48px; border-radius: 9999px; background: #FBEAC9; color: #B07818; font-size: 16px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; margin-right: 14px; flex-shrink: 0; } .ds-person-name { font-size: 16px; font-weight: 500; color: #09090B; flex: 1; } .ds-chevron { flex-shrink: 0; }"
     },
     {
       "name": "Entry Row",
       "kind": "custom",
       "refersTo": "entry-row",
-      "description": "The atom of the person screen: label over value, tap to edit.",
+      "description": "Fact row: optional muted label over a prominent value; tap to edit and swipe to delete.",
       "html": "<div class=\"ds-entry-row\"><span class=\"ds-entry-label\">Favorite coffee</span><span class=\"ds-entry-value\">Flat white, oat milk</span></div>",
-      "css": ".ds-entry-row { display: flex; flex-direction: column; background: #FFFFFF; padding: 10px 14px; font-family: system-ui, sans-serif; cursor: pointer; transition: background 0.15s; } .ds-entry-row:hover { background: rgba(0, 0, 0, 0.05); } .ds-entry-row:active { background: rgba(0, 0, 0, 0.05); } .ds-entry-label { font-size: 11px; color: #71717A; margin-bottom: 2px; } .ds-entry-value { font-size: 14px; color: #09090B; }"
+      "css": ".ds-entry-row { display: flex; flex-direction: column; background: #FFFFFF; padding: 10.5px 14px; font-family: system-ui, sans-serif; cursor: pointer; transition: background 0.18s; } .ds-entry-row:hover { background: rgba(0, 0, 0, 0.05); } .ds-entry-row:active { background: rgba(0, 0, 0, 0.05); } .ds-entry-row:focus-visible { outline: 2px solid #18181B; outline-offset: -2px; } .ds-entry-label { font-size: 12.25px; color: #71717A; margin-bottom: 1.75px; } .ds-entry-value { font-size: 15.75px; color: #09090B; }"
+    },
+    {
+      "name": "Date Row",
+      "kind": "custom",
+      "refersTo": "entry-row",
+      "description": "Timeline-derived date row: day over month, prominent label, and optional year-plus-age detail; tap to edit and swipe to delete.",
+      "html": "<div class=\"ds-date-row\"><span class=\"ds-date-block\"><strong>15</strong><small>Mar</small></span><span class=\"ds-date-copy\"><strong>Birthday</strong><small>1990 · turns 37</small></span></div>",
+      "css": ".ds-date-row { display: flex; align-items: center; gap: 10.5px; background: #FFFFFF; padding: 10.5px 14px; font-family: system-ui, sans-serif; color: #09090B; cursor: pointer; transition: background 0.18s; } .ds-date-row:hover, .ds-date-row:active { background: rgba(0, 0, 0, 0.05); } .ds-date-row:focus-visible { outline: 2px solid #18181B; outline-offset: -2px; } .ds-date-block { width: 38.5px; display: flex; flex-direction: column; align-items: center; } .ds-date-block strong, .ds-date-copy strong { font-size: 15.75px; line-height: 1.4; font-weight: 600; } .ds-date-block small { font-size: 12.25px; color: #71717A; } .ds-date-copy { display: flex; flex-direction: column; flex: 1; } .ds-date-copy strong { font-weight: 500; } .ds-date-copy small { margin-top: 1.75px; font-size: 14px; color: #71717A; }"
     },
     {
       "name": "Add Row",
@@ -113,10 +121,10 @@
   ],
   "narrative": {
     "northStar": "The Well-Kept Notebook",
-    "overview": "Lapsha looks like a notebook someone actually keeps: quiet warm paper, tidy white cards, and one golden thread of amber running through everything touchable. The content — people and the details you've saved about them — is intimate, so the interface stays out of the way. Chrome is native wherever the platform provides it, and the custom layer on top is deliberately plain: white cards on paper, hairline dividers, system type. This system explicitly rejects the sales-CRM look, the generic web-app-in-a-wrapper feel, and social-network profile aesthetics.",
+    "overview": "Lapsha looks like a notebook someone actually keeps: quiet warm paper, tidy white cards, and one golden thread of amber marking identity and accent actions. The content — people and the details you've saved about them — is intimate, so the interface stays out of the way. Chrome is native wherever the platform provides it, and the custom layer on top is deliberately plain: white cards on paper, hairline dividers, system type. This system explicitly rejects the sales-CRM look, the generic web-app-in-a-wrapper feel, and social-network profile aesthetics.",
     "keyCharacteristics": [
       "Warm paper background with white cards; separation by tone, not lines or heavy shadows",
-      "One amber family (Noodle Gold / Broth / Cream Swirl) carries all warmth and interactivity",
+      "One amber family (Noodle Gold / Broth / Cream Swirl) carries warmth, identity, and accent interactions",
       "System fonts only; the platform's own voice",
       "Continuous-curve corners on every card — iOS-squircle softness",
       "Density is low; every screen has one job"

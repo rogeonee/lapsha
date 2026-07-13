@@ -42,4 +42,4 @@ References:
 
 ## Accessibility & Inclusion
 
-No formal commitments recorded yet — revisit before App Store release. Practical baseline in the meantime: keep text contrast readable against the neutral palette, respect standard touch-target sizes, and prefer system components (which carry Dynamic Type and platform accessibility for free). The app is currently locked to light mode; dark tokens already exist in `global.css` for when that changes.
+No formal commitments recorded yet — revisit before App Store release. Practical baseline in the meantime: keep text contrast readable against the neutral palette, respect standard touch-target sizes, and prefer system components (which carry Dynamic Type and platform accessibility for free). The app is currently locked to light mode. The semantic dark values in `global.css` are compatibility scaffolding for third-party components, not a designed Lapsha dark theme.

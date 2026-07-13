@@ -20,7 +20,7 @@
      variants are color-mixed from the RAW --accent var, so the raw vars
      are overridden too (in the @variant blocks below) or pressed states
      flash HeroUI blue. */
-  --color-accent: hsl(38 90% 65%);
+  --color-accent: #f6b756;
   --color-accent-foreground: hsl(240 5.9% 10%);
   --color-background: hsl(0 0% 100%);
   --color-foreground: hsl(240 10% 3.9%);
@@ -43,9 +43,9 @@
 @layer theme {
   :root {
     @variant light {
-      --accent: hsl(38 90% 65%);
+      --accent: #f6b756;
       --accent-foreground: hsl(240 5.9% 10%);
-      --color-accent: hsl(38 90% 65%);
+      --color-accent: #f6b756;
       --color-accent-foreground: hsl(240 5.9% 10%);
       --color-background: hsl(0 0% 100%);
       --color-foreground: hsl(240 10% 3.9%);
@@ -66,9 +66,9 @@
     }
 
     @variant dark {
-      --accent: hsl(38 90% 65%);
+      --accent: #f6b756;
       --accent-foreground: hsl(240 5.9% 10%);
-      --color-accent: hsl(38 90% 65%);
+      --color-accent: #f6b756;
       --color-accent-foreground: hsl(240 5.9% 10%);
       --color-background: hsl(240 10% 3.9%);
       --color-foreground: hsl(0 0% 98%);

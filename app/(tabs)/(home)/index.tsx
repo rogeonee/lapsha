@@ -264,7 +264,7 @@ export default function HomeScreen() {
   if (error) {
     return (
       <View className="flex-1 items-center justify-center px-8">
-        <Text className="mb-4 text-center text-lg text-red-600">
+        <Text className="mb-4 text-center text-lg text-destructive">
           Error loading upcoming dates
         </Text>
         <Text

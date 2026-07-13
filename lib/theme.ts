@@ -14,9 +14,7 @@ export const palette = {
   paper: '#F9F7F4',
   /** Body text and values (Tailwind side: the default foreground token). */
   ink: '#09090B',
-  /** Disclosure chevrons on iOS. Decorative wayfinding, never text. */
-  warmGray: '#C9C2B6',
-  /** Disclosure chevrons on Android. */
+  /** Disclosure chevrons. Decorative wayfinding, never text. */
   warmGrayDeep: '#8A8577',
 } as const;
 
