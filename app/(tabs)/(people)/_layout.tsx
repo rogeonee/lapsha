@@ -23,8 +23,7 @@ export default function PeopleStackLayout() {
               headerBackButtonDisplayMode: 'minimal',
             }
           : {
-              // Header sits on Paper like the screen itself — no white
-              // band or elevation seam above the content
+              // Header sits on Paper like the screen, no elevation seam
               headerStyle: { backgroundColor: palette.paper },
               headerShadowVisible: false,
             }),

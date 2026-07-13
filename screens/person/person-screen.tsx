@@ -146,10 +146,9 @@ export function PersonScreen() {
   return (
     <>
       <Stack.Screen options={{ title: person?.name ?? '' }} />
-      {/* Android: menu item text/checkmark inherit the toolbar tint — ink
-          keeps the dropdown M3-quiet while the Menu's own tintColor keeps
-          the trigger icon amber. The inline "Sort facts" group is iOS-only:
-          Android drops its title and renders a stray divider instead. */}
+      {/* Android tints menu text with the toolbar tint (ink), while the
+          Menu's own tintColor keeps the trigger icon amber. The inline
+          "Sort facts" group is iOS-only: Android renders a stray divider. */}
       <Stack.Toolbar
         placement="right"
         tintColor={isIOS ? undefined : palette.ink}
@@ -178,8 +177,7 @@ export function PersonScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="p-4 gap-5"
       >
-        {/* Avatar: the add-person preview geometry, name stays in the header.
-            Decorative — hidden from screen readers (the header announces the name) */}
+        {/* Decorative — the header already announces the name */}
         <View className="items-center pt-2" aria-hidden>
           <View
             className="items-center justify-center rounded-full bg-cream-swirl"

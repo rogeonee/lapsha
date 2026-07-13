@@ -14,11 +14,7 @@ const DELETE_ACTION_WIDTH = 80;
 const SWIPE_OPEN_THRESHOLD = 32;
 const SWIPE_VELOCITY_THRESHOLD = 500;
 
-/**
- * Swipe-left-to-delete wrapper shared by fact and date rows. The destructive
- * action surface moves in while the row content stays anchored, so the item
- * being acted on remains legible throughout the gesture.
- */
+/** Swipe-left-to-delete wrapper shared by fact and date rows. */
 function SwipeableRow({
   deleteLabel,
   divider,
@@ -163,9 +159,8 @@ export function EntryRow({
 }
 
 /**
- * A date row in the timeline's visual language: day-over-month block on the
- * left, prominent label, muted year + age detail. Tap to edit, swipe left
- * to delete.
+ * A date row: day-over-month block on the left, label, muted year + age
+ * detail. Tap to edit, swipe left to delete.
  */
 export function DateRow({
   date,
