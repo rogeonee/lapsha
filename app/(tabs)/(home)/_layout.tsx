@@ -13,14 +13,21 @@ export default function HomeStackLayout() {
       screenOptions={{
         headerTintColor: palette.broth,
         contentStyle: { backgroundColor: palette.paper },
-        ...(isIOS && {
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerLargeTitleShadowVisible: false,
-          headerLargeStyle: { backgroundColor: 'transparent' },
-          headerBlurEffect: 'none',
-          headerBackButtonDisplayMode: 'minimal',
-        }),
+        ...(isIOS
+          ? {
+              headerTransparent: true,
+              headerShadowVisible: false,
+              headerLargeTitleShadowVisible: false,
+              headerLargeStyle: { backgroundColor: 'transparent' },
+              headerBlurEffect: 'none',
+              headerBackButtonDisplayMode: 'minimal',
+            }
+          : {
+              // Header sits on Paper like the screen itself — no white
+              // band or elevation seam above the content
+              headerStyle: { backgroundColor: palette.paper },
+              headerShadowVisible: false,
+            }),
       }}
     >
       <Stack.Screen

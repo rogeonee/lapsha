@@ -15,9 +15,11 @@ import {
 import { AddRow, DateRow, EntryRow } from '~/components/person/entry-row';
 import { Text } from '~/components/ui/text';
 import { getSortPref, setSortPref } from '~/lib/prefs';
-import { shadows } from '~/lib/theme';
+import { palette, shadows } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import type { EntrySort, Fact, Person, Date as PersonDate } from '~/types/db';
+
+const isIOS = process.env.EXPO_OS === 'ios';
 
 const cardStyle = {
   borderCurve: 'continuous',
@@ -122,33 +124,53 @@ export function PersonScreen() {
     );
   }
 
+  // Array, not a fragment: Stack.Toolbar.Menu validates its direct children
+  // and rejects anything that isn't a menu primitive
+  const sortActions = [
+    <Stack.Toolbar.MenuAction
+      key="created"
+      isOn={factSort === 'created'}
+      onPress={() => changeFactSort('created')}
+    >
+      Date added
+    </Stack.Toolbar.MenuAction>,
+    <Stack.Toolbar.MenuAction
+      key="modified"
+      isOn={factSort === 'modified'}
+      onPress={() => changeFactSort('modified')}
+    >
+      Last modified
+    </Stack.Toolbar.MenuAction>,
+  ];
+
   return (
     <>
       <Stack.Screen options={{ title: person?.name ?? '' }} />
-      <Stack.Toolbar placement="right">
+      {/* Android: menu item text/checkmark inherit the toolbar tint — ink
+          keeps the dropdown M3-quiet while the Menu's own tintColor keeps
+          the trigger icon amber. The inline "Sort facts" group is iOS-only:
+          Android drops its title and renders a stray divider instead. */}
+      <Stack.Toolbar
+        placement="right"
+        tintColor={isIOS ? undefined : palette.ink}
+      >
         <Stack.Toolbar.Menu
           // Android ignores SF Symbol names; it needs an image source
           icon={
-            process.env.EXPO_OS === 'ios'
+            isIOS
               ? 'arrow.up.arrow.down'
               : require('~/assets/icons/swap_vert.xml')
           }
+          tintColor={isIOS ? undefined : palette.broth}
           accessibilityLabel="Sort"
         >
-          <Stack.Toolbar.Menu title="Sort facts" inline>
-            <Stack.Toolbar.MenuAction
-              isOn={factSort === 'created'}
-              onPress={() => changeFactSort('created')}
-            >
-              Date added
-            </Stack.Toolbar.MenuAction>
-            <Stack.Toolbar.MenuAction
-              isOn={factSort === 'modified'}
-              onPress={() => changeFactSort('modified')}
-            >
-              Last modified
-            </Stack.Toolbar.MenuAction>
-          </Stack.Toolbar.Menu>
+          {isIOS ? (
+            <Stack.Toolbar.Menu title="Sort facts" inline>
+              {sortActions}
+            </Stack.Toolbar.Menu>
+          ) : (
+            sortActions
+          )}
         </Stack.Toolbar.Menu>
       </Stack.Toolbar>
 
