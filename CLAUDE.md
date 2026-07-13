@@ -1,79 +1,101 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Technical guidance for coding agents working in this repository.
 
-See `AGENTS.md` for app context, domain model, current implementation state, and MVP gaps.
-See `notebook.md` for the running log of decisions, gotchas, and product direction.
+See `AGENTS.md` for app context, implemented state, and current gaps.
+See `notebook.md` for non-obvious decisions and device-tested gotchas.
 
 ## Design Context
 
-- `PRODUCT.md` — strategic design context: register (product), users, brand personality ("warm, personal, native"), anti-references, design principles. Read before any UI/design work.
-- `DESIGN.md` — the visual system ("The Well-Kept Notebook"): color tokens (Noodle Gold / Broth / Cream Swirl amber family, Paper background), typography, elevation, component rules.
+- `PRODUCT.md` defines the product, users, brand personality (“warm, personal, native”), anti-references, and design principles.
+- `DESIGN.md` defines “The Well-Kept Notebook” visual system: palette/tokens, typography, elevation, component rules, and platform behavior.
+
+Read both before UI/design work.
 
 ## Commands
 
 ```bash
-# Install dependencies (always use bunx expo install for new packages)
+# Dependencies (use Expo's installer for native packages)
 bun install
 bunx expo install <package-name>
 
-# Start development server
+# Development
 bunx expo start
 bun run start
+bun run ios
+bun run android
 
-# Run on specific platform
-bun run ios            # expo run:ios
-bun run android        # expo run:android
-
-# Lint
-bun run lint           # expo lint
+# Static checks
+bun run lint
 ```
 
-**Note:** Web target (`bun run web`) is not supported — `expo-sqlite` requires native modules.
+Web is not a supported target. The app relies on native Expo Router, SwiftUI, and Jetpack Compose modules.
 
 ## Architecture
 
 ### Tech Stack
 
-- **Expo SDK 54+** with Expo Router for file-based routing
-- **TypeScript** in strict mode
-- **expo-sqlite** for local database (single-user, no auth)
-- **NativeWind** (Tailwind CSS) + StyleSheet for styling
-- **Zod** for schema validation
-- **React Hook Form** for form handling
+- Expo SDK 56, React Native 0.85, React 19, and Expo Router.
+- TypeScript 6 in strict mode with React Compiler enabled.
+- `expo-sqlite` for the local, single-user database; no authentication or backend.
+- Uniwind 1.8 with Tailwind CSS v4 for utility styling.
+- `@expo/ui/swift-ui` for native iOS surfaces.
+- HeroUI Native 1.0.4 plus `@expo/ui/jetpack-compose` for Android surfaces.
+- React Hook Form and Zod for the add-person form/service validation.
+- React Native Keyboard Controller, Gesture Handler, and Reanimated for Android sheet/gesture behavior.
 
 ### Project Structure
 
 ```
-app/                          # Expo Router screens (file-based routing)
-├── (tabs)/                  # NativeTabs group (+ quick-add BottomAccessory, iOS 26+)
-│   └── (people)/            # Stack group: people list + person detail
-│       ├── people.tsx       # People list (native large-title header)
-│       └── person/[id].tsx  # Person detail (facts & dates)
-├── _layout.tsx              # Root layout (no auth)
-└── add-person.tsx           # Add person modal
+app/
+├── _layout.tsx                         # Providers, theme lock, root stack
+├── add-person.tsx                     # iOS modal / Android sheet route host
+└── (tabs)/
+    ├── _layout.tsx                    # NativeTabs + global quick add
+    ├── quick-add.tsx                  # Disabled/hidden route required by NativeTabs
+    ├── settings.tsx
+    ├── (home)/
+    │   ├── index.tsx                  # Upcoming timeline
+    │   └── person/[id].tsx            # Re-exports shared PersonScreen
+    └── (people)/
+        ├── people.tsx                 # People list
+        └── person/[id].tsx            # Re-exports shared PersonScreen
 
-api/                    # Domain-driven data layer
-├── database.ts        # SQLite setup + schema (singleton db, user_version migrations)
-├── people/            # People CRUD
-├── facts/             # Person facts CRUD
-├── dates/             # Person dates CRUD
-├── timeline/          # Cross-person date aggregation
-└── error-handling.ts  # Shared error utilities
+api/
+├── database.ts                        # SQLite singleton + migrations
+├── people/                            # Person services/schema
+├── facts/                             # Fact services/schema
+├── dates/                             # Date services/schema
+├── timeline/                          # Cross-person date queries
+└── error-handling.ts                  # ServiceResponse/error mapping
 
-components/             # Reusable UI components
-├── ui/                # Base components (button, input, text)
-├── person/            # Person-related components (cards, rows)
-├── entry/             # EntrySheet (@expo/ui bottom sheet for facts/dates)
-└── quick-add/         # Tab bar quick-add accessory
+components/
+├── entry/                             # Platform-split EntrySheet + shared state
+├── person/                            # Add-person UI, rows, cards
+├── quick-add/                         # Android FAB (iOS no-op shim)
+├── ui/                                # Shared primitives/icons
+└── ui-providers.*.tsx                 # Android-only HeroUI provider
 
-lib/                    # Utilities and hooks (prefs, dates, use-table-version)
-types/db.ts            # Database types
+screens/person/person-screen.tsx       # Shared detail screen for both stacks
+lib/                                   # Preferences, date/theme helpers, DB hook
+types/db.ts                            # Database and service types
+global.css                             # Uniwind/HeroUI theme tokens
 ```
 
-### Key Patterns
+### Platform UI Boundaries
 
-**Service Response Pattern**: All API services return `ServiceResponse<T>`:
+- iOS entry/add-person surfaces use SwiftUI or native stack toolbars.
+- Android entry/add-person surfaces use HeroUI bottom sheets with Jetpack Compose date controls.
+- Shared behavior belongs in hooks (`use-entry-form.ts`, `use-add-person-form.ts`); platform files own presentation and platform quirks.
+- Unsuffixed platform shims must stay free of the other platform's runtime imports. TypeScript does not use Metro platform suffix resolution, while Metro does.
+- `HeroUINativeProvider` mounts Android-only so iOS does not bundle HeroUI.
+- Global quick-add state and the single EntrySheet instance live beside `<NativeTabs>` in `app/(tabs)/_layout.tsx`: iOS 26+ opens it through `onTabSelectionPrevented`; Android opens it from the FAB.
+
+## Data and State Patterns
+
+### ServiceResponse
+
+Every API service returns synchronously:
 
 ```typescript
 interface ServiceResponse<T> {
@@ -82,39 +104,57 @@ interface ServiceResponse<T> {
 }
 ```
 
-**Synchronous services**: All database operations use `expo-sqlite` sync APIs (`db.runSync`, `db.getFirstSync`, `db.getAllSync`). Service functions return `ServiceResponse<T>` directly (not Promises).
+Check `response.error` first. Services wrap operations with `runServiceOperation()` and use `db.runSync`, `db.getFirstSync`, or `db.getAllSync`; never `await` a service call.
 
-**Path Alias**: Use `~/` to import from project root (e.g., `import { db } from '~/api/database'`).
+### SQLite-Driven Refresh
+
+`lapsha.db` opens with `enableChangeListener: true`. `useTableVersion(tables)` subscribes through `addDatabaseChangeListener` and supplies an invalidation counter. Screens synchronously derive service results during render from that counter; do not mirror database rows into state from an effect.
+
+Preferences live in `expo-sqlite/kv-store`, separate from the main database. Current keys are fact sort mode (`sort.facts`) and last quick-add person (`lastPersonId`).
 
 ### React Compiler
 
-React Compiler is enabled by default (Expo 54+). Write code that the compiler can optimize automatically:
+- Avoid manual `useMemo`, `useCallback`, and `React.memo` unless profiling justifies them.
+- Do not mutate objects or arrays.
+- Keep hook order and render paths predictable.
+- Derived-state updates during render are used intentionally where native sheet content must remain mounted through dismissal; inspect the existing pattern before replacing it.
 
-- Avoid manual `useMemo`/`useCallback`/`React.memo` unless profiling shows a need
-- Don't mutate objects/arrays - always return new references
-- Keep component logic predictable (no conditional hooks, consistent render paths)
+## Styling and Themes
 
-### Conventions
+- Prefer Uniwind `className` / `contentContainerClassName` utilities.
+- Tailwind v4 tokens live in `global.css`; imperative native colors and shadows live in `lib/theme.ts`. Keep the two token sets synchronized.
+- Metro's `withUniwindConfig` sets `polyfills: { rem: 14 }`. Do not remove it: changing rem back to 16 silently scales the interface.
+- `group-*` and `peer-*` variants are Uniwind Pro-only and no-op in this project.
+- Use native `style` props where required for headers, shadows, animated values, or unsupported properties.
+- The app is intentionally light-only for now. `Appearance.setColorScheme('light')` and `Uniwind.setTheme('light')` in `app/_layout.tsx` must change together when dark mode is implemented.
+- Use `components/ui/icons.tsx` for shared icons. Android toolbar icons require bundled XML drawables; `expo-image` SF-symbol sources are iOS-only.
 
-- Components: kebab-case (`user-profile.tsx`)
-- Hooks: kebab-case with 'use' prefix (`use-data.tsx`)
-- Screens: default exports for Expo Router
-- Other components: named exports
-- Styling: NativeWind classes preferred, StyleSheet for complex styles
-- Forms: react-hook-form + zod resolver
+## Forms
+
+- Service input schemas live beside their domains and use Zod.
+- Add person uses React Hook Form with `zodResolver` in `use-add-person-form.ts`.
+- EntrySheet uses shared React state in `use-entry-form.ts` because SwiftUI and HeroUI own their platform controls.
+- Keep UTC storage conversion in `lib/dates.ts`. An unknown year is stored as year `0001`; Android date pickers return UTC-midnight milliseconds and must be read with UTC getters.
 
 ## Database
 
-Local SQLite database (`lapsha.db`) via `expo-sqlite`. Schema defined in `api/database.ts`.
+The local database is `lapsha.db`; schema and migrations are in `api/database.ts`.
 
-| Table     | Key Columns                                                    | Notes                                       |
-| --------- | -------------------------------------------------------------- | ------------------------------------------- |
-| `persons` | id, name                                                       | People you track                            |
-| `facts`   | id, person_id, label (nullable), value, sort_order             | label NULL = plain-text fact                |
-| `dates`   | id, person_id, label, date, month, day, year_known, sort_order | 'birthday' label is reserved (pinned first) |
+| Table     | Key columns                                                              | Notes                                                      |
+| --------- | ------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| `persons` | `id`, `name`                                                             | Update/delete services exist; UI does not yet expose them  |
+| `facts`   | `person_id`, nullable `label`, `value`, `sort_order`                     | `NULL` label is an unlabeled/free-form fact                |
+| `dates`   | `person_id`, `label`, `date`, `month`, `day`, `year_known`, `sort_order` | `birthday` is reserved case-insensitively and pinned first |
 
-All tables have `created_at`, `updated_at`, `deleted_at` (soft delete). IDs are UUIDs generated via `randomUUID()` from `expo-crypto` (there is no global `crypto` in the Expo native runtime).
+All tables include `created_at`, `updated_at`, and nullable `deleted_at`. CRUD uses soft deletes; normal reads must filter `deleted_at IS NULL`. IDs come from `randomUUID()` in `expo-crypto`; Expo native does not provide a usable global `crypto` here.
 
-Schema migrations are keyed off `PRAGMA user_version` in `api/database.ts`. The db is opened with `enableChangeListener: true`; screens refresh via `useTableVersion()` (`lib/use-table-version.ts`), which subscribes to `addDatabaseChangeListener`. UI preferences (sort modes, last quick-add person) live in `expo-sqlite/kv-store` via `lib/prefs.ts`.
+Schema migrations are keyed by `PRAGMA user_version`. Each migration must stamp its version inside the same transaction as its schema changes. `sort_order` is populated for facts and dates but is reserved for future manual ordering; the current UI does not consume it.
 
-Types in `types/db.ts`.
+## Conventions
+
+- Root import alias: `~/`.
+- Expo Router screens default-export; reusable components use named exports.
+- Component and hook module names use kebab-case.
+- Platform implementations use `.ios.tsx` / `.android.tsx` and an unsuffixed shim where required.
+- Prefer synchronous, domain-focused services and central database types from `types/db.ts`.
+- Preserve the originating tab stack when linking to a person; both person routes share `PersonScreen` intentionally.
