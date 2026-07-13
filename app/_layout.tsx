@@ -10,12 +10,15 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Appearance } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Uniwind } from 'uniwind';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
+import { Uniwind } from 'uniwind';
 import { UIProviders } from '~/components/ui-providers';
 import { NAV_THEME } from '~/lib/constants';
+import { palette } from '~/lib/theme';
 import { useColorScheme } from '~/lib/useColorScheme';
 import '../global.css';
+
+const isIOS = process.env.EXPO_OS === 'ios';
 
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
@@ -57,9 +60,25 @@ export default function Root() {
               <Stack.Screen
                 name="add-person"
                 options={{
-                  title: 'Add New Person',
-                  presentation: 'modal',
-                  headerShown: false,
+                  title: 'New Person',
+                  ...(isIOS
+                    ? {
+                        presentation: 'modal' as const,
+                        headerTintColor: palette.broth,
+                        contentStyle: { backgroundColor: palette.paper },
+                        headerTransparent: true,
+                        headerShadowVisible: false,
+                        headerBlurEffect: 'none' as const,
+                      }
+                    : {
+                        // Android: the route is an invisible host for the
+                        // HeroUI bottom sheet (AddPersonSheet), which
+                        // renders its own scrim and pops the route on close
+                        presentation: 'transparentModal' as const,
+                        animation: 'none' as const,
+                        headerShown: false,
+                        contentStyle: { backgroundColor: 'transparent' },
+                      }),
                 }}
               />
             </Stack>

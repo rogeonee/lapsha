@@ -1,200 +1,139 @@
-import { DatePicker, Host } from '@expo/ui/swift-ui';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { Alert, ScrollView, Switch, View } from 'react-native';
-import { KeyboardStickyView } from 'react-native-keyboard-controller';
-import { createDate } from '~/api/dates/dates-service';
-import { createPerson } from '~/api/people/people-service';
-import {
-  type CreatePersonForm,
-  createPersonSchema,
-} from '~/api/people/person-schema';
-import { Button } from '~/components/ui/button';
+import { Stack, useRouter } from 'expo-router';
+import { Controller } from 'react-hook-form';
+import { ScrollView, View } from 'react-native';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { AddPersonSheet } from '~/components/person/add-person-sheet';
+import { BirthdayDateRow } from '~/components/person/birthday-date-row';
+import { useAddPersonForm } from '~/components/person/use-add-person-form';
+import { PersonIcon } from '~/components/ui/icons';
 import { Input } from '~/components/ui/input';
-import { Label } from '~/components/ui/label';
+import { Switch } from '~/components/ui/switch';
 import { Text } from '~/components/ui/text';
-import { toStorageDate } from '~/lib/dates';
+import { palette, shadows } from '~/lib/theme';
 
-// placeholder analytic fn
-const trackEvent = (event: any) => {
-  console.log('Analytics event:', event);
-  // TODO: Implement actual analytics tracking
-};
+const isIOS = process.env.EXPO_OS === 'ios';
+
+const cardStyle = {
+  borderCurve: 'continuous',
+  boxShadow: shadows.whisper,
+} as const;
 
 export default function AddPersonModal() {
+  // Android renders the HeroUI bottom sheet (the app's Android sheet
+  // vocabulary, shared with quick add); the route itself is a
+  // transparentModal that the sheet pops on close
+  if (!isIOS) {
+    return <AddPersonSheet />;
+  }
+  return <AddPersonScreen />;
+}
+
+/** iOS: native pageSheet modal with header bar buttons (Contacts-style). */
+function AddPersonScreen() {
   const router = useRouter();
-  const [withBirthday, setWithBirthday] = useState(false);
-  const [birthday, setBirthday] = useState(() => new Date());
-  const [includeYear, setIncludeYear] = useState(true);
-
-  const {
-    control,
-    handleSubmit,
-    formState: { errors, isValid },
-    watch,
-    reset,
-  } = useForm<CreatePersonForm>({
-    resolver: zodResolver(createPersonSchema),
-    defaultValues: {
-      name: '',
-    },
-    mode: 'onChange',
-  });
-
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const nameValue = watch('name');
-
-  useEffect(() => {
-    trackEvent({ type: 'person_create_started' });
-  }, []);
-
-  const onSubmit = (data: CreatePersonForm) => {
-    const response = createPerson({ name: data.name.trim() });
-
-    if (response.error) {
-      console.error('Failed to create person:', response.error);
-
-      trackEvent({
-        type: 'person_create_error',
-        errorCode: response.error.code,
-        errorMessage: response.error.message,
-      });
-
-      const errorMessage =
-        response.error.code === 'VALIDATION_ERROR'
-          ? 'Please check your input and try again.'
-          : 'Failed to add person. Please try again.';
-
-      Alert.alert('Error', errorMessage, [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Retry', onPress: () => onSubmit(data) },
-      ]);
-      return;
-    }
-
-    trackEvent({
-      type: 'person_create_success',
-      personId: response.data?.id,
-    });
-
-    if (withBirthday && response.data) {
-      const dateResponse = createDate({
-        person_id: response.data.id,
-        label: 'Birthday',
-        date: toStorageDate(birthday, includeYear),
-      });
-
-      if (dateResponse.error) {
-        Alert.alert(
-          'Person saved',
-          "The birthday couldn't be added — you can add it from their screen.",
-        );
-      }
-    }
-
-    reset();
-
-    // close modal and return to people tab
-    router.back();
-  };
-
-  const handleClose = () => {
-    router.back();
-  };
+  const form = useAddPersonForm();
 
   return (
-    <View className="flex-1 bg-paper">
-      {/* Header */}
-      <View className="flex-row items-center justify-between p-4 pt-16">
-        <Text className="text-lg font-semibold">Add New Person</Text>
-        <Button
-          variant="outline"
-          size="sm"
-          onPress={handleClose}
-          className="border-border bg-transparent"
+    <>
+      <Stack.Toolbar placement="left">
+        <Stack.Toolbar.Button
+          tintColor={palette.broth}
+          onPress={() => router.back()}
         >
-          <Text className="text-muted-foreground">×</Text>
-        </Button>
-      </View>
+          Cancel
+        </Stack.Toolbar.Button>
+      </Stack.Toolbar>
+      <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Button
+          variant="done"
+          tintColor={palette.broth}
+          disabled={!form.isValid}
+          onPress={form.save}
+        >
+          Add
+        </Stack.Toolbar.Button>
+      </Stack.Toolbar>
 
-      {/* Content */}
       <ScrollView
-        className="flex-1 p-6"
+        className="flex-1 bg-paper"
+        contentContainerClassName="gap-4 p-4"
+        contentInsetAdjustmentBehavior="automatic"
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
       >
-        {/* Name Input */}
-        <View className="mb-6">
-          <Label htmlFor="name" className="mb-2">
-            Name
-          </Label>
+        {/* Live avatar preview: the standard avatar geometry, scaled up */}
+        <View className="items-center py-3">
+          <View
+            className="items-center justify-center rounded-full bg-cream-swirl"
+            style={{ width: 72, height: 72 }}
+          >
+            {form.initial ? (
+              <Text className="text-3xl font-semibold text-broth">
+                {form.initial}
+              </Text>
+            ) : (
+              <PersonIcon size={30} color={palette.broth} />
+            )}
+          </View>
+        </View>
+
+        <View className="rounded-2xl bg-white" style={cardStyle}>
           <Controller
-            control={control}
+            control={form.control}
             name="name"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                id="name"
-                placeholder="Enter person's name"
+                placeholder="Name"
                 onChangeText={onChange}
                 onBlur={onBlur}
                 value={value}
                 autoFocus
                 maxLength={60}
+                autoCapitalize="words"
+                autoComplete="name"
+                returnKeyType="done"
+                onSubmitEditing={form.save}
                 accessibilityLabel="Person's name"
-                className={errors.name ? 'border-destructive' : ''}
+                className="border-0 bg-transparent px-4"
               />
             )}
           />
-          {errors.name && (
-            <Text className="mt-1 text-sm text-destructive">
-              {errors.name.message}
-            </Text>
-          )}
-          <Text className="mt-1 text-xs text-muted-foreground">
-            This is the name that will appear in your people list
-          </Text>
         </View>
+        {form.errors.name && (
+          <Text className="-mt-2 px-4 text-sm text-destructive">
+            {form.errors.name.message}
+          </Text>
+        )}
 
-        {/* Optional birthday */}
-        <View className="mb-6 gap-3">
-          <View className="flex-row items-center justify-between">
-            <Label>Birthday</Label>
-            <Switch value={withBirthday} onValueChange={setWithBirthday} />
+        <View className="rounded-2xl bg-white" style={cardStyle}>
+          <View className="flex-row items-center justify-between px-4 py-3">
+            <Text className="text-base">Birthday</Text>
+            <Switch
+              value={form.withBirthday}
+              onValueChange={form.setWithBirthday}
+            />
           </View>
-          {withBirthday && (
-            <View className="gap-3">
-              <Host matchContents>
-                <DatePicker
-                  selection={birthday}
-                  displayedComponents={['date']}
-                  onDateChange={setBirthday}
+          {form.withBirthday && (
+            <Animated.View
+              entering={FadeIn.duration(200)}
+              exiting={FadeOut.duration(150)}
+            >
+              <BirthdayDateRow
+                date={form.birthday}
+                includeYear={form.includeYear}
+                onChange={form.setBirthday}
+              />
+              <View className="flex-row items-center justify-between border-t border-black/5 px-4 py-3">
+                <Text className="text-base">Include year</Text>
+                <Switch
+                  value={form.includeYear}
+                  onValueChange={form.setIncludeYear}
                 />
-              </Host>
-              <View className="flex-row items-center justify-between">
-                <Text className="text-sm text-muted-foreground">
-                  Include year
-                </Text>
-                <Switch value={includeYear} onValueChange={setIncludeYear} />
               </View>
-            </View>
+            </Animated.View>
           )}
         </View>
       </ScrollView>
-
-      {/* Sticky Save Button: rides above the keyboard via translation */}
-      <KeyboardStickyView>
-        <View className="mb-6 border-t border-border bg-paper p-6">
-          <Button
-            onPress={handleSubmit(onSubmit)}
-            disabled={!isValid || !nameValue?.trim()}
-            className="w-full"
-          >
-            <Text className="font-medium text-white">Add Person</Text>
-          </Button>
-        </View>
-      </KeyboardStickyView>
-    </View>
+    </>
   );
 }
