@@ -33,7 +33,7 @@ typography:
     lineHeight: 1.5
   label:
     fontFamily: "system-ui (SF Pro on iOS, Roboto on Android)"
-    fontSize: "0.75rem"
+    fontSize: "0.875rem"
     fontWeight: 400
     lineHeight: 1.35
 rounded:
@@ -139,9 +139,9 @@ Tokens live in two mirrored places: `global.css` `@theme` for Tailwind classes (
 
 ### Hierarchy
 - **Title** (700, ~34px, system-rendered): Native large-title headers ("People", person name). Owned by the platform; never hand-rolled.
-- **Headline** (500 medium, 1.125rem ≈ 15.75px): Person names in list cards, button text at `lg` size.
-- **Body** (400, 1rem = 14px): Fact values, notes, row content. Selectable where it's user data.
-- **Label** (400, 0.75rem ≈ 10.5px, Ink Muted): The caption above a fact value ("Favorite coffee"). Sentence case, never uppercase-tracked.
+- **Headline** (500 medium, 1.125rem ≈ 15.75px): Person names in list cards, fact values and date labels on the person screen, button text at `lg` size.
+- **Body** (400, 1rem = 14px): Notes, row detail lines, section headers above card groups (medium weight, sentence case). Selectable where it's user data.
+- **Label** (400, 0.875rem ≈ 12.25px, Ink Muted): The caption above a fact value ("Favorite coffee"). Sentence case, never uppercase-tracked.
 
 ### Named Rules
 **The System Voice Rule.** No custom or display fonts, ever. If a screen needs more hierarchy, use weight and the tonal Paper/White step, not a new typeface.
@@ -181,10 +181,10 @@ Native and quiet: system components wherever the platform has one (sheets, heade
 - **Pickers:** Always the platform's own (SwiftUI date picker on iOS, M3 DatePickerDialog on Android)
 
 ### Entry Row (signature component)
-The atom of the person screen: a white row inside a card, optional Ink Muted label (0.75rem) above an Ink value (1rem). Tap to edit (pressed state `black/5`), swipe left to reveal an 80px-wide Destructive delete action. Rows in a group divide with `black/5` hairlines. The "Add …" foot row pairs a Noodle Gold plus-circle icon with a Broth label — the Golden Thread marking the primary action of every card.
+The atom of the person screen, in two forms. **Fact row:** optional Ink Muted label (0.875rem) above an Ink value (1.125rem). **Date row:** the timeline's row language — a `w-11` day-number-over-short-month block (semibold Ink day, muted month) beside a prominent label (1.125rem medium), with a muted year + age detail line ("2019 · turns 8", counted at the next occurrence) when the year is known; always the literal date, never today/tomorrow relative form. Both: tap to edit (pressed state `black/5`), swipe left to reveal an 80px-wide Destructive delete action, `black/5` hairline dividers between rows. The "Add …" foot row pairs a Noodle Gold plus-circle icon with a Broth label — the Golden Thread marking the primary action of every card.
 
 ### Avatar
-48px Cream Swirl circle with a Broth semibold initial. No photos yet; when they arrive they inherit this geometry.
+48px Cream Swirl circle with a Broth semibold initial; scales to 72px as the centered identity header on the add-person and person screens. No photos yet; when they arrive they inherit this geometry.
 
 ### Navigation
 Native tabs (SF Symbols on iOS, XML drawables on Android), Noodle Gold tint. Stack headers are native large-title with Broth tint and transparent-on-Paper large style. Quick add lives in the platform-native slot: the iOS 26+ bottom accessory, an M3 FAB (Cream Swirl container, Broth icon) on Android.

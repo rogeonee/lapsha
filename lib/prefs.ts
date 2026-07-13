@@ -8,7 +8,6 @@ import type { EntrySort } from '~/types/db';
 
 const SORT_KEYS = {
   facts: 'sort.facts',
-  dates: 'sort.dates',
 } as const;
 
 export type SortSection = keyof typeof SORT_KEYS;

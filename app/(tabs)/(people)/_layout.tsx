@@ -13,14 +13,20 @@ export default function PeopleStackLayout() {
       screenOptions={{
         headerTintColor: palette.broth,
         contentStyle: { backgroundColor: palette.paper },
-        ...(isIOS && {
-          headerTransparent: true,
-          headerShadowVisible: false,
-          headerLargeTitleShadowVisible: false,
-          headerLargeStyle: { backgroundColor: 'transparent' },
-          headerBlurEffect: 'none',
-          headerBackButtonDisplayMode: 'minimal',
-        }),
+        ...(isIOS
+          ? {
+              headerTransparent: true,
+              headerShadowVisible: false,
+              headerLargeTitleShadowVisible: false,
+              headerLargeStyle: { backgroundColor: 'transparent' },
+              headerBlurEffect: 'none',
+              headerBackButtonDisplayMode: 'minimal',
+            }
+          : {
+              // Header sits on Paper like the screen, no elevation seam
+              headerStyle: { backgroundColor: palette.paper },
+              headerShadowVisible: false,
+            }),
       }}
     >
       <Stack.Screen

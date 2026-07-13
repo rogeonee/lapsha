@@ -12,13 +12,14 @@ import {
   EntrySheet,
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
-import { AddRow, EntryRow } from '~/components/person/entry-row';
+import { AddRow, DateRow, EntryRow } from '~/components/person/entry-row';
 import { Text } from '~/components/ui/text';
-import { formatDisplayDate } from '~/lib/dates';
 import { getSortPref, setSortPref } from '~/lib/prefs';
-import { shadows } from '~/lib/theme';
+import { palette, shadows } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import type { EntrySort, Fact, Person, Date as PersonDate } from '~/types/db';
+
+const isIOS = process.env.EXPO_OS === 'ios';
 
 const cardStyle = {
   borderCurve: 'continuous',
@@ -28,7 +29,6 @@ const cardStyle = {
 function loadPersonData(
   id: string | undefined,
   factSort: EntrySort,
-  dateSort: EntrySort,
   _dataVersion: number,
 ): {
   person: Person | null;
@@ -53,7 +53,8 @@ function loadPersonData(
   return {
     person: personRes.data,
     facts: getFactsByPerson(id, factSort).data ?? [],
-    dates: getDatesByPerson(id, dateSort).data ?? [],
+    // Dates keep their defined order: birthday pinned, then date added
+    dates: getDatesByPerson(id).data ?? [],
     error: null,
   };
 }
@@ -67,9 +68,7 @@ function SectionCard({
 }) {
   return (
     <View className="gap-2">
-      <Text className="px-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-        {title}
-      </Text>
+      <Text className="px-1 text-base font-medium">{title}</Text>
       <View className="overflow-hidden rounded-2xl bg-white" style={cardStyle}>
         {children}
       </View>
@@ -83,15 +82,11 @@ export function PersonScreen() {
   const [factSort, setFactSort] = useState<EntrySort>(() =>
     getSortPref('facts'),
   );
-  const [dateSort, setDateSort] = useState<EntrySort>(() =>
-    getSortPref('dates'),
-  );
   const [sheetConfig, setSheetConfig] = useState<EntrySheetConfig | null>(null);
 
   const { person, facts, dates, error } = loadPersonData(
     id,
     factSort,
-    dateSort,
     dataVersion,
   );
 
@@ -102,11 +97,6 @@ export function PersonScreen() {
   const changeFactSort = (sort: EntrySort) => {
     setSortPref('facts', sort);
     setFactSort(sort);
-  };
-
-  const changeDateSort = (sort: EntrySort) => {
-    setSortPref('dates', sort);
-    setDateSort(sort);
   };
 
   const handleDeleteFact = (factId: string) => {
@@ -134,59 +124,75 @@ export function PersonScreen() {
     );
   }
 
+  // Array, not a fragment: Stack.Toolbar.Menu validates its direct children
+  // and rejects anything that isn't a menu primitive
+  const sortActions = [
+    <Stack.Toolbar.MenuAction
+      key="created"
+      isOn={factSort === 'created'}
+      onPress={() => changeFactSort('created')}
+    >
+      Date added
+    </Stack.Toolbar.MenuAction>,
+    <Stack.Toolbar.MenuAction
+      key="modified"
+      isOn={factSort === 'modified'}
+      onPress={() => changeFactSort('modified')}
+    >
+      Last modified
+    </Stack.Toolbar.MenuAction>,
+  ];
+
   return (
     <>
       <Stack.Screen options={{ title: person?.name ?? '' }} />
-      <Stack.Toolbar placement="right">
+      {/* Android tints menu text with the toolbar tint (ink), while the
+          Menu's own tintColor keeps the trigger icon amber. The inline
+          "Sort facts" group is iOS-only: Android renders a stray divider. */}
+      <Stack.Toolbar
+        placement="right"
+        tintColor={isIOS ? undefined : palette.ink}
+      >
         <Stack.Toolbar.Menu
           // Android ignores SF Symbol names; it needs an image source
           icon={
-            process.env.EXPO_OS === 'ios'
+            isIOS
               ? 'arrow.up.arrow.down'
               : require('~/assets/icons/swap_vert.xml')
           }
+          tintColor={isIOS ? undefined : palette.broth}
           accessibilityLabel="Sort"
         >
-          <Stack.Toolbar.Menu title="Sort facts" inline>
-            <Stack.Toolbar.MenuAction
-              isOn={factSort === 'created'}
-              onPress={() => changeFactSort('created')}
-            >
-              Date added
-            </Stack.Toolbar.MenuAction>
-            <Stack.Toolbar.MenuAction
-              isOn={factSort === 'modified'}
-              onPress={() => changeFactSort('modified')}
-            >
-              Last modified
-            </Stack.Toolbar.MenuAction>
-          </Stack.Toolbar.Menu>
-          <Stack.Toolbar.Menu title="Sort dates" inline>
-            <Stack.Toolbar.MenuAction
-              isOn={dateSort === 'created'}
-              onPress={() => changeDateSort('created')}
-            >
-              Date added
-            </Stack.Toolbar.MenuAction>
-            <Stack.Toolbar.MenuAction
-              isOn={dateSort === 'modified'}
-              onPress={() => changeDateSort('modified')}
-            >
-              Last modified
-            </Stack.Toolbar.MenuAction>
-          </Stack.Toolbar.Menu>
+          {isIOS ? (
+            <Stack.Toolbar.Menu title="Sort facts" inline>
+              {sortActions}
+            </Stack.Toolbar.Menu>
+          ) : (
+            sortActions
+          )}
         </Stack.Toolbar.Menu>
       </Stack.Toolbar>
 
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="p-4 gap-6"
+        contentContainerClassName="p-4 gap-5"
       >
+        {/* Decorative — the header already announces the name */}
+        <View className="items-center pt-2" aria-hidden>
+          <View
+            className="items-center justify-center rounded-full bg-cream-swirl"
+            style={{ width: 72, height: 72 }}
+          >
+            <Text className="text-3xl font-semibold text-broth">
+              {person?.name.trim().charAt(0).toUpperCase() || '?'}
+            </Text>
+          </View>
+        </View>
+
         <SectionCard title="Dates">
           {birthday ? (
-            <EntryRow
-              label="Birthday"
-              value={formatDisplayDate(birthday)}
+            <DateRow
+              date={birthday}
               onPress={() =>
                 setSheetConfig({ mode: 'edit', kind: 'date', date: birthday })
               }
@@ -206,11 +212,10 @@ export function PersonScreen() {
             />
           )}
           {otherDates.map((date) => (
-            <EntryRow
+            <DateRow
               key={date.id}
               divider
-              label={date.label}
-              value={formatDisplayDate(date)}
+              date={date}
               onPress={() =>
                 setSheetConfig({ mode: 'edit', kind: 'date', date })
               }
@@ -229,7 +234,7 @@ export function PersonScreen() {
         <SectionCard title="Facts">
           {facts.length === 0 ? (
             <View className="px-4 py-3">
-              <Text className="text-sm text-muted-foreground">
+              <Text className="text-base text-muted-foreground">
                 Nothing here yet — save the little things worth remembering.
               </Text>
             </View>

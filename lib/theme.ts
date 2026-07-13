@@ -12,6 +12,8 @@ export const palette = {
   creamSwirl: '#FBEAC9',
   /** Screen background. Screens sit on Paper; white is earned by cards. */
   paper: '#F9F7F4',
+  /** Body text and values (Tailwind side: the default foreground token). */
+  ink: '#09090B',
   /** Disclosure chevrons on iOS. Decorative wayfinding, never text. */
   warmGray: '#C9C2B6',
   /** Disclosure chevrons on Android. */
@@ -22,4 +24,4 @@ export const palette = {
 // surface needs more separation than this, fix the layout, not the shadow.
 export const shadows = {
   whisper: '0 1px 3px rgba(28, 20, 8, 0.06)',
-} as const
+} as const;
