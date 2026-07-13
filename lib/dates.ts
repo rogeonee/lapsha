@@ -36,6 +36,46 @@ export function fromStorageDate(stored: string): {
   };
 }
 
+/** "Jul" — short month name, for the date row's day block */
+export function formatMonthShort(personDate: PersonDate): string {
+  return new Date(
+    2000,
+    personDate.month - 1,
+    personDate.day,
+  ).toLocaleDateString(undefined, { month: 'short' });
+}
+
+/**
+ * Detail line under a date row's label: "2019 · turns 8" for birthdays,
+ * "2019 · 8 years" otherwise. The count is at the next occurrence, matching
+ * the timeline. Null when the year is unknown.
+ */
+export function formatDateDetail(personDate: PersonDate): string | null {
+  if (!personDate.year_known) return null;
+  const year = Number(personDate.date.slice(0, 4));
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let next = new Date(
+    today.getFullYear(),
+    personDate.month - 1,
+    personDate.day,
+  );
+  if (next < today) {
+    next = new Date(
+      today.getFullYear() + 1,
+      personDate.month - 1,
+      personDate.day,
+    );
+  }
+  const elapsed = next.getFullYear() - year;
+  if (elapsed <= 0) return String(year);
+  const suffix =
+    personDate.label.toLowerCase() === 'birthday'
+      ? `turns ${elapsed}`
+      : `${elapsed} ${elapsed === 1 ? 'year' : 'years'}`;
+  return `${year} · ${suffix}`;
+}
+
 /** "March 15, 1990" when the year is known, "March 15" otherwise */
 export function formatDisplayDate(personDate: PersonDate): string {
   const year = Number(personDate.date.slice(0, 4));
