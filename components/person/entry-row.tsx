@@ -1,7 +1,7 @@
+import { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import Swipeable, {
-  type SwipeableMethods,
-} from 'react-native-gesture-handler/ReanimatedSwipeable';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useReducedMotion } from 'react-native-reanimated';
 import { BIRTHDAY_LABEL } from '~/api/dates/dates-service';
 import { PlusCircleIcon, TrashIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
@@ -10,46 +10,114 @@ import { palette } from '~/lib/theme';
 import { cn } from '~/lib/utils';
 import type { Date as PersonDate } from '~/types/db';
 
-/** Swipe-left-to-delete wrapper shared by fact and date rows */
+const DELETE_ACTION_WIDTH = 80;
+const SWIPE_OPEN_THRESHOLD = 32;
+const SWIPE_VELOCITY_THRESHOLD = 500;
+
+/**
+ * Swipe-left-to-delete wrapper shared by fact and date rows. The destructive
+ * action surface moves in while the row content stays anchored, so the item
+ * being acted on remains legible throughout the gesture.
+ */
 function SwipeableRow({
   deleteLabel,
   divider,
+  onPress,
   onDelete,
   children,
 }: {
   deleteLabel: string;
   divider?: boolean;
+  onPress: () => void;
   onDelete: () => void;
   children: React.ReactNode;
 }) {
-  const renderDeleteAction = (
-    _progress: unknown,
-    _translation: unknown,
-    methods: SwipeableMethods,
-  ) => (
-    <Pressable
-      onPress={() => {
-        methods.close();
-        onDelete();
-      }}
-      className="w-20 items-center justify-center bg-destructive"
-      accessibilityLabel={`Delete ${deleteLabel}`}
-    >
-      <TrashIcon color="white" />
-    </Pressable>
-  );
+  const [isOpen, setIsOpen] = useState(false);
+  const [revealWidth, setRevealWidth] = useState(0);
+  const reduceMotion = useReducedMotion();
+  const animateTo = (width: number) => {
+    if (reduceMotion) {
+      setRevealWidth(width);
+      return;
+    }
+    const startWidth = revealWidth;
+    requestAnimationFrame((startedAt) => {
+      const step = (now: number) => {
+        const progress = Math.min(1, (now - startedAt) / 180);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setRevealWidth(startWidth + (width - startWidth) * eased);
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+  };
+  const close = () => {
+    animateTo(0);
+    setIsOpen(false);
+  };
+  const pan = Gesture.Pan()
+    .activeOffsetX([-8, 8])
+    .failOffsetY([-10, 10])
+    .runOnJS(true)
+    .onEnd((event) => {
+      const nextWidth = Math.min(
+        DELETE_ACTION_WIDTH,
+        Math.max(0, (isOpen ? DELETE_ACTION_WIDTH : 0) - event.translationX),
+      );
+      const shouldOpen =
+        event.velocityX < -SWIPE_VELOCITY_THRESHOLD ||
+        (event.velocityX <= SWIPE_VELOCITY_THRESHOLD &&
+          nextWidth >= SWIPE_OPEN_THRESHOLD);
+      animateTo(shouldOpen ? DELETE_ACTION_WIDTH : 0);
+      setIsOpen(shouldOpen);
+    });
 
   return (
-    <View className={cn(divider && 'border-t border-black/5')}>
-      <Swipeable
-        friction={2}
-        rightThreshold={40}
-        overshootRight={false}
-        renderRightActions={renderDeleteAction}
+    <GestureDetector gesture={pan}>
+      <View
+        className={cn('overflow-hidden', divider && 'border-t border-black/5')}
       >
-        {children}
-      </Swipeable>
-    </View>
+        <Pressable
+          onPress={() => {
+            if (isOpen) close();
+            else onPress();
+          }}
+          unstable_pressDelay={80}
+          className="bg-white active:bg-black/5"
+          style={{ zIndex: 1 }}
+          accessibilityRole="button"
+          accessibilityLabel={`Edit ${deleteLabel}`}
+          accessibilityHint="Swipe left to reveal delete"
+          accessibilityActions={[
+            { name: 'delete', label: `Delete ${deleteLabel}` },
+          ]}
+          onAccessibilityAction={(event) => {
+            if (event.nativeEvent.actionName === 'delete') onDelete();
+          }}
+        >
+          <View pointerEvents="none" aria-hidden>
+            {children}
+          </View>
+        </Pressable>
+        <View
+          className="absolute top-0 right-0 bottom-0 overflow-hidden"
+          style={{ width: revealWidth, zIndex: 2 }}
+        >
+          <Pressable
+            onPress={() => {
+              close();
+              onDelete();
+            }}
+            className="absolute top-0 right-0 bottom-0 items-center justify-center bg-destructive active:opacity-80"
+            style={{ width: DELETE_ACTION_WIDTH }}
+            accessibilityRole="button"
+            accessibilityLabel={`Delete ${deleteLabel}`}
+          >
+            <TrashIcon color="white" />
+          </Pressable>
+        </View>
+      </View>
+    </GestureDetector>
   );
 }
 
@@ -74,19 +142,22 @@ export function EntryRow({
     <SwipeableRow
       deleteLabel={label || value}
       divider={divider}
+      onPress={onPress}
       onDelete={onDelete}
     >
-      <Pressable
-        onPress={onPress}
-        className="bg-white px-4 py-3 active:bg-black/5"
-      >
+      <View className="px-4 py-3">
         {label ? (
-          <Text className="mb-0.5 text-sm text-muted-foreground">{label}</Text>
+          <Text
+            selectable={false}
+            className="mb-0.5 text-sm text-muted-foreground"
+          >
+            {label}
+          </Text>
         ) : null}
-        <Text selectable className="text-lg">
+        <Text selectable={false} className="text-lg">
           {value}
         </Text>
-      </Pressable>
+      </View>
     </SwipeableRow>
   );
 }
@@ -114,28 +185,35 @@ export function DateRow({
   const detail = formatDateDetail(date);
 
   return (
-    <SwipeableRow deleteLabel={label} divider={divider} onDelete={onDelete}>
-      <Pressable
-        onPress={onPress}
-        className="flex-row items-center gap-3 bg-white px-4 py-3 active:bg-black/5"
-      >
+    <SwipeableRow
+      deleteLabel={label}
+      divider={divider}
+      onPress={onPress}
+      onDelete={onDelete}
+    >
+      <View className="flex-row items-center gap-3 px-4 py-3">
         <View className="w-11 items-center">
-          <Text className="text-lg font-semibold">{date.day}</Text>
-          <Text className="text-sm text-muted-foreground">
+          <Text selectable={false} className="text-lg font-semibold">
+            {date.day}
+          </Text>
+          <Text selectable={false} className="text-sm text-muted-foreground">
             {formatMonthShort(date)}
           </Text>
         </View>
         <View className="flex-1">
-          <Text selectable className="text-lg font-medium">
+          <Text selectable={false} className="text-lg font-medium">
             {label}
           </Text>
           {detail ? (
-            <Text selectable className="mt-0.5 text-base text-muted-foreground">
+            <Text
+              selectable={false}
+              className="mt-0.5 text-base text-muted-foreground"
+            >
               {detail}
             </Text>
           ) : null}
         </View>
-      </Pressable>
+      </View>
     </SwipeableRow>
   );
 }
