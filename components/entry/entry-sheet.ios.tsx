@@ -15,14 +15,15 @@ import {
 } from '@expo/ui/swift-ui';
 import {
   background,
-  bold,
   cornerRadius,
   disabled,
+  font,
   foregroundStyle,
   frame,
   opacity,
   padding,
   pickerStyle,
+  presentationBackground,
   presentationDetents,
   presentationDragIndicator,
   tag,
@@ -36,9 +37,36 @@ import {
 } from '~/components/entry/use-entry-form';
 import { palette } from '~/lib/theme';
 
-// SwiftUI has no .infinity over the bridge; a huge maxWidth/maxHeight
+// SwiftUI has no .infinity over the bridge; a huge maxWidth
 // stretches a view to fill its container the same way
 const FILL = 100000;
+
+// Module-level modifier arrays keep prop identities stable across the
+// per-keystroke re-renders of the form.
+const editNameStackModifiers = [
+  padding({ horizontal: 16, top: 20, bottom: 16 }),
+];
+const editNameTitleModifiers = [
+  font({ textStyle: 'headline' }),
+  foregroundStyle(palette.broth),
+  frame({ maxWidth: FILL }),
+];
+const editNameFieldModifiers = [
+  padding({ horizontal: 16, vertical: 14 }),
+  background(palette.cardWhite),
+  cornerRadius(14),
+];
+const editNameSaveModifiers = (isValid: boolean) => [
+  disabled(!isValid),
+  padding({ vertical: 14 }),
+  frame({ maxWidth: FILL }),
+  background(palette.inkPrimary),
+  cornerRadius(14),
+  foregroundStyle(palette.primaryForeground),
+  opacity(isValid ? 1 : 0.5),
+];
+const editNameSaveEnabled = editNameSaveModifiers(true);
+const editNameSaveDisabled = editNameSaveModifiers(false);
 
 export type { EntrySheetConfig };
 
@@ -80,17 +108,19 @@ export function EntrySheet({
             onClose();
           }
         }}
+        // The single-field edit-name sheet hugs its content so no dead
+        // space rides above the keyboard
+        fitToContents={rendered.config.kind === 'person'}
       >
         <Group
           modifiers={[
             // Single detent: iOS expands a sheet to its largest detent when
             // the keyboard appears, so offering 'large' meant the auto-
             // focused field blew the sheet up to full height on open.
-            // The single-field edit-name mode gets a fixed compact height
-            // so no dead space rides above the keyboard.
-            presentationDetents([
-              rendered.config.kind === 'person' ? { height: 210 } : 'medium',
-            ]),
+            // fitToContents drives the edit-name height, so no detent there.
+            ...(rendered.config.kind === 'person'
+              ? [presentationBackground(palette.paper)]
+              : [presentationDetents(['medium'])]),
             presentationDragIndicator('visible'),
           ]}
         >
@@ -124,41 +154,30 @@ function EntryForm({
 
   if (form.kind === 'person') {
     // Not a Form: the grouped-list styling can't take the Lapsha paper/
-    // card treatment, so the compact edit-name sheet is laid out by hand
+    // card treatment (presentationBackground supplies the paper), so the
+    // compact edit-name sheet is laid out by hand in add-person's card
+    // language: white rounded field on paper, calm ink primary button.
+    // Editing prefilled text is only safe here because patches/@expo/ui
+    // disables SwiftUI's selection-enabled TextField below iOS 26 — the
+    // 18.x variant fatally asserts on backspace (expo/expo#47434).
     return (
       <VStack
         alignment="leading"
-        spacing={12}
-        modifiers={[
-          padding({ horizontal: 16, top: 8, bottom: 16 }),
-          frame({ maxWidth: FILL, maxHeight: FILL, alignment: 'topLeading' }),
-          background(palette.paper),
-        ]}
+        spacing={16}
+        modifiers={editNameStackModifiers}
       >
-        <Text modifiers={[bold()]}>Edit name</Text>
+        <Text modifiers={editNameTitleModifiers}>Edit name</Text>
         <TextField
           placeholder="Name"
           text={personNameState}
           onTextChange={form.setPersonName}
           autoFocus
-          modifiers={[
-            padding({ horizontal: 12, vertical: 12 }),
-            background(palette.cardWhite),
-            cornerRadius(10),
-          ]}
+          modifiers={editNameFieldModifiers}
         />
         <Button
           label="Save changes"
           onPress={form.handleSave}
-          modifiers={[
-            disabled(!form.isValid),
-            padding({ vertical: 13 }),
-            frame({ maxWidth: FILL }),
-            background(palette.inkPrimary),
-            cornerRadius(10),
-            foregroundStyle(palette.primaryForeground),
-            opacity(form.isValid ? 1 : 0.5),
-          ]}
+          modifiers={form.isValid ? editNameSaveEnabled : editNameSaveDisabled}
         />
       </VStack>
     );
