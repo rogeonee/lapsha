@@ -11,8 +11,8 @@ import * as ImagePicker from 'expo-image-picker';
  * URI-keyed cache can never show the old picture.
  */
 
-/** Longest stored edge. Display tops out at 72pt (~216px @3x). */
-const AVATAR_SIZE = 512;
+/** Longest stored edge. Large enough for the full-width person photo hero. */
+const AVATAR_SIZE = 1536;
 
 const avatarsDir = new Directory(Paths.document, 'avatars');
 

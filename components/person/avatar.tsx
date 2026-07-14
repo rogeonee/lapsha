@@ -12,13 +12,14 @@ import { cn } from '~/lib/utils';
  * the initial-avatar geometry (DESIGN.md § Avatar).
  */
 
-export type AvatarSize = 40 | 48 | 72;
+export type AvatarSize = 40 | 48 | 72 | 96;
 
 // Initial text scales with the circle: timeline row / list card / header.
 const initialClass: Record<AvatarSize, string> = {
   40: 'text-base font-semibold text-broth',
   48: 'text-lg font-semibold text-broth',
   72: 'text-3xl font-semibold text-broth',
+  96: 'text-4xl font-semibold text-broth',
 };
 
 export function Avatar({
