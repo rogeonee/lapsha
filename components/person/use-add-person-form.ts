@@ -32,8 +32,6 @@ export function useAddPersonForm() {
   const [withBirthday, setWithBirthday] = useState(false);
   const [birthday, setBirthday] = useState(() => new Date());
   const [includeYear, setIncludeYear] = useState(true);
-  // Picked but not yet persisted: the temp asset becomes an avatar file
-  // only on save, so canceling the flow leaves nothing behind
   const [photo, setPhoto] = useState<ImagePickerAsset | null>(null);
 
   const {
@@ -57,7 +55,6 @@ export function useAddPersonForm() {
   }, []);
 
   const choosePhoto = async () => {
-    // The picker covers the form; don't leave the keyboard under it
     KeyboardController.dismiss();
     try {
       const picked = await pickAvatarImage();
@@ -102,8 +99,6 @@ export function useAddPersonForm() {
       personId: response.data.id,
     });
 
-    // The person exists either way; the photo is a best-effort follow-up,
-    // same stance as the birthday below
     if (photo) {
       try {
         const fileName = await saveAvatarFile(photo);
@@ -156,8 +151,6 @@ export function useAddPersonForm() {
     });
   };
 
-  // React Hook Form exposes isSubmitting for presentation, while this ref
-  // closes the smaller window before disabled controls can re-render.
   const submissionInFlight = useRef(false);
   const onSubmit = async (data: CreatePersonForm) => {
     if (submissionInFlight.current) return;

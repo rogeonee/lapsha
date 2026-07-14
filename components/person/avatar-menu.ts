@@ -2,12 +2,6 @@ import { ActionSheetIOS, Alert } from 'react-native';
 
 const isIOS = process.env.EXPO_OS === 'ios';
 
-/**
- * The avatar tap behavior shared by the person screen and add-person:
- * no photo goes straight to the picker; an existing photo offers
- * choose/remove through the platform's own menu (action sheet on iOS,
- * M3 dialog on Android).
- */
 export function showAvatarMenu({
   hasPhoto,
   onChoose,

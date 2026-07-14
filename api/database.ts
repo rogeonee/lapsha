@@ -129,8 +129,6 @@ function migrate(): void {
   }
 
   if (currentVersion < 3) {
-    // v3: persons gain an optional avatar photo, stored as a file name
-    // inside <documents>/avatars/ (see lib/avatars.ts).
     db.withTransactionSync(() => {
       db.execSync(`
         ALTER TABLE persons ADD COLUMN avatar TEXT;

@@ -5,16 +5,8 @@ import { Text } from '~/components/ui/text';
 import { palette } from '~/lib/theme';
 import { cn } from '~/lib/utils';
 
-/**
- * The app's one avatar: a Cream Swirl circle showing the person's photo
- * when one exists, their Broth initial otherwise, and a person glyph
- * when there is no name yet (the add-person preview). Photos inherit
- * the initial-avatar geometry (DESIGN.md § Avatar).
- */
-
 export type AvatarSize = 40 | 48 | 72 | 96;
 
-// Initial text scales with the circle: timeline row / list card / header.
 const initialClass: Record<AvatarSize, string> = {
   40: 'text-base font-semibold text-broth',
   48: 'text-lg font-semibold text-broth',
@@ -29,7 +21,6 @@ export function Avatar({
   className,
 }: {
   name: string;
-  /** Full displayable URI — resolve DB file names with avatarUri() first. */
   photo?: string | null;
   size: AvatarSize;
   className?: string;

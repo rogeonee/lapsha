@@ -55,8 +55,6 @@ const PHOTO_CHROME_THRESHOLD = 0.22;
 const photoTiming = {
   duration: 220,
   easing: Easing.out(Easing.cubic),
-  // The first pass deliberately keeps the full motion so its feel can be
-  // tuned before a reduced-motion treatment is designed.
   reduceMotion: ReduceMotion.Never,
 } as const;
 
