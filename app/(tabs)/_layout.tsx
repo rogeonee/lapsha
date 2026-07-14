@@ -31,11 +31,6 @@ export default function TabLayout() {
               })
             : undefined
         }
-        unstable_nativeProps={
-          SEARCH_TAB_QUICK_ADD
-            ? { onTabSelectionPrevented: openQuickAdd }
-            : undefined
-        }
       >
         <NativeTabs.Trigger name="(home)">
           <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
@@ -59,15 +54,15 @@ export default function TabLayout() {
         </NativeTabs.Trigger>
 
         {/* Quick-add as a detached search-role button (iOS 26 only). `disabled`
-            maps to react-native-screens' preventNativeSelection: UIKit keeps
-            the current tab active and emits onTabSelectionPrevented, which
-            opens the sheet above. The route still needs a trigger so Expo
-            Router does not surface it automatically. */}
+            keeps the current tab active, while Expo Router re-emits the
+            prevented native selection as `tabPress`. The route still needs a
+            trigger so Expo Router does not surface it automatically. */}
         <NativeTabs.Trigger
           name="quick-add"
           role={SEARCH_TAB_QUICK_ADD ? 'search' : undefined}
           hidden={!SEARCH_TAB_QUICK_ADD}
           disabled={SEARCH_TAB_QUICK_ADD}
+          listeners={{ tabPress: openQuickAdd }}
         >
           <NativeTabs.Trigger.Icon sf={'plus'} />
         </NativeTabs.Trigger>
