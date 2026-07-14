@@ -42,6 +42,7 @@ Web is not a supported target. The app relies on native Expo Router, SwiftUI, an
 - `@expo/ui/swift-ui` for native iOS surfaces.
 - HeroUI Native 1.0.4 plus `@expo/ui/jetpack-compose` for Android surfaces.
 - React Hook Form and Zod for the add-person form/service validation.
+- `expo-image-picker`, `expo-image-manipulator`, and `expo-file-system` for avatar photos (picked with the system square-crop editor, downscaled, stored under `<documents>/avatars/`).
 - React Native Keyboard Controller, Gesture Handler, and Reanimated for Android sheet/gesture behavior.
 
 ### Project Structure
@@ -77,7 +78,7 @@ components/
 └── ui-providers.*.tsx                 # Android-only HeroUI provider
 
 screens/person/person-screen.tsx       # Shared detail screen for both stacks
-lib/                                   # Preferences, date/theme helpers, DB hook
+lib/                                   # Preferences, avatar/date/theme helpers, DB hook
 types/db.ts                            # Database and service types
 global.css                             # Uniwind/HeroUI theme tokens
 ```
@@ -142,7 +143,7 @@ The local database is `lapsha.db`; schema and migrations are in `api/database.ts
 
 | Table     | Key columns                                                              | Notes                                                      |
 | --------- | ------------------------------------------------------------------------ | ---------------------------------------------------------- |
-| `persons` | `id`, `name`                                                             | Update/delete services exist; UI does not yet expose them  |
+| `persons` | `id`, `name`, nullable `avatar`                                          | `avatar` is a bare photo file name resolved by `lib/avatars.ts`; the UI exposes update only for avatars, not name/delete |
 | `facts`   | `person_id`, nullable `label`, `value`, `sort_order`                     | `NULL` label is an unlabeled/free-form fact                |
 | `dates`   | `person_id`, `label`, `date`, `month`, `day`, `year_known`, `sort_order` | `birthday` is reserved case-insensitively and pinned first |
 

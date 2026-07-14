@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { getPeople } from '~/api/people/people-service';
 import { getTimeline } from '~/api/timeline/timeline-service';
+import { Avatar } from '~/components/person/avatar';
 import { Button } from '~/components/ui/button';
 import { ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
+import { avatarUri } from '~/lib/avatars';
 import { palette, shadows } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import { cn } from '~/lib/utils';
@@ -25,6 +27,7 @@ interface RowGroup {
   key: string;
   personId: string;
   personName: string;
+  personAvatar: string | null;
   next: Date;
   daysUntil: number;
   entries: UpcomingEntry[];
@@ -111,6 +114,7 @@ function buildSections(upcoming: UpcomingEntry[]): TimelineSection[] {
         key: item.entry.id,
         personId: item.entry.person_id,
         personName: item.entry.person.name,
+        personAvatar: item.entry.person.avatar,
         next: item.next,
         daysUntil: item.daysUntil,
         entries: [item],
@@ -158,7 +162,6 @@ function UpcomingRow({
   divider: boolean;
   onPress: () => void;
 }) {
-  const initial = group.personName.trim().charAt(0).toUpperCase() || '?';
   const stacked = group.entries.length > 1;
 
   return (
@@ -185,11 +188,11 @@ function UpcomingRow({
             </Text>
           </View>
         ) : (
-          <View className="h-10 w-10 items-center justify-center rounded-full bg-cream-swirl">
-            <Text className="text-base font-semibold text-broth">
-              {initial}
-            </Text>
-          </View>
+          <Avatar
+            name={group.personName}
+            photo={avatarUri(group.personAvatar)}
+            size={40}
+          />
         )}
       </View>
       <View className="flex-1">

@@ -9,7 +9,7 @@ export default function SettingsScreen() {
   const confirmClearData = () => {
     Alert.alert(
       'Clear All Data',
-      'This will permanently remove all people, facts, and dates stored on this device. This action cannot be undone.',
+      'This will permanently remove all people, their photos, facts, and dates stored on this device. This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Clear', style: 'destructive', onPress: onClearData },

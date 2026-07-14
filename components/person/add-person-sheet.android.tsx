@@ -7,7 +7,7 @@ import { Label } from 'heroui-native/label';
 import { TextField } from 'heroui-native/text-field';
 import { useEffect, useRef, useState } from 'react';
 import { Controller } from 'react-hook-form';
-import { View, type TextInput } from 'react-native';
+import { Pressable, View, type TextInput } from 'react-native';
 import {
   KeyboardController,
   useReanimatedKeyboardAnimation,
@@ -17,12 +17,11 @@ import Animated, {
   FadeOut,
   useAnimatedStyle,
 } from 'react-native-reanimated';
+import { Avatar } from '~/components/person/avatar';
 import { BirthdayDateRow } from '~/components/person/birthday-date-row';
 import { useAddPersonForm } from '~/components/person/use-add-person-form';
-import { PersonIcon } from '~/components/ui/icons';
 import { Switch } from '~/components/ui/switch';
 import { Text } from '~/components/ui/text';
-import { palette } from '~/lib/theme';
 
 /**
  * Android add-person: the same HeroUI bottom sheet as the entry sheet —
@@ -31,6 +30,7 @@ import { palette } from '~/lib/theme';
  */
 export function AddPersonSheet() {
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // HeroUI's bottom sheet only animates open on an isOpen false -> true
   // transition, AND gorhom silently drops the snapToIndex call that
@@ -72,6 +72,7 @@ export function AddPersonSheet() {
     <BottomSheet
       isOpen={isOpen}
       onOpenChange={(open) => {
+        if (!open && isSubmitting) return;
         if (!open && hasOpened.current) {
           handleClose();
         }
@@ -85,6 +86,7 @@ export function AddPersonSheet() {
           // height math is broken under the root KeyboardProvider), so
           // it can't fight the KeyboardEvents padding in SheetForm
           android_keyboardInputMode="adjustResize"
+          enablePanDownToClose={!isSubmitting}
           onAnimate={(_fromIndex, toIndex) => {
             if (toIndex >= 0) {
               hasOpened.current = true;
@@ -92,7 +94,11 @@ export function AddPersonSheet() {
             setOpening(toIndex >= 0);
           }}
         >
-          <SheetForm canFocus={opening} onLayout={handleContentLayout} />
+          <SheetForm
+            canFocus={opening}
+            onLayout={handleContentLayout}
+            onSubmittingChange={setIsSubmitting}
+          />
         </BottomSheet.Content>
       </BottomSheet.Portal>
     </BottomSheet>
@@ -102,12 +108,18 @@ export function AddPersonSheet() {
 function SheetForm({
   canFocus,
   onLayout,
+  onSubmittingChange,
 }: {
   canFocus: boolean;
   onLayout: () => void;
+  onSubmittingChange: (isSubmitting: boolean) => void;
 }) {
   const form = useAddPersonForm();
   const { onFocus, onBlur } = useBottomSheetAwareHandlers();
+
+  useEffect(() => {
+    onSubmittingChange(form.isSubmitting);
+  }, [form.isSubmitting, onSubmittingChange]);
 
   // Autofocus the name field shortly after the open animation starts:
   // the head start lets the sheet establish its spring before dynamic
@@ -137,20 +149,20 @@ function SheetForm({
       style={keyboardPad}
       onLayout={onLayout}
     >
-      {/* Live avatar preview: the standard avatar geometry, scaled up */}
+      {/* Live avatar preview doubles as the photo picker */}
       <View className="items-center pt-1">
-        <View
-          className="items-center justify-center rounded-full bg-cream-swirl"
-          style={{ width: 72, height: 72 }}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={form.photoUri ? 'Change photo' : 'Add photo'}
+          disabled={form.isSubmitting}
+          onPress={form.onAvatarPress}
+          className="items-center gap-2 active:opacity-80"
         >
-          {form.initial ? (
-            <Text className="text-3xl font-semibold text-broth">
-              {form.initial}
-            </Text>
-          ) : (
-            <PersonIcon size={30} color={palette.broth} />
-          )}
-        </View>
+          <Avatar name={form.initial} photo={form.photoUri} size={72} />
+          <Text className="text-base text-broth">
+            {form.photoUri ? 'Change photo' : 'Add photo'}
+          </Text>
+        </Pressable>
       </View>
 
       <Controller
@@ -211,7 +223,10 @@ function SheetForm({
         </Animated.View>
       )}
 
-      <Button isDisabled={!form.isValid} onPress={form.save}>
+      <Button
+        isDisabled={!form.isValid || form.isSubmitting}
+        onPress={form.save}
+      >
         Add person
       </Button>
     </Animated.View>

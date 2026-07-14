@@ -8,4 +8,9 @@ export const createPersonSchema = z.object({
     .max(60, 'Name must be 60 characters or less'),
 });
 
+export const avatarFileSchema = z
+  .string()
+  .regex(/^[\w.-]+$/, 'Avatar must be a file name')
+  .nullable();
+
 export type CreatePersonForm = z.infer<typeof createPersonSchema>;

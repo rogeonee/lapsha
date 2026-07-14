@@ -39,6 +39,14 @@
         }
       ],
       "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Lapsha uses your photo library so you can pick a photo for a person.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
       "expo-secure-store",
       "expo-sqlite",
       "expo-image",

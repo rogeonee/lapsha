@@ -13,20 +13,21 @@ export interface TimelineOptions {
 }
 
 /**
- * Raw timeline row: a `dates` row joined with its person's name
- * (booleans are 0/1 integers in SQLite)
+ * Raw timeline row: a `dates` row joined with its person's name and
+ * avatar (booleans are 0/1 integers in SQLite)
  */
 type TimelineRow = Omit<TimelineEntry, 'person' | 'year_known'> & {
   year_known: number;
   person_name: string;
+  person_avatar: string | null;
 };
 
 function rowToTimelineEntry(row: TimelineRow): TimelineEntry {
-  const { person_name, ...date } = row;
+  const { person_name, person_avatar, ...date } = row;
   return {
     ...date,
     year_known: row.year_known === 1,
-    person: { id: row.person_id, name: person_name },
+    person: { id: row.person_id, name: person_name, avatar: person_avatar },
   };
 }
 
@@ -56,7 +57,7 @@ export function getTimeline(
     }
 
     let query = `
-      SELECT d.*, p.name AS person_name
+      SELECT d.*, p.name AS person_name, p.avatar AS person_avatar
       FROM dates d
       JOIN persons p ON p.id = d.person_id
       WHERE ${conditions.join(' AND ')}
@@ -100,7 +101,7 @@ export function getUpcomingDates(
 ): ServiceResponse<UpcomingDate[]> {
   return runServiceOperation(() => {
     const rows = db.getAllSync<TimelineRow>(
-      `SELECT d.*, p.name AS person_name
+      `SELECT d.*, p.name AS person_name, p.avatar AS person_avatar
        FROM dates d
        JOIN persons p ON p.id = d.person_id
        WHERE d.deleted_at IS NULL AND p.deleted_at IS NULL`,

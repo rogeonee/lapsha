@@ -3,6 +3,7 @@ export type UUID = string;
 export interface Person {
   id: UUID;
   name: string;
+  avatar: string | null; // photo file name in <documents>/avatars/, null = initials
   created_at: string; // ISO string
   updated_at: string;
   deleted_at: string | null;
@@ -11,10 +12,12 @@ export interface Person {
 export interface PersonInsert {
   id?: UUID;
   name: string;
+  avatar?: string | null;
 }
 
 export interface PersonUpdate {
   name?: string;
+  avatar?: string | null; // null removes the photo, undefined leaves it unchanged
 }
 
 export interface Fact {
@@ -79,7 +82,7 @@ export type PersonWithDetails = Person & {
 };
 
 export type TimelineEntry = Date & {
-  person: Pick<Person, 'id' | 'name'>;
+  person: Pick<Person, 'id' | 'name' | 'avatar'>;
 };
 
 export type UpcomingDate = {
