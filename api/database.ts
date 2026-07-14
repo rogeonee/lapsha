@@ -1,4 +1,5 @@
 import { openDatabaseSync } from 'expo-sqlite';
+import { clearAvatarFiles } from '~/lib/avatars';
 
 /**
  * Singleton SQLite database for the app.
@@ -8,7 +9,7 @@ import { openDatabaseSync } from 'expo-sqlite';
  * for each new version. Each block must stamp its own version INSIDE
  * its transaction, so the stamp can never outrun the schema.
  */
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 // enableChangeListener powers addDatabaseChangeListener-based UI refresh
 // (see lib/use-table-version.ts)
@@ -126,6 +127,18 @@ function migrate(): void {
       `);
     });
   }
+
+  if (currentVersion < 3) {
+    // v3: persons gain an optional avatar photo, stored as a file name
+    // inside <documents>/avatars/ (see lib/avatars.ts).
+    db.withTransactionSync(() => {
+      db.execSync(`
+        ALTER TABLE persons ADD COLUMN avatar TEXT;
+
+        PRAGMA user_version = 3;
+      `);
+    });
+  }
 }
 
 migrate();
@@ -140,4 +153,5 @@ export function clearAllData(): void {
     DELETE FROM dates;
     DELETE FROM persons;
   `);
+  clearAvatarFiles();
 }

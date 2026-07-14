@@ -6,7 +6,10 @@ import {
   NotFoundError,
   runServiceOperation,
 } from '~/api/error-handling';
-import { createPersonSchema } from '~/api/people/person-schema';
+import {
+  avatarFileSchema,
+  createPersonSchema,
+} from '~/api/people/person-schema';
 import {
   Person,
   PersonInsert,
@@ -39,15 +42,17 @@ export function createPerson(
 ): ServiceResponse<Person> {
   return runServiceOperation(() => {
     const validated = createPersonSchema.parse(personData);
+    const avatar = avatarFileSchema.parse(personData.avatar ?? null);
 
     const id = personData.id ?? randomUUID();
     const now = new Date().toISOString();
 
     db.runSync(
-      `INSERT INTO persons (id, name, created_at, updated_at, deleted_at)
-       VALUES (?, ?, ?, ?, NULL)`,
+      `INSERT INTO persons (id, name, avatar, created_at, updated_at, deleted_at)
+       VALUES (?, ?, ?, ?, ?, NULL)`,
       id,
       validated.name,
+      avatar,
       now,
       now,
     );
@@ -90,6 +95,17 @@ export function updatePerson(
       db.runSync(
         'UPDATE persons SET name = ?, updated_at = ? WHERE id = ?',
         validated.name,
+        new Date().toISOString(),
+        personId,
+      );
+    }
+
+    if (updates.avatar !== undefined) {
+      const avatar = avatarFileSchema.parse(updates.avatar);
+
+      db.runSync(
+        'UPDATE persons SET avatar = ?, updated_at = ? WHERE id = ?',
+        avatar,
         new Date().toISOString(),
         personId,
       );

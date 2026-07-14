@@ -1,11 +1,11 @@
 import { Stack, useRouter } from 'expo-router';
 import { Controller } from 'react-hook-form';
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { AddPersonSheet } from '~/components/person/add-person-sheet';
+import { Avatar } from '~/components/person/avatar';
 import { BirthdayDateRow } from '~/components/person/birthday-date-row';
 import { useAddPersonForm } from '~/components/person/use-add-person-form';
-import { PersonIcon } from '~/components/ui/icons';
 import { Input } from '~/components/ui/input';
 import { Switch } from '~/components/ui/switch';
 import { Text } from '~/components/ui/text';
@@ -38,6 +38,7 @@ function AddPersonScreen() {
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.Button
           tintColor={palette.broth}
+          disabled={form.isSubmitting}
           onPress={() => router.back()}
         >
           Cancel
@@ -47,7 +48,7 @@ function AddPersonScreen() {
         <Stack.Toolbar.Button
           variant="done"
           tintColor={palette.broth}
-          disabled={!form.isValid}
+          disabled={!form.isValid || form.isSubmitting}
           onPress={form.save}
         >
           Add
@@ -61,20 +62,20 @@ function AddPersonScreen() {
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
       >
-        {/* Live avatar preview: the standard avatar geometry, scaled up */}
+        {/* Live avatar preview doubles as the photo picker */}
         <View className="items-center py-3">
-          <View
-            className="items-center justify-center rounded-full bg-cream-swirl"
-            style={{ width: 72, height: 72 }}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={form.photoUri ? 'Change photo' : 'Add photo'}
+            disabled={form.isSubmitting}
+            onPress={form.onAvatarPress}
+            className="items-center gap-2 active:opacity-80"
           >
-            {form.initial ? (
-              <Text className="text-3xl font-semibold text-broth">
-                {form.initial}
-              </Text>
-            ) : (
-              <PersonIcon size={30} color={palette.broth} />
-            )}
-          </View>
+            <Avatar name={form.initial} photo={form.photoUri} size={72} />
+            <Text className="text-base text-broth">
+              {form.photoUri ? 'Change photo' : 'Add photo'}
+            </Text>
+          </Pressable>
         </View>
 
         <View className="rounded-2xl bg-white" style={cardStyle}>

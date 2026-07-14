@@ -1,15 +1,22 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { ImagePickerAsset } from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Alert } from 'react-native';
 import { KeyboardController } from 'react-native-keyboard-controller';
 import { createDate } from '~/api/dates/dates-service';
-import { createPerson } from '~/api/people/people-service';
+import { createPerson, updatePerson } from '~/api/people/people-service';
 import {
   type CreatePersonForm,
   createPersonSchema,
 } from '~/api/people/person-schema';
+import { showAvatarMenu } from '~/components/person/avatar-menu';
+import {
+  deleteAvatarFile,
+  pickAvatarImage,
+  saveAvatarFile,
+} from '~/lib/avatars';
 import { toStorageDate } from '~/lib/dates';
 
 // Placeholder until real analytics lands; silent so it doesn't spam the console
@@ -25,11 +32,14 @@ export function useAddPersonForm() {
   const [withBirthday, setWithBirthday] = useState(false);
   const [birthday, setBirthday] = useState(() => new Date());
   const [includeYear, setIncludeYear] = useState(true);
+  // Picked but not yet persisted: the temp asset becomes an avatar file
+  // only on save, so canceling the flow leaves nothing behind
+  const [photo, setPhoto] = useState<ImagePickerAsset | null>(null);
 
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors, isSubmitting, isValid },
     watch,
   } = useForm<CreatePersonForm>({
     resolver: zodResolver(createPersonSchema),
@@ -46,7 +56,26 @@ export function useAddPersonForm() {
     trackEvent({ type: 'person_create_started' });
   }, []);
 
-  const onSubmit = (data: CreatePersonForm) => {
+  const choosePhoto = async () => {
+    // The picker covers the form; don't leave the keyboard under it
+    KeyboardController.dismiss();
+    try {
+      const picked = await pickAvatarImage();
+      if (picked) setPhoto(picked);
+    } catch {
+      Alert.alert('Photo unavailable', "The photo picker couldn't be opened.");
+    }
+  };
+
+  const onAvatarPress = () => {
+    showAvatarMenu({
+      hasPhoto: photo !== null,
+      onChoose: () => void choosePhoto(),
+      onRemove: () => setPhoto(null),
+    });
+  };
+
+  const persistPerson = async (data: CreatePersonForm) => {
     const response = createPerson({ name: data.name.trim() });
 
     if (response.error || !response.data) {
@@ -72,6 +101,29 @@ export function useAddPersonForm() {
       type: 'person_create_success',
       personId: response.data.id,
     });
+
+    // The person exists either way; the photo is a best-effort follow-up,
+    // same stance as the birthday below
+    if (photo) {
+      try {
+        const fileName = await saveAvatarFile(photo);
+        const avatarResponse = updatePerson(response.data.id, {
+          avatar: fileName,
+        });
+        if (avatarResponse.error) {
+          deleteAvatarFile(fileName);
+          Alert.alert(
+            'Person saved',
+            "The photo couldn't be added — you can add it from their screen.",
+          );
+        }
+      } catch {
+        Alert.alert(
+          'Person saved',
+          "The photo couldn't be added — you can add it from their screen.",
+        );
+      }
+    }
 
     if (withBirthday) {
       const dateResponse = createDate({
@@ -104,11 +156,27 @@ export function useAddPersonForm() {
     });
   };
 
+  // React Hook Form exposes isSubmitting for presentation, while this ref
+  // closes the smaller window before disabled controls can re-render.
+  const submissionInFlight = useRef(false);
+  const onSubmit = async (data: CreatePersonForm) => {
+    if (submissionInFlight.current) return;
+    submissionInFlight.current = true;
+    try {
+      await persistPerson(data);
+    } finally {
+      submissionInFlight.current = false;
+    }
+  };
+
   return {
     control,
     errors,
+    isSubmitting,
     isValid,
     initial,
+    photoUri: photo?.uri ?? null,
+    onAvatarPress,
     withBirthday,
     setWithBirthday,
     birthday,

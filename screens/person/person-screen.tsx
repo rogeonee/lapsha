@@ -1,19 +1,27 @@
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
 import {
   BIRTHDAY_LABEL,
   deleteDate,
   getDatesByPerson,
 } from '~/api/dates/dates-service';
 import { deleteFact, getFactsByPerson } from '~/api/facts/facts-service';
-import { getPerson } from '~/api/people/people-service';
+import { getPerson, updatePerson } from '~/api/people/people-service';
 import {
   EntrySheet,
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
+import { Avatar } from '~/components/person/avatar';
+import { showAvatarMenu } from '~/components/person/avatar-menu';
 import { AddRow, DateRow, EntryRow } from '~/components/person/entry-row';
 import { Text } from '~/components/ui/text';
+import {
+  avatarUri,
+  deleteAvatarFile,
+  pickAvatarImage,
+  saveAvatarFile,
+} from '~/lib/avatars';
 import { getSortPref, setSortPref } from '~/lib/prefs';
 import { palette, shadows } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
@@ -113,6 +121,46 @@ export function PersonScreen() {
     }
   };
 
+  const choosePhoto = async () => {
+    if (!person) return;
+    try {
+      const picked = await pickAvatarImage();
+      if (!picked) return;
+
+      const fileName = await saveAvatarFile(picked);
+      const previous = person.avatar;
+      const response = updatePerson(person.id, { avatar: fileName });
+      if (response.error) {
+        deleteAvatarFile(fileName);
+        Alert.alert('Error', "The photo couldn't be saved. Please try again.");
+        return;
+      }
+      deleteAvatarFile(previous);
+    } catch {
+      Alert.alert('Error', "The photo couldn't be saved. Please try again.");
+    }
+  };
+
+  const removePhoto = () => {
+    if (!person?.avatar) return;
+    const previous = person.avatar;
+    const response = updatePerson(person.id, { avatar: null });
+    if (response.error) {
+      Alert.alert('Error', "The photo couldn't be removed. Please try again.");
+      return;
+    }
+    deleteAvatarFile(previous);
+  };
+
+  const handleAvatarPress = () => {
+    if (!person) return;
+    showAvatarMenu({
+      hasPhoto: person.avatar !== null,
+      onChoose: () => void choosePhoto(),
+      onRemove: removePhoto,
+    });
+  };
+
   if (error) {
     return (
       <View className="flex-1 items-center justify-center px-8">
@@ -177,16 +225,24 @@ export function PersonScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="p-4 gap-5"
       >
-        {/* Decorative — the header already announces the name */}
-        <View className="items-center pt-2" aria-hidden>
-          <View
-            className="items-center justify-center rounded-full bg-cream-swirl"
-            style={{ width: 72, height: 72 }}
+        {/* The header announces the name; this circle is the photo slot.
+            The Broth caption is the affordance (Contacts-style). */}
+        <View className="items-center pt-2">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={person?.avatar ? 'Change photo' : 'Add photo'}
+            onPress={handleAvatarPress}
+            className="items-center gap-2 active:opacity-80"
           >
-            <Text className="text-3xl font-semibold text-broth">
-              {person?.name.trim().charAt(0).toUpperCase() || '?'}
+            <Avatar
+              name={person?.name ?? ''}
+              photo={avatarUri(person?.avatar)}
+              size={72}
+            />
+            <Text className="text-base text-broth">
+              {person?.avatar ? 'Change photo' : 'Add photo'}
             </Text>
-          </View>
+          </Pressable>
         </View>
 
         <SectionCard title="Dates">
