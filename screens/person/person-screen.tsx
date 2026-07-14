@@ -1,8 +1,8 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useHeaderHeight } from 'expo-router/react-navigation';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { Alert, useWindowDimensions, View } from 'react-native';
+import { Alert, Platform, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -19,13 +19,17 @@ import {
   getDatesByPerson,
 } from '~/api/dates/dates-service';
 import { deleteFact, getFactsByPerson } from '~/api/facts/facts-service';
-import { getPerson, updatePerson } from '~/api/people/people-service';
+import {
+  deletePerson,
+  getPerson,
+  updatePerson,
+} from '~/api/people/people-service';
 import {
   EntrySheet,
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
-import { showAvatarMenu } from '~/components/person/avatar-menu';
 import { AddRow, DateRow, EntryRow } from '~/components/person/entry-row';
+import { FactSortMenu } from '~/components/person/fact-sort-menu';
 import {
   personPhotoCompactHeight,
   personPhotoExpandedHeight,
@@ -44,6 +48,11 @@ import { useTableVersion } from '~/lib/use-table-version';
 import type { EntrySort, Fact, Person, Date as PersonDate } from '~/types/db';
 
 const isIOS = process.env.EXPO_OS === 'ios';
+// iOS 26 liquid-glass header buttons adapt to the content behind them;
+// forcing them white over the expanded photo washes them out. Only
+// pre-26 headers (plain buttons over the scrim) take the white flip.
+const isLiquidGlass =
+  isIOS && Number.parseInt(String(Platform.Version), 10) >= 26;
 
 const cardStyle = {
   borderCurve: 'continuous',
@@ -93,14 +102,20 @@ function loadPersonData(
 
 function SectionCard({
   title,
+  accessory,
   children,
 }: {
   title: string;
+  /** Right-aligned control on the title row, e.g. the facts sort menu */
+  accessory?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <View className="gap-2">
-      <Text className="px-1 text-base font-medium">{title}</Text>
+      <View className="flex-row items-center justify-between px-1">
+        <Text className="text-base font-medium">{title}</Text>
+        {accessory}
+      </View>
       <View className="overflow-hidden rounded-2xl bg-white" style={cardStyle}>
         {children}
       </View>
@@ -110,6 +125,7 @@ function SectionCard({
 
 export function PersonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
   const headerHeight = useHeaderHeight();
   const dataVersion = useTableVersion(['persons', 'facts', 'dates']);
@@ -117,6 +133,9 @@ export function PersonScreen() {
     getSortPref('facts'),
   );
   const [sheetConfig, setSheetConfig] = useState<EntrySheetConfig | null>(null);
+  // Deleting unmounts the data out from under the screen; suppress the
+  // "Person not found" error view while the pop animation runs
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isPhotoExpanded, setIsPhotoExpanded] = useState(false);
   const [isPhotoChromeExpanded, setIsPhotoChromeExpanded] = useState(false);
   const photoProgress = useSharedValue(0);
@@ -248,16 +267,40 @@ export function PersonScreen() {
     deleteAvatarFile(previous);
   };
 
-  const handleAvatarPress = () => {
+  const handleEditName = () => {
     if (!person) return;
-    showAvatarMenu({
-      hasPhoto: person.avatar !== null,
-      onChoose: () => void choosePhoto(),
-      onRemove: removePhoto,
-    });
+    setSheetConfig({ mode: 'edit', kind: 'person', person });
+  };
+
+  const handleDeletePerson = () => {
+    if (!person) return;
+    Alert.alert(
+      `Delete ${person.name}?`,
+      'Their dates and facts will be removed too.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            setIsDeleting(true);
+            const response = deletePerson(person.id);
+            if (response.error) {
+              setIsDeleting(false);
+              Alert.alert('Error', 'Failed to delete. Please try again.');
+              return;
+            }
+            router.back();
+          },
+        },
+      ],
+    );
   };
 
   if (error) {
+    if (isDeleting) {
+      return <Stack.Screen options={{ title: '' }} />;
+    }
     return (
       <View className="flex-1 items-center justify-center px-8">
         <Stack.Screen options={{ title: '' }} />
@@ -268,22 +311,45 @@ export function PersonScreen() {
     );
   }
 
-  // Array, not a fragment: Stack.Toolbar.Menu validates its direct children
-  // and rejects anything that isn't a menu primitive
-  const sortActions = [
+  // Arrays, not fragments: Stack.Toolbar.Menu validates its direct children
+  // and rejects anything that isn't a menu primitive. Android menu items
+  // ignore SF Symbol icon names, so icons are iOS-only.
+  const manageActions = [
     <Stack.Toolbar.MenuAction
-      key="created"
-      isOn={factSort === 'created'}
-      onPress={() => changeFactSort('created')}
+      key="edit-name"
+      icon={isIOS ? 'pencil' : undefined}
+      onPress={handleEditName}
     >
-      Date added
+      Edit name
     </Stack.Toolbar.MenuAction>,
     <Stack.Toolbar.MenuAction
-      key="modified"
-      isOn={factSort === 'modified'}
-      onPress={() => changeFactSort('modified')}
+      key="photo"
+      icon={isIOS ? 'photo' : undefined}
+      onPress={() => void choosePhoto()}
     >
-      Last modified
+      {person?.avatar ? 'Change photo' : 'Add photo'}
+    </Stack.Toolbar.MenuAction>,
+    ...(person?.avatar
+      ? [
+          <Stack.Toolbar.MenuAction
+            key="remove-photo"
+            destructive
+            icon={isIOS ? 'xmark.circle' : undefined}
+            onPress={removePhoto}
+          >
+            Remove photo
+          </Stack.Toolbar.MenuAction>,
+        ]
+      : []),
+  ];
+  const deleteAction = [
+    <Stack.Toolbar.MenuAction
+      key="delete"
+      destructive
+      icon={isIOS ? 'trash' : undefined}
+      onPress={handleDeletePerson}
+    >
+      Delete person
     </Stack.Toolbar.MenuAction>,
   ];
 
@@ -296,13 +362,19 @@ export function PersonScreen() {
           headerTransparent: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: 'transparent' },
-          headerTintColor: isPhotoChromeExpanded ? 'white' : palette.broth,
+          headerTintColor:
+            isPhotoChromeExpanded && !isLiquidGlass ? 'white' : palette.broth,
+          // The title sits over the scrim, not in a glass circle, so it
+          // goes white on every version
+          headerTitleStyle: {
+            color: isPhotoChromeExpanded ? 'white' : palette.broth,
+          },
           ...(isIOS ? { headerBlurEffect: 'none' as const } : null),
         }}
       />
       {/* Android tints menu text with the toolbar tint (ink), while the
-          Menu's own tintColor keeps the trigger icon amber. The inline
-          "Sort facts" group is iOS-only: Android renders a stray divider. */}
+          Menu's own tintColor keeps the trigger icon amber. Inline groups
+          are iOS-only: Android renders a stray divider. */}
       <Stack.Toolbar
         placement="right"
         tintColor={isIOS ? undefined : palette.ink}
@@ -310,22 +382,29 @@ export function PersonScreen() {
         <Stack.Toolbar.Menu
           // Android ignores SF Symbol names; it needs an image source
           icon={
-            isIOS
-              ? 'arrow.up.arrow.down'
-              : require('~/assets/icons/swap_vert.xml')
+            isIOS ? 'ellipsis.circle' : require('~/assets/icons/more_vert.xml')
           }
           tintColor={
-            isPhotoChromeExpanded ? 'white' : isIOS ? undefined : palette.broth
+            isPhotoChromeExpanded && !isLiquidGlass
+              ? 'white'
+              : isIOS
+                ? undefined
+                : palette.broth
           }
-          accessibilityLabel="Sort"
+          accessibilityLabel="Manage person"
         >
-          {isIOS ? (
-            <Stack.Toolbar.Menu title="Sort facts" inline>
-              {sortActions}
-            </Stack.Toolbar.Menu>
-          ) : (
-            sortActions
-          )}
+          {/* Inline groups render a hairline divider on iOS 26 but a
+              chunky section gap on iOS 18, so pre-26 stays flat */}
+          {isLiquidGlass
+            ? [
+                <Stack.Toolbar.Menu key="manage" inline>
+                  {manageActions}
+                </Stack.Toolbar.Menu>,
+                <Stack.Toolbar.Menu key="delete" inline>
+                  {deleteAction}
+                </Stack.Toolbar.Menu>,
+              ]
+            : [...manageActions, ...deleteAction]}
         </Stack.Toolbar.Menu>
       </Stack.Toolbar>
 
@@ -347,7 +426,7 @@ export function PersonScreen() {
             progress={photoProgress}
             isExpanded={isPhotoExpanded}
             onToggle={() => animatePhotoTo(!isPhotoExpanded)}
-            onEdit={handleAvatarPress}
+            onAddPhoto={() => void choosePhoto()}
           />
 
           <View className="gap-5 px-4">
@@ -397,7 +476,12 @@ export function PersonScreen() {
               />
             </SectionCard>
 
-            <SectionCard title="Facts">
+            <SectionCard
+              title="Facts"
+              accessory={
+                <FactSortMenu sort={factSort} onChange={changeFactSort} />
+              }
+            >
               {facts.length === 0 ? (
                 <View className="px-4 py-3">
                   <Text className="text-base text-muted-foreground">

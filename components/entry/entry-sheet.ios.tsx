@@ -11,9 +11,17 @@ import {
   TextField,
   Toggle,
   useNativeState,
+  VStack,
 } from '@expo/ui/swift-ui';
 import {
+  background,
+  bold,
+  cornerRadius,
   disabled,
+  foregroundStyle,
+  frame,
+  opacity,
+  padding,
   pickerStyle,
   presentationDetents,
   presentationDragIndicator,
@@ -26,6 +34,11 @@ import {
   type EntryKind,
   type EntrySheetConfig,
 } from '~/components/entry/use-entry-form';
+import { palette } from '~/lib/theme';
+
+// SwiftUI has no .infinity over the bridge; a huge maxWidth/maxHeight
+// stretches a view to fill its container the same way
+const FILL = 100000;
 
 export type { EntrySheetConfig };
 
@@ -73,7 +86,11 @@ export function EntrySheet({
             // Single detent: iOS expands a sheet to its largest detent when
             // the keyboard appears, so offering 'large' meant the auto-
             // focused field blew the sheet up to full height on open.
-            presentationDetents(['medium']),
+            // The single-field edit-name mode gets a fixed compact height
+            // so no dead space rides above the keyboard.
+            presentationDetents([
+              rendered.config.kind === 'person' ? { height: 210 } : 'medium',
+            ]),
             presentationDragIndicator('visible'),
           ]}
         >
@@ -103,6 +120,49 @@ function EntryForm({
   const factValueState = useNativeState(form.initialFactValue);
   const factLabelState = useNativeState(form.initialFactLabel);
   const dateLabelState = useNativeState(form.initialDateLabel);
+  const personNameState = useNativeState(form.initialPersonName);
+
+  if (form.kind === 'person') {
+    // Not a Form: the grouped-list styling can't take the Lapsha paper/
+    // card treatment, so the compact edit-name sheet is laid out by hand
+    return (
+      <VStack
+        alignment="leading"
+        spacing={12}
+        modifiers={[
+          padding({ horizontal: 16, top: 8, bottom: 16 }),
+          frame({ maxWidth: FILL, maxHeight: FILL, alignment: 'topLeading' }),
+          background(palette.paper),
+        ]}
+      >
+        <Text modifiers={[bold()]}>Edit name</Text>
+        <TextField
+          placeholder="Name"
+          text={personNameState}
+          onTextChange={form.setPersonName}
+          autoFocus
+          modifiers={[
+            padding({ horizontal: 12, vertical: 12 }),
+            background(palette.cardWhite),
+            cornerRadius(10),
+          ]}
+        />
+        <Button
+          label="Save changes"
+          onPress={form.handleSave}
+          modifiers={[
+            disabled(!form.isValid),
+            padding({ vertical: 13 }),
+            frame({ maxWidth: FILL }),
+            background(palette.inkPrimary),
+            cornerRadius(10),
+            foregroundStyle(palette.primaryForeground),
+            opacity(form.isValid ? 1 : 0.5),
+          ]}
+        />
+      </VStack>
+    );
+  }
 
   if (form.showPersonPicker && form.people.length === 0) {
     return (

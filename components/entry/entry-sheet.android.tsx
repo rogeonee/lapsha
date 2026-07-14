@@ -110,19 +110,21 @@ function EntryForm({
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [personListOpen, setPersonListOpen] = useState(false);
 
-  // Autofocus the fact field shortly after the open animation starts:
+  // Autofocus the first field shortly after the open animation starts:
   // the head start lets the sheet establish its spring before dynamic
   // sizing retargets it for the keyboard, without serializing the two
-  // animations into a full pause
-  const factInputRef = useRef<TextInput>(null);
+  // animations into a full pause. Fires for create mode and for the
+  // single-field edit-name mode.
+  const autoFocusRef = useRef<TextInput>(null);
   const focusedOnce = useRef(false);
+  const shouldAutoFocus = config.mode === 'create' || config.kind === 'person';
   useEffect(() => {
-    if (canFocus && !focusedOnce.current && config.mode === 'create') {
+    if (canFocus && !focusedOnce.current && shouldAutoFocus) {
       focusedOnce.current = true;
-      const timer = setTimeout(() => factInputRef.current?.focus(), 100);
+      const timer = setTimeout(() => autoFocusRef.current?.focus(), 100);
       return () => clearTimeout(timer);
     }
-  }, [canFocus, config.mode]);
+  }, [canFocus, shouldAutoFocus]);
 
   // Keyboard avoidance: react-native-keyboard-controller owns the window
   // insets (root KeyboardProvider), which starves gorhom's own keyboard
@@ -218,12 +220,24 @@ function EntryForm({
         </Tabs>
       )}
 
-      {form.kind === 'fact' ? (
+      {form.kind === 'person' ? (
+        <TextField>
+          <Label>Edit name</Label>
+          <Input
+            ref={autoFocusRef}
+            placeholder="Name"
+            defaultValue={form.initialPersonName}
+            onChangeText={form.setPersonName}
+            onFocus={onFocus}
+            onBlur={onBlur}
+          />
+        </TextField>
+      ) : form.kind === 'fact' ? (
         <>
           <TextField>
             <Label>{form.editFact ? 'Edit fact' : 'New fact'}</Label>
             <Input
-              ref={factInputRef}
+              ref={autoFocusRef}
               placeholder="The fact itself"
               defaultValue={form.initialFactValue}
               onChangeText={form.setFactValue}

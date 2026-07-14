@@ -12,8 +12,14 @@ export const palette = {
   creamSwirl: '#FBEAC9',
   /** Screen background. Screens sit on Paper; white is earned by cards. */
   paper: '#F9F7F4',
+  /** Card and row surface — earned by sitting on Paper (card-white). */
+  cardWhite: '#FFFFFF',
   /** Body text and values (Tailwind side: the default foreground token). */
   ink: '#09090B',
+  /** Filled primary-button background (the shadcn `primary` token). */
+  inkPrimary: '#18181B',
+  /** Text on filled primary buttons (`primary-foreground`). */
+  primaryForeground: '#FAFAFA',
   /** Disclosure chevrons. Decorative wayfinding, never text. */
   warmGrayDeep: '#8A8577',
 } as const;

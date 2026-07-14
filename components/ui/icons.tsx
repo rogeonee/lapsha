@@ -12,11 +12,7 @@ const isIOS = process.env.EXPO_OS === 'ios';
 
 type IconProps = { size?: number; color: ColorValue };
 
-function MaterialIcon({
-  d,
-  size = 18,
-  color,
-}: IconProps & { d: string }) {
+function MaterialIcon({ d, size = 18, color }: IconProps & { d: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
       <Path d={d} />
@@ -96,6 +92,25 @@ export function PersonIcon({ size = 18, color }: IconProps) {
       size={size}
       color={color}
       d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+    />
+  );
+}
+
+export function SwapVertIcon({ size = 18, color }: IconProps) {
+  if (isIOS) {
+    return (
+      <Image
+        source="sf:arrow.up.arrow.down"
+        tintColor={String(color)}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <MaterialIcon
+      size={size}
+      color={color}
+      d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3L5 6.99h3V14h2V6.99h3L9 3z"
     />
   );
 }
