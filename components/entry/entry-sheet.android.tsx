@@ -4,7 +4,6 @@ import { BottomSheet } from 'heroui-native/bottom-sheet';
 import { Button } from 'heroui-native/button';
 import { useBottomSheetAwareHandlers } from 'heroui-native/hooks';
 import { Input } from 'heroui-native/input';
-import { Label } from 'heroui-native/label';
 import { Switch } from 'heroui-native/switch';
 import { Tabs } from 'heroui-native/tabs';
 import { TextField } from 'heroui-native/text-field';
@@ -19,9 +18,17 @@ import {
 } from '~/components/entry/use-entry-form';
 import { CheckIcon, ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
-import { palette } from '~/lib/theme';
+import { palette, shadows } from '~/lib/theme';
 
 export type { EntrySheetConfig };
+
+// The sheet's Lapsha card language (see DESIGN.md): white cards on the
+// paper sheet surface separated by tone and the whisper shadow, not by
+// borders — matching the iOS SwiftUI sheet.
+const cardStyle = {
+  borderCurve: 'continuous',
+  boxShadow: shadows.whisper,
+} as const;
 
 /**
  * Android entry sheet: HeroUI bottom sheet with Material pickers.
@@ -74,6 +81,7 @@ export function EntrySheet({
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
         <BottomSheet.Content
+          backgroundClassName="bg-paper"
           keyboardBehavior="interactive"
           // Keeps gorhom's own keyboard lift inert (its in-container
           // height math is broken under the root KeyboardProvider), so
@@ -146,27 +154,42 @@ function EntryForm({
           Add a person first — then save facts and dates about them.
         </BottomSheet.Description>
         <Button
+          className="rounded-2xl bg-primary"
           onPress={() => {
             onClose();
             router.push('/add-person');
           }}
         >
-          Add a person
+          <Button.Label className="text-primary-foreground">
+            Add a person
+          </Button.Label>
         </Button>
       </View>
     );
   }
 
   const selectedPerson = form.people.find((p) => p.id === form.personId);
+  const title =
+    form.kind === 'person'
+      ? 'Edit name'
+      : form.kind === 'fact'
+        ? form.editFact
+          ? 'Edit fact'
+          : 'New fact'
+        : form.editDate
+          ? 'Edit date'
+          : 'New date';
 
   return (
     <Animated.View className="gap-5 pb-2" style={keyboardPad}>
+      <Text className="text-lg font-medium text-broth">{title}</Text>
+
       {form.showPersonPicker && (
         // Inline expanding picker. HeroUI Select's overlays all misbehave
         // inside the sheet (popover renders broken, dialog floats over
         // the form, nested bottom sheet is poor UX); expanding in place
         // keeps one surface and dynamic sizing grows the sheet with it.
-        <View className="rounded-xl bg-secondary">
+        <View className="rounded-2xl bg-white" style={cardStyle}>
           <Pressable
             onPress={() => {
               Keyboard.dismiss();
@@ -222,10 +245,11 @@ function EntryForm({
 
       {form.kind === 'person' ? (
         <TextField>
-          <Label>Edit name</Label>
           <Input
             ref={autoFocusRef}
             placeholder="Name"
+            className="shadow-none"
+            style={cardStyle}
             defaultValue={form.initialPersonName}
             onChangeText={form.setPersonName}
             onFocus={onFocus}
@@ -235,10 +259,11 @@ function EntryForm({
       ) : form.kind === 'fact' ? (
         <>
           <TextField>
-            <Label>{form.editFact ? 'Edit fact' : 'New fact'}</Label>
             <Input
               ref={autoFocusRef}
               placeholder="The fact itself"
+              className="shadow-none"
+              style={cardStyle}
               defaultValue={form.initialFactValue}
               onChangeText={form.setFactValue}
               onFocus={onFocus}
@@ -246,9 +271,10 @@ function EntryForm({
             />
           </TextField>
           <TextField>
-            <Label>Label (optional)</Label>
             <Input
-              placeholder="e.g. Coffee order"
+              placeholder="Label (optional)"
+              className="shadow-none"
+              style={cardStyle}
               defaultValue={form.initialFactLabel}
               onChangeText={form.setFactLabel}
               onFocus={onFocus}
@@ -259,9 +285,10 @@ function EntryForm({
       ) : (
         <>
           <TextField>
-            <Label>{form.editDate ? 'Edit date' : 'New date'}</Label>
             <Input
               placeholder="Label (e.g. Wedding anniversary)"
+              className="shadow-none"
+              style={cardStyle}
               defaultValue={form.initialDateLabel}
               onChangeText={form.setDateLabel}
               onFocus={onFocus}
@@ -269,19 +296,29 @@ function EntryForm({
             />
           </TextField>
 
-          <Pressable
-            onPress={() => setDatePickerOpen(true)}
-            className="flex-row items-center justify-between rounded-xl bg-secondary px-4 py-3"
-          >
-            <Text className="text-sm text-muted-foreground">Date</Text>
-            <Text className="text-base">
-              {form.pickedDate.toLocaleDateString(undefined, {
-                month: 'long',
-                day: 'numeric',
-                ...(form.includeYear ? { year: 'numeric' } : {}),
-              })}
-            </Text>
-          </Pressable>
+          <View className="rounded-2xl bg-white" style={cardStyle}>
+            <Pressable
+              onPress={() => setDatePickerOpen(true)}
+              className="flex-row items-center justify-between px-4 py-3"
+            >
+              <Text className="text-base">Date</Text>
+              <Text className="text-base text-broth">
+                {form.pickedDate.toLocaleDateString(undefined, {
+                  month: 'long',
+                  day: 'numeric',
+                  ...(form.includeYear ? { year: 'numeric' } : {}),
+                })}
+              </Text>
+            </Pressable>
+            <View className="h-px bg-black/5" />
+            <View className="flex-row items-center justify-between px-4 py-3">
+              <Text className="text-base">Include year</Text>
+              <Switch
+                isSelected={form.includeYear}
+                onSelectedChange={form.setIncludeYear}
+              />
+            </View>
+          </View>
           {datePickerOpen && (
             // The dialog renders in its own window; the Host is zero-size
             <Host style={{ position: 'absolute', width: 0, height: 0 }}>
@@ -306,19 +343,17 @@ function EntryForm({
               />
             </Host>
           )}
-
-          <View className="flex-row items-center justify-between px-1">
-            <Text className="text-base">Include year</Text>
-            <Switch
-              isSelected={form.includeYear}
-              onSelectedChange={form.setIncludeYear}
-            />
-          </View>
         </>
       )}
 
-      <Button isDisabled={!form.isValid} onPress={form.handleSave}>
-        {config.mode === 'edit' ? 'Save changes' : 'Save'}
+      <Button
+        className="rounded-2xl bg-primary"
+        isDisabled={!form.isValid}
+        onPress={form.handleSave}
+      >
+        <Button.Label className="text-primary-foreground">
+          {config.mode === 'edit' ? 'Save changes' : 'Save'}
+        </Button.Label>
       </Button>
     </Animated.View>
   );

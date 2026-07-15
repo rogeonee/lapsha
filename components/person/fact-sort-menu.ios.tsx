@@ -9,9 +9,15 @@ import type { EntrySort } from '~/types/db';
  */
 export function FactSortMenu({
   sort,
+  isOpen: _isOpen,
+  onOpenChange: _onOpenChange,
   onChange,
 }: {
   sort: EntrySort;
+  /** Android-only controlled HeroUI menu state */
+  isOpen: boolean;
+  /** Android-only controlled HeroUI menu state */
+  onOpenChange: (open: boolean) => void;
   onChange: (sort: EntrySort) => void;
 }) {
   return (

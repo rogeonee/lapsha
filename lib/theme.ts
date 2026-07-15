@@ -22,6 +22,8 @@ export const palette = {
   primaryForeground: '#FAFAFA',
   /** Disclosure chevrons. Decorative wayfinding, never text. */
   warmGrayDeep: '#8A8577',
+  /** Destructive actions (matches --color-destructive / HeroUI --danger). */
+  destructive: '#EF4444',
 } as const;
 
 // Whisper: the app's only shadow, warm-tinted for the Paper world. If a

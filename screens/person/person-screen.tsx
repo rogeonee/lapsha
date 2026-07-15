@@ -30,6 +30,7 @@ import {
 } from '~/components/entry/entry-sheet';
 import { AddRow, DateRow, EntryRow } from '~/components/person/entry-row';
 import { FactSortMenu } from '~/components/person/fact-sort-menu';
+import { PersonMenu } from '~/components/person/person-menu';
 import {
   personPhotoCompactHeight,
   personPhotoExpandedHeight,
@@ -138,6 +139,10 @@ export function PersonScreen() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPhotoExpanded, setIsPhotoExpanded] = useState(false);
   const [isPhotoChromeExpanded, setIsPhotoChromeExpanded] = useState(false);
+  // Android HeroUI popovers need to be controlled so the photo/scroll
+  // gesture underneath their overlay can dismiss them on a vertical swipe.
+  // iOS ignores these props because its native menus dismiss themselves.
+  const [openMenu, setOpenMenu] = useState<'person' | 'sort' | null>(null);
   const photoProgress = useSharedValue(0);
   const scrollY = useSharedValue(0);
   const pullStart = useSharedValue(0);
@@ -172,6 +177,10 @@ export function PersonScreen() {
     setIsPhotoExpanded(expanded);
   };
 
+  const dismissMenus = () => {
+    setOpenMenu(null);
+  };
+
   const animatePhotoTo = (expanded: boolean) => {
     setPhotoExpanded(expanded);
     photoProgress.value = withTiming(expanded ? 1 : 0, photoTiming);
@@ -183,11 +192,12 @@ export function PersonScreen() {
 
   const nativeScrollGesture = Gesture.Native();
   const pullGesture = Gesture.Pan()
-    .enabled(photo !== null)
+    .enabled(photo !== null || openMenu !== null)
     .activeOffsetY([-8, 8])
     .failOffsetX([-12, 12])
     .onBegin(() => {
-      pullEligible.value = scrollY.value <= 0.5;
+      if (openMenu !== null) scheduleOnRN(dismissMenus);
+      pullEligible.value = photo !== null && scrollY.value <= 0.5;
       pullStart.value = photoProgress.value;
     })
     .onUpdate((event) => {
@@ -272,29 +282,18 @@ export function PersonScreen() {
     setSheetConfig({ mode: 'edit', kind: 'person', person });
   };
 
+  // Confirmation lives in PersonMenu (native Alert on iOS, HeroUI
+  // dialog on Android); this runs only after the user confirms.
   const handleDeletePerson = () => {
     if (!person) return;
-    Alert.alert(
-      `Delete ${person.name}?`,
-      'Their dates and facts will be removed too.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            setIsDeleting(true);
-            const response = deletePerson(person.id);
-            if (response.error) {
-              setIsDeleting(false);
-              Alert.alert('Error', 'Failed to delete. Please try again.');
-              return;
-            }
-            router.back();
-          },
-        },
-      ],
-    );
+    setIsDeleting(true);
+    const response = deletePerson(person.id);
+    if (response.error) {
+      setIsDeleting(false);
+      Alert.alert('Error', 'Failed to delete. Please try again.');
+      return;
+    }
+    router.back();
   };
 
   if (error) {
@@ -310,48 +309,6 @@ export function PersonScreen() {
       </View>
     );
   }
-
-  // Arrays, not fragments: Stack.Toolbar.Menu validates its direct children
-  // and rejects anything that isn't a menu primitive. Android menu items
-  // ignore SF Symbol icon names, so icons are iOS-only.
-  const manageActions = [
-    <Stack.Toolbar.MenuAction
-      key="edit-name"
-      icon={isIOS ? 'pencil' : undefined}
-      onPress={handleEditName}
-    >
-      Edit name
-    </Stack.Toolbar.MenuAction>,
-    <Stack.Toolbar.MenuAction
-      key="photo"
-      icon={isIOS ? 'photo' : undefined}
-      onPress={() => void choosePhoto()}
-    >
-      {person?.avatar ? 'Change photo' : 'Add photo'}
-    </Stack.Toolbar.MenuAction>,
-    ...(person?.avatar
-      ? [
-          <Stack.Toolbar.MenuAction
-            key="remove-photo"
-            destructive
-            icon={isIOS ? 'xmark.circle' : undefined}
-            onPress={removePhoto}
-          >
-            Remove photo
-          </Stack.Toolbar.MenuAction>,
-        ]
-      : []),
-  ];
-  const deleteAction = [
-    <Stack.Toolbar.MenuAction
-      key="delete"
-      destructive
-      icon={isIOS ? 'trash' : undefined}
-      onPress={handleDeletePerson}
-    >
-      Delete person
-    </Stack.Toolbar.MenuAction>,
-  ];
 
   return (
     <>
@@ -372,41 +329,17 @@ export function PersonScreen() {
           ...(isIOS ? { headerBlurEffect: 'none' as const } : null),
         }}
       />
-      {/* Android tints menu text with the toolbar tint (ink), while the
-          Menu's own tintColor keeps the trigger icon amber. Inline groups
-          are iOS-only: Android renders a stray divider. */}
-      <Stack.Toolbar
-        placement="right"
-        tintColor={isIOS ? undefined : palette.ink}
-      >
-        <Stack.Toolbar.Menu
-          // Android ignores SF Symbol names; it needs an image source
-          icon={
-            isIOS ? 'ellipsis.circle' : require('~/assets/icons/more_vert.xml')
-          }
-          tintColor={
-            isPhotoChromeExpanded && !isLiquidGlass
-              ? 'white'
-              : isIOS
-                ? undefined
-                : palette.broth
-          }
-          accessibilityLabel="Manage person"
-        >
-          {/* Inline groups render a hairline divider on iOS 26 but a
-              chunky section gap on iOS 18, so pre-26 stays flat */}
-          {isLiquidGlass
-            ? [
-                <Stack.Toolbar.Menu key="manage" inline>
-                  {manageActions}
-                </Stack.Toolbar.Menu>,
-                <Stack.Toolbar.Menu key="delete" inline>
-                  {deleteAction}
-                </Stack.Toolbar.Menu>,
-              ]
-            : [...manageActions, ...deleteAction]}
-        </Stack.Toolbar.Menu>
-      </Stack.Toolbar>
+      <PersonMenu
+        personName={person?.name ?? ''}
+        hasPhoto={Boolean(person?.avatar)}
+        isPhotoChromeExpanded={isPhotoChromeExpanded}
+        isOpen={openMenu === 'person'}
+        onOpenChange={(open) => setOpenMenu(open ? 'person' : null)}
+        onEditName={handleEditName}
+        onChoosePhoto={() => void choosePhoto()}
+        onRemovePhoto={removePhoto}
+        onDeletePerson={handleDeletePerson}
+      />
 
       <GestureDetector gesture={scrollAndPullGesture}>
         <Animated.ScrollView
@@ -479,7 +412,12 @@ export function PersonScreen() {
             <SectionCard
               title="Facts"
               accessory={
-                <FactSortMenu sort={factSort} onChange={changeFactSort} />
+                <FactSortMenu
+                  sort={factSort}
+                  isOpen={openMenu === 'sort'}
+                  onOpenChange={(open) => setOpenMenu(open ? 'sort' : null)}
+                  onChange={changeFactSort}
+                />
               }
             >
               {facts.length === 0 ? (

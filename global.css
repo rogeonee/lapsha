@@ -45,6 +45,8 @@
     @variant light {
       --accent: #f6b756;
       --accent-foreground: hsl(240 5.9% 10%);
+      /* HeroUI danger (menu items, invalid fields) matches destructive */
+      --danger: hsl(0 84.2% 60.2%);
       --color-accent: #f6b756;
       --color-accent-foreground: hsl(240 5.9% 10%);
       --color-background: hsl(0 0% 100%);
@@ -68,6 +70,7 @@
     @variant dark {
       --accent: #f6b756;
       --accent-foreground: hsl(240 5.9% 10%);
+      --danger: hsl(0 72% 51%);
       --color-accent: #f6b756;
       --color-accent-foreground: hsl(240 5.9% 10%);
       --color-background: hsl(240 10% 3.9%);
