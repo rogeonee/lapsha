@@ -1,0 +1,17 @@
+diff --git a/ios/TextFieldView.swift b/ios/TextFieldView.swift
+index 987b28475eac2717f3ea635274a0e3537ad4a517..c61c8562de99f0464dd7b58c0b091823a1d28e75 100644
+--- a/ios/TextFieldView.swift
++++ b/ios/TextFieldView.swift
+@@ -80,6 +80,11 @@ struct TextFieldView: ExpoSwiftUI.View, ExpoSwiftUI.FocusableView {
+   var body: some View {
+ #if !os(tvOS)
+-    if #available(iOS 18.0, macOS 15.0, *) {
++    // Lapsha patch: selection-enabled TextField only on iOS 26+. On iOS 18,
++    // SwiftUI's TextField(selection:) fatally asserts (String index out of
++    // bounds) when the text shrinks under an active selection — fast
++    // backspacing crashes the app despite the clamped binding below.
++    // https://github.com/expo/expo/issues/47434
++    if #available(iOS 26.0, macOS 26.0, *) {
+       StatefulSelectableTextField(
+         state: props.text,
+         selection: props.selection,

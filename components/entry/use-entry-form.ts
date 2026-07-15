@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { createDate, updateDate } from '~/api/dates/dates-service';
 import { createFact, updateFact } from '~/api/facts/facts-service';
-import { getPeople } from '~/api/people/people-service';
+import { getPeople, updatePerson } from '~/api/people/people-service';
 import { fromStorageDate, toStorageDate } from '~/lib/dates';
 import { getLastPersonId, setLastPersonId } from '~/lib/prefs';
-import type { Fact, Date as PersonDate } from '~/types/db';
+import type { Fact, Person, Date as PersonDate } from '~/types/db';
 
 export type EntryKind = 'fact' | 'date';
 
@@ -19,7 +19,8 @@ export type EntrySheetConfig =
       dateLabel?: string;
     }
   | { mode: 'edit'; kind: 'fact'; fact: Fact }
-  | { mode: 'edit'; kind: 'date'; date: PersonDate };
+  | { mode: 'edit'; kind: 'date'; date: PersonDate }
+  | { mode: 'edit'; kind: 'person'; person: Person };
 
 /**
  * Platform-agnostic state and save logic for the entry sheet form.
@@ -31,6 +32,8 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
     config.mode === 'edit' && config.kind === 'fact' ? config.fact : null;
   const editDate =
     config.mode === 'edit' && config.kind === 'date' ? config.date : null;
+  const editPerson =
+    config.mode === 'edit' && config.kind === 'person' ? config.person : null;
   const showPersonPicker = config.mode === 'create' && !config.personId;
 
   const [people] = useState(() =>
@@ -46,7 +49,10 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
     return people[0]?.id ?? null;
   });
 
-  const [kind, setKind] = useState<EntryKind>(config.kind);
+  const [kind, setKind] = useState<EntryKind | 'person'>(config.kind);
+
+  const initialPersonName = editPerson?.name ?? '';
+  const [personName, setPersonName] = useState(initialPersonName);
 
   // Fact fields: initial values prefill platform inputs (which are
   // uncontrolled), plain state mirrors them for validation and saving
@@ -55,7 +61,6 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
   const [factValue, setFactValue] = useState(initialFactValue);
   const [factLabel, setFactLabel] = useState(initialFactLabel);
 
-  // Date fields
   const initialDateLabel =
     editDate?.label ??
     (config.mode === 'create' ? (config.dateLabel ?? '') : '');
@@ -67,12 +72,26 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
   const [includeYear, setIncludeYear] = useState(initialPicked.includeYear);
 
   const isValid =
-    personId !== null &&
-    (kind === 'fact'
-      ? factValue.trim().length > 0
-      : dateLabel.trim().length > 0);
+    kind === 'person'
+      ? personName.trim().length > 0
+      : personId !== null &&
+        (kind === 'fact'
+          ? factValue.trim().length > 0
+          : dateLabel.trim().length > 0);
 
   const handleSave = () => {
+    if (editPerson) {
+      const response = updatePerson(editPerson.id, {
+        name: personName.trim(),
+      });
+      if (response.error) {
+        Alert.alert('Error', response.error.message || 'Failed to save.');
+        return;
+      }
+      onClose();
+      return;
+    }
+
     if (!personId) return;
 
     const response =
@@ -106,6 +125,7 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
   return {
     editFact,
     editDate,
+    editPerson,
     showPersonPicker,
     people,
     personId,
@@ -115,9 +135,11 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
     initialFactValue,
     initialFactLabel,
     initialDateLabel,
+    initialPersonName,
     setFactValue,
     setFactLabel,
     setDateLabel,
+    setPersonName,
     pickedDate,
     setPickedDate,
     includeYear,

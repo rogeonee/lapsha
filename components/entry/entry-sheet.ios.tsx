@@ -2,22 +2,32 @@ import {
   BottomSheet,
   Button,
   DatePicker,
-  Form,
+  Divider,
   Group,
   Host,
+  HStack,
   Picker,
-  Section,
+  Spacer,
   Text,
   TextField,
   Toggle,
   useNativeState,
+  VStack,
 } from '@expo/ui/swift-ui';
 import {
+  background,
+  cornerRadius,
   disabled,
+  font,
+  foregroundStyle,
+  frame,
+  opacity,
+  padding,
   pickerStyle,
-  presentationDetents,
+  presentationBackground,
   presentationDragIndicator,
   tag,
+  tint,
 } from '@expo/ui/swift-ui/modifiers';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -26,6 +36,45 @@ import {
   type EntryKind,
   type EntrySheetConfig,
 } from '~/components/entry/use-entry-form';
+import { palette } from '~/lib/theme';
+
+// SwiftUI has no .infinity over the bridge; a huge maxWidth
+// stretches a view to fill its container the same way
+const FILL = 100000;
+
+const sheetStackModifiers = [padding({ horizontal: 16, top: 20, bottom: 16 })];
+const sheetTitleModifiers = [
+  font({ textStyle: 'headline' }),
+  foregroundStyle(palette.broth),
+  frame({ maxWidth: FILL }),
+];
+const fieldCardModifiers = [
+  padding({ horizontal: 16, vertical: 14 }),
+  background(palette.cardWhite),
+  cornerRadius(14),
+];
+const cardModifiers = [background(palette.cardWhite), cornerRadius(14)];
+const fieldRowModifiers = [padding({ horizontal: 16, vertical: 14 })];
+const controlRowModifiers = [
+  padding({ horizontal: 16, vertical: 8 }),
+  tint(palette.noodleGold),
+];
+const personRowModifiers = [
+  padding({ horizontal: 16, vertical: 8 }),
+  background(palette.cardWhite),
+  cornerRadius(14),
+];
+const saveModifiers = (isValid: boolean) => [
+  disabled(!isValid),
+  padding({ vertical: 14 }),
+  frame({ maxWidth: FILL }),
+  background(palette.inkPrimary),
+  cornerRadius(14),
+  foregroundStyle(palette.primaryForeground),
+  opacity(isValid ? 1 : 0.5),
+];
+const saveEnabledModifiers = saveModifiers(true);
+const saveDisabledModifiers = saveModifiers(false);
 
 export type { EntrySheetConfig };
 
@@ -67,13 +116,13 @@ export function EntrySheet({
             onClose();
           }
         }}
+        // Every mode hugs its content so no dead space rides above the
+        // keyboard; height re-fits when the fact/date tab switches
+        fitToContents
       >
         <Group
           modifiers={[
-            // Single detent: iOS expands a sheet to its largest detent when
-            // the keyboard appears, so offering 'large' meant the auto-
-            // focused field blew the sheet up to full height on open.
-            presentationDetents(['medium']),
+            presentationBackground(palette.paper),
             presentationDragIndicator('visible'),
           ]}
         >
@@ -103,32 +152,64 @@ function EntryForm({
   const factValueState = useNativeState(form.initialFactValue);
   const factLabelState = useNativeState(form.initialFactLabel);
   const dateLabelState = useNativeState(form.initialDateLabel);
+  const personNameState = useNativeState(form.initialPersonName);
+
+  if (form.kind === 'person') {
+    return (
+      <VStack alignment="leading" spacing={16} modifiers={sheetStackModifiers}>
+        <Text modifiers={sheetTitleModifiers}>Edit name</Text>
+        <TextField
+          placeholder="Name"
+          text={personNameState}
+          onTextChange={form.setPersonName}
+          autoFocus
+          modifiers={fieldCardModifiers}
+        />
+        <Button
+          label="Save changes"
+          onPress={form.handleSave}
+          modifiers={
+            form.isValid ? saveEnabledModifiers : saveDisabledModifiers
+          }
+        />
+      </VStack>
+    );
+  }
 
   if (form.showPersonPicker && form.people.length === 0) {
     return (
-      <Form>
-        <Section>
-          <Text>
-            Add a person first — then save facts and dates about them.
-          </Text>
-          <Button
-            label="Add a person"
-            onPress={() => {
-              onClose();
-              router.push('/add-person');
-            }}
-          />
-        </Section>
-      </Form>
+      <VStack alignment="leading" spacing={16} modifiers={sheetStackModifiers}>
+        <Text modifiers={sheetTitleModifiers}>Add a person first</Text>
+        <Text>Facts and dates need someone to belong to.</Text>
+        <Button
+          label="Add a person"
+          onPress={() => {
+            onClose();
+            router.push('/add-person');
+          }}
+          modifiers={saveEnabledModifiers}
+        />
+      </VStack>
     );
   }
 
   return (
-    <Form>
+    <VStack alignment="leading" spacing={16} modifiers={sheetStackModifiers}>
+      <Text modifiers={sheetTitleModifiers}>
+        {form.kind === 'fact'
+          ? form.editFact
+            ? 'Edit fact'
+            : 'New fact'
+          : form.editDate
+            ? 'Edit date'
+            : 'New date'}
+      </Text>
+
       {form.showPersonPicker && (
-        <Section>
+        <HStack modifiers={personRowModifiers}>
+          <Text>Person</Text>
+          <Spacer />
           <Picker
-            label="Person"
             selection={form.personId}
             onSelectionChange={(selection) =>
               form.setPersonId(String(selection))
@@ -141,66 +222,71 @@ function EntryForm({
               </Text>
             ))}
           </Picker>
-        </Section>
+        </HStack>
       )}
 
       {config.mode === 'create' && (
-        <Section>
-          <Picker
-            selection={form.kind}
-            onSelectionChange={(selection) =>
-              form.setKind(selection as EntryKind)
-            }
-            modifiers={[pickerStyle('segmented')]}
-          >
-            <Text modifiers={[tag('fact')]}>Fact</Text>
-            <Text modifiers={[tag('date')]}>Date</Text>
-          </Picker>
-        </Section>
+        <Picker
+          selection={form.kind}
+          onSelectionChange={(selection) =>
+            form.setKind(selection as EntryKind)
+          }
+          modifiers={[pickerStyle('segmented')]}
+        >
+          <Text modifiers={[tag('fact')]}>Fact</Text>
+          <Text modifiers={[tag('date')]}>Date</Text>
+        </Picker>
       )}
 
       {form.kind === 'fact' ? (
-        <Section title={form.editFact ? 'Edit fact' : 'New fact'}>
+        <VStack spacing={0} modifiers={cardModifiers}>
           <TextField
             placeholder="The fact itself"
             text={factValueState}
             onTextChange={form.setFactValue}
             autoFocus={config.mode === 'create'}
+            modifiers={fieldRowModifiers}
           />
+          <Divider />
           <TextField
             placeholder="Label (optional)"
             text={factLabelState}
             onTextChange={form.setFactLabel}
+            modifiers={fieldRowModifiers}
           />
-        </Section>
+        </VStack>
       ) : (
-        <Section title={form.editDate ? 'Edit date' : 'New date'}>
+        <>
           <TextField
             placeholder="Label (e.g. Wedding anniversary)"
             text={dateLabelState}
             onTextChange={form.setDateLabel}
+            modifiers={fieldCardModifiers}
           />
-          <DatePicker
-            title="Date"
-            selection={form.pickedDate}
-            displayedComponents={['date']}
-            onDateChange={form.setPickedDate}
-          />
-          <Toggle
-            label="Include year"
-            isOn={form.includeYear}
-            onIsOnChange={form.setIncludeYear}
-          />
-        </Section>
+          <VStack spacing={0} modifiers={cardModifiers}>
+            <DatePicker
+              title="Date"
+              selection={form.pickedDate}
+              displayedComponents={['date']}
+              onDateChange={form.setPickedDate}
+              modifiers={controlRowModifiers}
+            />
+            <Divider />
+            <Toggle
+              label="Include year"
+              isOn={form.includeYear}
+              onIsOnChange={form.setIncludeYear}
+              modifiers={controlRowModifiers}
+            />
+          </VStack>
+        </>
       )}
 
-      <Section>
-        <Button
-          label={config.mode === 'edit' ? 'Save changes' : 'Save'}
-          onPress={form.handleSave}
-          modifiers={[disabled(!form.isValid)]}
-        />
-      </Section>
-    </Form>
+      <Button
+        label={config.mode === 'edit' ? 'Save changes' : 'Save'}
+        onPress={form.handleSave}
+        modifiers={form.isValid ? saveEnabledModifiers : saveDisabledModifiers}
+      />
+    </VStack>
   );
 }

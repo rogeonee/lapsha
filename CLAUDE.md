@@ -141,11 +141,11 @@ Preferences live in `expo-sqlite/kv-store`, separate from the main database. Cur
 
 The local database is `lapsha.db`; schema and migrations are in `api/database.ts`.
 
-| Table     | Key columns                                                              | Notes                                                      |
-| --------- | ------------------------------------------------------------------------ | ---------------------------------------------------------- |
-| `persons` | `id`, `name`, nullable `avatar`                                          | `avatar` is a bare photo file name resolved by `lib/avatars.ts`; the UI exposes update only for avatars, not name/delete |
-| `facts`   | `person_id`, nullable `label`, `value`, `sort_order`                     | `NULL` label is an unlabeled/free-form fact                |
-| `dates`   | `person_id`, `label`, `date`, `month`, `day`, `year_known`, `sort_order` | `birthday` is reserved case-insensitively and pinned first |
+| Table     | Key columns                                                              | Notes                                                                                                                          |
+| --------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `persons` | `id`, `name`, nullable `avatar`                                          | `avatar` is a bare photo file name resolved by `lib/avatars.ts`; name edit and delete live in the person screen's toolbar menu |
+| `facts`   | `person_id`, nullable `label`, `value`, `sort_order`                     | `NULL` label is an unlabeled/free-form fact                                                                                    |
+| `dates`   | `person_id`, `label`, `date`, `month`, `day`, `year_known`, `sort_order` | `birthday` is reserved case-insensitively and pinned first                                                                     |
 
 All tables include `created_at`, `updated_at`, and nullable `deleted_at`. CRUD uses soft deletes; normal reads must filter `deleted_at IS NULL`. IDs come from `randomUUID()` in `expo-crypto`; Expo native does not provide a usable global `crypto` here.
 

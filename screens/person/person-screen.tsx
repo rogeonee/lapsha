@@ -1,8 +1,8 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useHeaderHeight } from 'expo-router/react-navigation';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { Alert, useWindowDimensions, View } from 'react-native';
+import { Alert, Platform, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -19,13 +19,18 @@ import {
   getDatesByPerson,
 } from '~/api/dates/dates-service';
 import { deleteFact, getFactsByPerson } from '~/api/facts/facts-service';
-import { getPerson, updatePerson } from '~/api/people/people-service';
+import {
+  deletePerson,
+  getPerson,
+  updatePerson,
+} from '~/api/people/people-service';
 import {
   EntrySheet,
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
-import { showAvatarMenu } from '~/components/person/avatar-menu';
 import { AddRow, DateRow, EntryRow } from '~/components/person/entry-row';
+import { FactSortMenu } from '~/components/person/fact-sort-menu';
+import { PersonMenu } from '~/components/person/person-menu';
 import {
   personPhotoCompactHeight,
   personPhotoExpandedHeight,
@@ -44,6 +49,11 @@ import { useTableVersion } from '~/lib/use-table-version';
 import type { EntrySort, Fact, Person, Date as PersonDate } from '~/types/db';
 
 const isIOS = process.env.EXPO_OS === 'ios';
+// iOS 26 liquid-glass header buttons adapt to the content behind them;
+// forcing them white over the expanded photo washes them out. Only
+// pre-26 headers (plain buttons over the scrim) take the white flip.
+const isLiquidGlass =
+  isIOS && Number.parseInt(String(Platform.Version), 10) >= 26;
 
 const cardStyle = {
   borderCurve: 'continuous',
@@ -93,14 +103,19 @@ function loadPersonData(
 
 function SectionCard({
   title,
+  accessory,
   children,
 }: {
   title: string;
+  accessory?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <View className="gap-2">
-      <Text className="px-1 text-base font-medium">{title}</Text>
+      <View className="flex-row items-center justify-between px-1">
+        <Text className="text-base font-medium">{title}</Text>
+        {accessory}
+      </View>
       <View className="overflow-hidden rounded-2xl bg-white" style={cardStyle}>
         {children}
       </View>
@@ -110,6 +125,7 @@ function SectionCard({
 
 export function PersonScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
   const headerHeight = useHeaderHeight();
   const dataVersion = useTableVersion(['persons', 'facts', 'dates']);
@@ -117,8 +133,13 @@ export function PersonScreen() {
     getSortPref('facts'),
   );
   const [sheetConfig, setSheetConfig] = useState<EntrySheetConfig | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isPhotoExpanded, setIsPhotoExpanded] = useState(false);
   const [isPhotoChromeExpanded, setIsPhotoChromeExpanded] = useState(false);
+  // Android HeroUI popovers need to be controlled so the photo/scroll
+  // gesture underneath their overlay can dismiss them on a vertical swipe.
+  // iOS ignores these props because its native menus dismiss themselves.
+  const [openMenu, setOpenMenu] = useState<'person' | 'sort' | null>(null);
   const photoProgress = useSharedValue(0);
   const scrollY = useSharedValue(0);
   const pullStart = useSharedValue(0);
@@ -153,6 +174,10 @@ export function PersonScreen() {
     setIsPhotoExpanded(expanded);
   };
 
+  const dismissMenus = () => {
+    setOpenMenu(null);
+  };
+
   const animatePhotoTo = (expanded: boolean) => {
     setPhotoExpanded(expanded);
     photoProgress.value = withTiming(expanded ? 1 : 0, photoTiming);
@@ -164,11 +189,12 @@ export function PersonScreen() {
 
   const nativeScrollGesture = Gesture.Native();
   const pullGesture = Gesture.Pan()
-    .enabled(photo !== null)
+    .enabled(photo !== null || openMenu !== null)
     .activeOffsetY([-8, 8])
     .failOffsetX([-12, 12])
     .onBegin(() => {
-      pullEligible.value = scrollY.value <= 0.5;
+      if (openMenu !== null) scheduleOnRN(dismissMenus);
+      pullEligible.value = photo !== null && scrollY.value <= 0.5;
       pullStart.value = photoProgress.value;
     })
     .onUpdate((event) => {
@@ -248,16 +274,27 @@ export function PersonScreen() {
     deleteAvatarFile(previous);
   };
 
-  const handleAvatarPress = () => {
+  const handleEditName = () => {
     if (!person) return;
-    showAvatarMenu({
-      hasPhoto: person.avatar !== null,
-      onChoose: () => void choosePhoto(),
-      onRemove: removePhoto,
-    });
+    setSheetConfig({ mode: 'edit', kind: 'person', person });
+  };
+
+  const handleDeletePerson = () => {
+    if (!person) return;
+    setIsDeleting(true);
+    const response = deletePerson(person.id);
+    if (response.error) {
+      setIsDeleting(false);
+      Alert.alert('Error', 'Failed to delete. Please try again.');
+      return;
+    }
+    router.back();
   };
 
   if (error) {
+    if (isDeleting) {
+      return <Stack.Screen options={{ title: '' }} />;
+    }
     return (
       <View className="flex-1 items-center justify-center px-8">
         <Stack.Screen options={{ title: '' }} />
@@ -268,25 +305,6 @@ export function PersonScreen() {
     );
   }
 
-  // Array, not a fragment: Stack.Toolbar.Menu validates its direct children
-  // and rejects anything that isn't a menu primitive
-  const sortActions = [
-    <Stack.Toolbar.MenuAction
-      key="created"
-      isOn={factSort === 'created'}
-      onPress={() => changeFactSort('created')}
-    >
-      Date added
-    </Stack.Toolbar.MenuAction>,
-    <Stack.Toolbar.MenuAction
-      key="modified"
-      isOn={factSort === 'modified'}
-      onPress={() => changeFactSort('modified')}
-    >
-      Last modified
-    </Stack.Toolbar.MenuAction>,
-  ];
-
   return (
     <>
       <StatusBar style={isPhotoChromeExpanded ? 'light' : 'dark'} />
@@ -296,38 +314,27 @@ export function PersonScreen() {
           headerTransparent: true,
           headerShadowVisible: false,
           headerStyle: { backgroundColor: 'transparent' },
-          headerTintColor: isPhotoChromeExpanded ? 'white' : palette.broth,
+          headerTintColor:
+            isPhotoChromeExpanded && !isLiquidGlass ? 'white' : palette.broth,
+          // The title sits over the scrim, not in a glass circle, so it
+          // goes white on every version
+          headerTitleStyle: {
+            color: isPhotoChromeExpanded ? 'white' : palette.broth,
+          },
           ...(isIOS ? { headerBlurEffect: 'none' as const } : null),
         }}
       />
-      {/* Android tints menu text with the toolbar tint (ink), while the
-          Menu's own tintColor keeps the trigger icon amber. The inline
-          "Sort facts" group is iOS-only: Android renders a stray divider. */}
-      <Stack.Toolbar
-        placement="right"
-        tintColor={isIOS ? undefined : palette.ink}
-      >
-        <Stack.Toolbar.Menu
-          // Android ignores SF Symbol names; it needs an image source
-          icon={
-            isIOS
-              ? 'arrow.up.arrow.down'
-              : require('~/assets/icons/swap_vert.xml')
-          }
-          tintColor={
-            isPhotoChromeExpanded ? 'white' : isIOS ? undefined : palette.broth
-          }
-          accessibilityLabel="Sort"
-        >
-          {isIOS ? (
-            <Stack.Toolbar.Menu title="Sort facts" inline>
-              {sortActions}
-            </Stack.Toolbar.Menu>
-          ) : (
-            sortActions
-          )}
-        </Stack.Toolbar.Menu>
-      </Stack.Toolbar>
+      <PersonMenu
+        personName={person?.name ?? ''}
+        hasPhoto={Boolean(person?.avatar)}
+        isPhotoChromeExpanded={isPhotoChromeExpanded}
+        isOpen={openMenu === 'person'}
+        onOpenChange={(open) => setOpenMenu(open ? 'person' : null)}
+        onEditName={handleEditName}
+        onChoosePhoto={() => void choosePhoto()}
+        onRemovePhoto={removePhoto}
+        onDeletePerson={handleDeletePerson}
+      />
 
       <GestureDetector gesture={scrollAndPullGesture}>
         <Animated.ScrollView
@@ -347,7 +354,7 @@ export function PersonScreen() {
             progress={photoProgress}
             isExpanded={isPhotoExpanded}
             onToggle={() => animatePhotoTo(!isPhotoExpanded)}
-            onEdit={handleAvatarPress}
+            onAddPhoto={() => void choosePhoto()}
           />
 
           <View className="gap-5 px-4">
@@ -397,7 +404,17 @@ export function PersonScreen() {
               />
             </SectionCard>
 
-            <SectionCard title="Facts">
+            <SectionCard
+              title="Facts"
+              accessory={
+                <FactSortMenu
+                  sort={factSort}
+                  isOpen={openMenu === 'sort'}
+                  onOpenChange={(open) => setOpenMenu(open ? 'sort' : null)}
+                  onChange={changeFactSort}
+                />
+              }
+            >
               {facts.length === 0 ? (
                 <View className="px-4 py-3">
                   <Text className="text-base text-muted-foreground">

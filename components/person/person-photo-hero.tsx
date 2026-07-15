@@ -8,22 +8,14 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { Avatar } from '~/components/person/avatar';
-import { Text } from '~/components/ui/text';
 
 const COMPACT_PHOTO_SIZE = 96;
 const COMPACT_PHOTO_GAP = 16;
-const PHOTO_ACTION_GAP = 8;
-const PHOTO_ACTION_HEIGHT = 20;
 const EXPANDED_SECTION_GAP = 20;
 
 export function personPhotoCompactHeight(headerHeight: number): number {
   return (
-    headerHeight +
-    COMPACT_PHOTO_GAP +
-    COMPACT_PHOTO_SIZE +
-    PHOTO_ACTION_GAP +
-    PHOTO_ACTION_HEIGHT +
-    EXPANDED_SECTION_GAP
+    headerHeight + COMPACT_PHOTO_GAP + COMPACT_PHOTO_SIZE + EXPANDED_SECTION_GAP
   );
 }
 
@@ -39,7 +31,7 @@ export function PersonPhotoHero({
   progress,
   isExpanded,
   onToggle,
-  onEdit,
+  onAddPhoto,
 }: {
   name: string;
   photo: string | null;
@@ -48,20 +40,13 @@ export function PersonPhotoHero({
   progress: SharedValue<number>;
   isExpanded: boolean;
   onToggle: () => void;
-  onEdit: () => void;
+  onAddPhoto: () => void;
 }) {
   const compactPhotoTop = headerHeight + COMPACT_PHOTO_GAP;
   const compactHeight = personPhotoCompactHeight(headerHeight);
   const expandedHeight = personPhotoExpandedHeight(screenWidth);
   const compactScale = COMPACT_PHOTO_SIZE / screenWidth;
   const compactCenterY = compactPhotoTop + COMPACT_PHOTO_SIZE / 2;
-  const photoGrowth = Math.max(
-    1,
-    screenWidth - (compactPhotoTop + COMPACT_PHOTO_SIZE),
-  );
-  const actionCoverProgress = Math.min(0.15, PHOTO_ACTION_GAP / photoGrowth);
-  const photoActionTop =
-    compactPhotoTop + COMPACT_PHOTO_SIZE + PHOTO_ACTION_GAP;
 
   const containerStyle = useAnimatedStyle(() => ({
     height: interpolate(
@@ -104,10 +89,6 @@ export function PersonPhotoHero({
     ],
   }));
 
-  const actionStyle = useAnimatedStyle(() => ({
-    opacity: progress.value < actionCoverProgress ? 1 : 0,
-  }));
-
   const scrimStyle = useAnimatedStyle(() => ({
     opacity: interpolate(
       progress.value,
@@ -120,17 +101,15 @@ export function PersonPhotoHero({
   if (!photo) {
     return (
       <View className="items-center" style={{ height: compactHeight }}>
-        <View style={{ paddingTop: compactPhotoTop }} aria-hidden>
-          <Avatar name={name} size={COMPACT_PHOTO_SIZE} />
-        </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Add photo"
-          onPress={onEdit}
+          accessibilityHint="Opens the photo library"
+          onPress={onAddPhoto}
           className="active:opacity-80"
-          style={{ marginTop: 8 }}
+          style={{ marginTop: compactPhotoTop }}
         >
-          <Text className="text-base text-broth">Add photo</Text>
+          <Avatar name={name} size={COMPACT_PHOTO_SIZE} />
         </Pressable>
       </View>
     );
@@ -193,21 +172,6 @@ export function PersonPhotoHero({
               }
         }
       />
-
-      <Animated.View
-        className="absolute right-0 left-0 items-center"
-        pointerEvents={isExpanded ? 'none' : 'auto'}
-        style={[{ top: photoActionTop }, actionStyle]}
-      >
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Change photo"
-          onPress={onEdit}
-          className="active:opacity-80"
-        >
-          <Text className="text-base text-broth">Change photo</Text>
-        </Pressable>
-      </Animated.View>
     </Animated.View>
   );
 }
