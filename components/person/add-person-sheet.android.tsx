@@ -5,7 +5,7 @@ import { useBottomSheetAwareHandlers } from 'heroui-native/hooks';
 import { Input } from 'heroui-native/input';
 import { Label } from 'heroui-native/label';
 import { TextField } from 'heroui-native/text-field';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { Controller } from 'react-hook-form';
 import { Pressable, View, type TextInput } from 'react-native';
 import {
@@ -63,24 +63,52 @@ export function AddPersonSheet() {
   // timing rationale as the entry sheet
   const [opening, setOpening] = useState(false);
 
-  // The sheet emits onOpenChange(false) while mounting closed; popping
-  // the route on that spurious event kills the sheet before it ever
-  // opens. Only trust close events after an open animation has started.
+  // HeroUI makes one snapToIndex call when isOpen flips. Gorhom drops it
+  // when its own container/handle layout is not ready, even if our form has
+  // already laid out, so retry briefly until the animation actually starts.
+  const sheetRef = useRef<ComponentRef<typeof BottomSheet.Content>>(null);
   const hasOpened = useRef(false);
+  useEffect(() => {
+    if (!isOpen || hasOpened.current) return;
+
+    let attempts = 0;
+    const retry = setInterval(() => {
+      if (hasOpened.current || attempts >= 20) {
+        clearInterval(retry);
+        return;
+      }
+
+      attempts += 1;
+      sheetRef.current?.snapToIndex(0);
+    }, 50);
+
+    return () => clearInterval(retry);
+  }, [isOpen]);
+
+  // The sheet emits onOpenChange(false) while mounting closed. Ignore only
+  // that event; once opening has been requested, every close path must pop
+  // the transparent route even if the open animation was dropped.
+  const closing = useRef(false);
 
   return (
     <BottomSheet
       isOpen={isOpen}
       onOpenChange={(open) => {
-        if (!open && isSubmitting) return;
-        if (!open && hasOpened.current) {
-          handleClose();
+        if (open) {
+          setIsOpen(true);
+          return;
         }
+        if (!isOpen || isSubmitting || closing.current) return;
+
+        closing.current = true;
+        setIsOpen(false);
+        handleClose();
       }}
     >
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
         <BottomSheet.Content
+          ref={sheetRef}
           keyboardBehavior="interactive"
           // Keeps gorhom's own keyboard lift inert (its in-container
           // height math is broken under the root KeyboardProvider), so
