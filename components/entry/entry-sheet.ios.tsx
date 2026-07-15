@@ -42,32 +42,23 @@ import { palette } from '~/lib/theme';
 // stretches a view to fill its container the same way
 const FILL = 100000;
 
-// The sheet's Lapsha card language (see DESIGN.md): white cards on the
-// paper presentationBackground, one calm ink primary button. Module-level
-// modifier arrays keep prop identities stable across the per-keystroke
-// re-renders of the form.
 const sheetStackModifiers = [padding({ horizontal: 16, top: 20, bottom: 16 })];
 const sheetTitleModifiers = [
   font({ textStyle: 'headline' }),
   foregroundStyle(palette.broth),
   frame({ maxWidth: FILL }),
 ];
-// A standalone single-field card
 const fieldCardModifiers = [
   padding({ horizontal: 16, vertical: 14 }),
   background(palette.cardWhite),
   cornerRadius(14),
 ];
-// Rows stacked inside a shared card
 const cardModifiers = [background(palette.cardWhite), cornerRadius(14)];
 const fieldRowModifiers = [padding({ horizontal: 16, vertical: 14 })];
-// Amber accents on the date picker chip and the include-year switch
-// (DESIGN.md: switches and picker accents carry Noodle Gold)
 const controlRowModifiers = [
   padding({ horizontal: 16, vertical: 8 }),
   tint(palette.noodleGold),
 ];
-// The quick-add person chooser: a label + menu picker card row
 const personRowModifiers = [
   padding({ horizontal: 16, vertical: 8 }),
   background(palette.cardWhite),
@@ -162,13 +153,6 @@ function EntryForm({
   const factLabelState = useNativeState(form.initialFactLabel);
   const dateLabelState = useNativeState(form.initialDateLabel);
   const personNameState = useNativeState(form.initialPersonName);
-
-  // Every mode is laid out by hand rather than through Form: the grouped-
-  // list styling can't take the Lapsha paper/card treatment
-  // (presentationBackground supplies the paper). Editing prefilled text is
-  // only safe because patches/@expo/ui disables SwiftUI's selection-enabled
-  // TextField below iOS 26 — the 18.x variant fatally asserts on backspace
-  // (expo/expo#47434).
 
   if (form.kind === 'person') {
     return (

@@ -13,13 +13,6 @@ import {
 } from '~/components/ui/icons';
 import { palette } from '~/lib/theme';
 
-/**
- * Person toolbar menu (edit name / photo actions / delete) for the
- * person screen. The Compose DropdownMenu behind Stack.Toolbar.Menu
- * can't be styled beyond colors, so Android renders the trigger as a
- * headerRight view and opens a HeroUI menu in the Lapsha card language.
- * Delete confirms through a HeroUI dialog (the native Alert is stock M3).
- */
 export function PersonMenu({
   personName,
   hasPhoto,
@@ -33,7 +26,6 @@ export function PersonMenu({
 }: {
   personName: string;
   hasPhoto: boolean;
-  /** Header chrome currently sits over the expanded photo scrim */
   isPhotoChromeExpanded: boolean;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;

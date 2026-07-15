@@ -107,7 +107,6 @@ function SectionCard({
   children,
 }: {
   title: string;
-  /** Right-aligned control on the title row, e.g. the facts sort menu */
   accessory?: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -134,8 +133,6 @@ export function PersonScreen() {
     getSortPref('facts'),
   );
   const [sheetConfig, setSheetConfig] = useState<EntrySheetConfig | null>(null);
-  // Deleting unmounts the data out from under the screen; suppress the
-  // "Person not found" error view while the pop animation runs
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPhotoExpanded, setIsPhotoExpanded] = useState(false);
   const [isPhotoChromeExpanded, setIsPhotoChromeExpanded] = useState(false);
@@ -282,8 +279,6 @@ export function PersonScreen() {
     setSheetConfig({ mode: 'edit', kind: 'person', person });
   };
 
-  // Confirmation lives in PersonMenu (native Alert on iOS, HeroUI
-  // dialog on Android); this runs only after the user confirms.
   const handleDeletePerson = () => {
     if (!person) return;
     setIsDeleting(true);

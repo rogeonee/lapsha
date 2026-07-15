@@ -3,11 +3,6 @@ import { SwapVertIcon } from '~/components/ui/icons';
 import { palette } from '~/lib/theme';
 import type { EntrySort } from '~/types/db';
 
-/**
- * Sort chooser for the Facts card header: a HeroUI menu anchored to the
- * sort glyph with native checkmarked options, mirroring the iOS SwiftUI
- * menu picker.
- */
 export function FactSortMenu({
   sort,
   isOpen,

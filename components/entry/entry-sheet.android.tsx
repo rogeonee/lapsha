@@ -22,9 +22,6 @@ import { palette, shadows } from '~/lib/theme';
 
 export type { EntrySheetConfig };
 
-// The sheet's Lapsha card language (see DESIGN.md): white cards on the
-// paper sheet surface separated by tone and the whisper shadow, not by
-// borders — matching the iOS SwiftUI sheet.
 const cardStyle = {
   borderCurve: 'continuous',
   boxShadow: shadows.whisper,

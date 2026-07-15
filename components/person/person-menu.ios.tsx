@@ -1,15 +1,8 @@
 import { Stack } from 'expo-router';
 import { Alert, Platform } from 'react-native';
 
-// iOS 26 liquid-glass header buttons adapt to the content behind them;
-// forcing them white over the expanded photo washes them out. Only
-// pre-26 headers (plain buttons over the scrim) take the white flip.
 const isLiquidGlass = Number.parseInt(String(Platform.Version), 10) >= 26;
 
-/**
- * Person toolbar menu (edit name / photo actions / delete) for the
- * person screen. iOS renders a native Stack.Toolbar menu.
- */
 export function PersonMenu({
   personName,
   hasPhoto,
@@ -23,11 +16,8 @@ export function PersonMenu({
 }: {
   personName: string;
   hasPhoto: boolean;
-  /** Header chrome currently sits over the expanded photo scrim */
   isPhotoChromeExpanded: boolean;
-  /** Android-only controlled HeroUI menu state */
   isOpen: boolean;
-  /** Android-only controlled HeroUI menu state */
   onOpenChange: (open: boolean) => void;
   onEditName: () => void;
   onChoosePhoto: () => void;

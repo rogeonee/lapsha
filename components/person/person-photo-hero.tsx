@@ -40,7 +40,6 @@ export function PersonPhotoHero({
   progress: SharedValue<number>;
   isExpanded: boolean;
   onToggle: () => void;
-  /** Opens the photo picker; only reachable while there is no photo */
   onAddPhoto: () => void;
 }) {
   const compactPhotoTop = headerHeight + COMPACT_PHOTO_GAP;

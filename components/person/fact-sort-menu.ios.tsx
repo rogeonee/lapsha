@@ -3,10 +3,6 @@ import { pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
 import { palette } from '~/lib/theme';
 import type { EntrySort } from '~/types/db';
 
-/**
- * Sort chooser for the Facts card header: a tap-activated SwiftUI Menu
- * whose inline Picker renders native checkmarked options.
- */
 export function FactSortMenu({
   sort,
   isOpen: _isOpen,
@@ -14,9 +10,7 @@ export function FactSortMenu({
   onChange,
 }: {
   sort: EntrySort;
-  /** Android-only controlled HeroUI menu state */
   isOpen: boolean;
-  /** Android-only controlled HeroUI menu state */
   onOpenChange: (open: boolean) => void;
   onChange: (sort: EntrySort) => void;
 }) {

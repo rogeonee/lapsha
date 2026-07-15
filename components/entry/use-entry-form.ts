@@ -51,7 +51,6 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
 
   const [kind, setKind] = useState<EntryKind | 'person'>(config.kind);
 
-  // Person name field (edit-person mode only)
   const initialPersonName = editPerson?.name ?? '';
   const [personName, setPersonName] = useState(initialPersonName);
 
@@ -62,7 +61,6 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
   const [factValue, setFactValue] = useState(initialFactValue);
   const [factLabel, setFactLabel] = useState(initialFactLabel);
 
-  // Date fields
   const initialDateLabel =
     editDate?.label ??
     (config.mode === 'create' ? (config.dateLabel ?? '') : '');
