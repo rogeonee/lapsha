@@ -48,7 +48,7 @@ export default function TabLayout() {
           />
         </NativeTabs.Trigger>
 
-        <NativeTabs.Trigger name="settings">
+        <NativeTabs.Trigger name="(settings)">
           <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
           <NativeTabs.Trigger.Icon sf={'gear'} drawable="ic_menu_preferences" />
         </NativeTabs.Trigger>
