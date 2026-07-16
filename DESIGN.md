@@ -127,6 +127,7 @@ Tokens live in two mirrored places: `global.css` `@theme` for Tailwind classes (
 ### Neutral
 
 - **Paper** (#F9F7F4): Every screen's background. Warm, quiet, never pure white.
+- **Deep Paper** (#F1EDE6): The Android tab-bar surface — one tonal step below Paper (the M3 surface → surface-container step) so the bar separates from screens without a border or shadow.
 - **Card White** (#FFFFFF): Reserved for cards and rows that sit on Paper. The tonal step between the two IS the layout.
 - **Ink** (#09090B): Body text and values. Full-strength, readable; never gray-for-elegance.
 - **Ink Primary** (#18181B): Filled primary-button background (the shadcn-style `primary` token).
@@ -211,7 +212,7 @@ A Cream Swirl circle in four sizes: 40px on timeline rows, 48px on list cards, 7
 
 ### Navigation
 
-Native tabs use SF Symbols on iOS and XML drawables on Android. iOS uses a Noodle Gold selected tint; Android keeps the platform-native tab treatment. Stack headers use native large titles with Broth tint and a transparent-on-Paper large style. Quick add lives in a platform-native affordance: a detached, disabled native-tab action on iOS 26+, and an M3 FAB with a Cream Swirl container and Broth icon on Android.
+Native tabs use SF Symbols on iOS and MaterialCommunityIcons vector glyphs (`src` + `VectorIcon`) on Android; both platforms swap outlined icons to their filled variants when a tab is selected. iOS uses a Noodle Gold selected tint on the system blur bar; Android replaces Material You dynamic colors with the Lapsha palette — a Deep Paper bar with a Cream Swirl active-indicator pill and ripple, Broth selected icon and label, and Ink Muted idle items. Stack headers use native large titles with Broth tint and a transparent-on-Paper large style. Quick add lives in a platform-native affordance: a detached, disabled native-tab action on iOS 26+, and an M3 FAB with a Cream Swirl container and Broth icon on Android.
 
 ## 6. Do's and Don'ts
 
