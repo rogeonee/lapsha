@@ -12,12 +12,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, {
-  Defs,
-  Rect,
-  Stop,
-  LinearGradient as SvgLinearGradient,
-} from 'react-native-svg';
+import {
+  HeaderScrim,
+  headerScrimHeight,
+} from '~/components/ui/header-scrim';
 import { Text } from '~/components/ui/text';
 import { palette } from '~/lib/theme';
 import type {
@@ -31,8 +29,6 @@ const BAR_HEIGHT = 56;
 // (1rem = 14px under the Metro rem polyfill), so the collapse threshold
 // includes that leading padding.
 const CONTENT_TOP_PADDING = 14;
-// How far the paper scrim bleeds past the bar before going transparent.
-const SCRIM_FALLOFF = 24;
 const TITLE_SWAP_DURATION = 175;
 // The compact title rises into place as it fades in and sinks as it
 // fades out, matching the iOS 26 directional swap.
@@ -97,10 +93,7 @@ export function useCollapsingHeader({
   }));
 
   const barHeight = insets.top + BAR_HEIGHT;
-  const scrimHeight = barHeight + SCRIM_FALLOFF;
-  // Solid paper through the status bar, easing out below the bar.
-  const statusStop = insets.top / scrimHeight;
-  const midStop = (insets.top + BAR_HEIGHT * 0.55) / scrimHeight;
+  const scrimHeight = headerScrimHeight(barHeight);
 
   const largeTitle = (
     <View style={{ paddingTop: barHeight }}>
@@ -133,36 +126,9 @@ export function useCollapsingHeader({
       pointerEvents="box-none"
       style={[styles.barContainer, { height: scrimHeight }]}
     >
-      <Svg
-        pointerEvents="none"
-        width="100%"
-        height={scrimHeight}
-        style={StyleSheet.absoluteFill}
-      >
-        <Defs>
-          <SvgLinearGradient id="header-scrim" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={palette.paper} stopOpacity="1" />
-            <Stop
-              offset={String(statusStop)}
-              stopColor={palette.paper}
-              stopOpacity="1"
-            />
-            <Stop
-              offset={String(midStop)}
-              stopColor={palette.paper}
-              stopOpacity="0.8"
-            />
-            <Stop offset="1" stopColor={palette.paper} stopOpacity="0" />
-          </SvgLinearGradient>
-        </Defs>
-        <Rect
-          x="0"
-          y="0"
-          width="100%"
-          height={scrimHeight}
-          fill="url(#header-scrim)"
-        />
-      </Svg>
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <HeaderScrim height={barHeight} />
+      </View>
       <View
         style={[styles.barRow, { marginTop: insets.top }]}
         pointerEvents={collapsed ? 'auto' : 'box-none'}
