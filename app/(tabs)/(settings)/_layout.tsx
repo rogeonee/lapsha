@@ -29,9 +29,15 @@ export default function SettingsStackLayout() {
             }),
       }}
     >
+      {/* Android draws its own collapsing large-title header in-screen
+          (use-collapsing-header); the native pinned toolbar stays hidden. */}
       <Stack.Screen
         name="settings"
-        options={{ title: 'Settings', headerLargeTitle: true }}
+        options={{
+          title: 'Settings',
+          headerLargeTitle: true,
+          headerShown: isIOS,
+        }}
       />
     </Stack>
   );

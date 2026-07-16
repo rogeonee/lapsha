@@ -12,6 +12,7 @@ import { Avatar } from '~/components/person/avatar';
 import { Button } from '~/components/ui/button';
 import { ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
+import { useCollapsingHeader } from '~/components/ui/use-collapsing-header';
 import { avatarUri } from '~/lib/avatars';
 import { palette, shadows } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
@@ -317,6 +318,7 @@ function loadPeople(_datesVersion: number, _retryNonce: number) {
 
 export default function HomeScreen() {
   const router = useRouter();
+  const header = useCollapsingHeader({ title: 'Upcoming' });
   const datesVersion = useTableVersion(['dates', 'persons']);
   const [retryNonce, setRetryNonce] = useState(0);
 
@@ -331,53 +333,71 @@ export default function HomeScreen() {
 
   if (error) {
     return (
-      <View className="flex-1 items-center justify-center px-8">
-        <Text className="mb-4 text-center text-lg text-destructive">
-          Error loading upcoming dates
-        </Text>
-        <Text
-          selectable
-          className="mb-6 text-center text-sm text-muted-foreground"
-        >
-          {error}
-        </Text>
-        <Button onPress={() => setRetryNonce((n) => n + 1)} variant="outline">
-          <Text className="font-medium">Try Again</Text>
-        </Button>
+      <View className="flex-1">
+        {header.largeTitle ? (
+          <View className="px-4">{header.largeTitle}</View>
+        ) : null}
+        <View className="flex-1 items-center justify-center px-8">
+          <Text className="mb-4 text-center text-lg text-destructive">
+            Error loading upcoming dates
+          </Text>
+          <Text
+            selectable
+            className="mb-6 text-center text-sm text-muted-foreground"
+          >
+            {error}
+          </Text>
+          <Button onPress={() => setRetryNonce((n) => n + 1)} variant="outline">
+            <Text className="font-medium">Try Again</Text>
+          </Button>
+        </View>
+        {header.bar}
       </View>
     );
   }
 
   if (sections.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center px-8">
-        <Text className="mb-6 text-center text-lg text-muted-foreground">
-          {hasPeople ? 'No dates yet.' : 'No people added yet.'}
-        </Text>
-        <Text className="mb-8 text-center text-sm text-muted-foreground">
-          {hasPeople
-            ? 'Add a birthday or an anniversary to someone, and it will show up here — whoever’s day comes next, first.'
-            : 'Add people and their important dates, and this screen will keep track of whose day is coming up.'}
-        </Text>
-        <Button
-          onPress={() => router.push(hasPeople ? '/people' : '/add-person')}
-          variant="outline"
-        >
-          <Text className="font-medium">
-            {hasPeople ? 'Open People' : 'Add Your First Person'}
+      <View className="flex-1">
+        {header.largeTitle ? (
+          <View className="px-4">{header.largeTitle}</View>
+        ) : null}
+        <View className="flex-1 items-center justify-center px-8">
+          <Text className="mb-6 text-center text-lg text-muted-foreground">
+            {hasPeople ? 'No dates yet.' : 'No people added yet.'}
           </Text>
-        </Button>
+          <Text className="mb-8 text-center text-sm text-muted-foreground">
+            {hasPeople
+              ? 'Add a birthday or an anniversary to someone, and it will show up here — whoever’s day comes next, first.'
+              : 'Add people and their important dates, and this screen will keep track of whose day is coming up.'}
+          </Text>
+          <Button
+            onPress={() => router.push(hasPeople ? '/people' : '/add-person')}
+            variant="outline"
+          >
+            <Text className="font-medium">
+              {hasPeople ? 'Open People' : 'Add Your First Person'}
+            </Text>
+          </Button>
+        </View>
+        {header.bar}
       </View>
     );
   }
 
   return (
-    <FlatList
-      data={sections}
-      keyExtractor={(section) => section.key}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerClassName="p-4 gap-5"
-      renderItem={renderTimelineSection}
-    />
+    <>
+      <FlatList
+        data={sections}
+        keyExtractor={(section) => section.key}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerClassName="p-4 gap-5"
+        renderItem={renderTimelineSection}
+        ListHeaderComponent={header.largeTitle}
+        onScroll={header.onScroll}
+        scrollEventThrottle={16}
+      />
+      {header.bar}
+    </>
   );
 }

@@ -5,6 +5,7 @@ import { mapDatabaseError } from '~/api/error-handling';
 import useClearDataConfirmation from '~/components/settings/use-clear-data-confirmation';
 import { TrashIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
+import { useCollapsingHeader } from '~/components/ui/use-collapsing-header';
 import { palette, shadows } from '~/lib/theme';
 
 function clearDeviceData() {
@@ -19,6 +20,7 @@ function clearDeviceData() {
 
 export default function SettingsScreen() {
   const version = Constants.expoConfig?.version ?? 'Unknown';
+  const header = useCollapsingHeader({ title: 'Settings' });
   const { confirmClearData, confirmation } =
     useClearDataConfirmation(clearDeviceData);
 
@@ -28,7 +30,10 @@ export default function SettingsScreen() {
         className="flex-1 bg-paper"
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="gap-5 p-4 pb-32"
+        onScroll={header.onScroll}
+        scrollEventThrottle={16}
       >
+        {header.largeTitle}
         <View>
           <Text className="mb-2 px-1 text-base font-medium">About</Text>
           <View
@@ -75,6 +80,7 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
+      {header.bar}
 
       {confirmation}
     </>

@@ -20,6 +20,25 @@ function MaterialIcon({ d, size = 18, color }: IconProps & { d: string }) {
   );
 }
 
+export function PlusIcon({ size = 18, color }: IconProps) {
+  if (isIOS) {
+    return (
+      <Image
+        source="sf:plus"
+        tintColor={String(color)}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <MaterialIcon
+      size={size}
+      color={color}
+      d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+    />
+  );
+}
+
 export function PlusCircleIcon({ size = 18, color }: IconProps) {
   if (isIOS) {
     return (
