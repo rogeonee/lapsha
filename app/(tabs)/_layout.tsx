@@ -18,14 +18,17 @@ const SEARCH_TAB_QUICK_ADD =
 // Android's tab bar defaults every slot to Material You dynamic (wallpaper
 // derived) colors, so pin them all to the Lapsha palette: a Deep Paper bar
 // (one step below Paper, so it separates from screens without a border), a
-// Cream Swirl indicator pill and ripple, Broth selected items, Ink Muted idle
-// items. Kept Android-only so iOS retains the system blur bar untouched.
+// Cream Swirl indicator pill, Broth selected items, Ink Muted idle items.
+// Kept Android-only so iOS retains the system blur bar untouched.
+// The ripple is masked to the indicator pill and drawn over the icon on
+// press, so it must be a low-alpha state layer (M3 uses ~12%); an opaque
+// color flashes a solid pill that swallows the icon.
 const ANDROID_TAB_BAR_PROPS =
   Platform.OS === 'android'
     ? {
         backgroundColor: palette.paperDeep,
         indicatorColor: palette.creamSwirl,
-        rippleColor: palette.creamSwirl,
+        rippleColor: `${palette.broth}1F`,
         iconColor: { default: palette.inkMuted, selected: palette.broth },
         labelStyle: {
           default: { color: palette.inkMuted },
