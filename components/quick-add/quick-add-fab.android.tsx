@@ -1,8 +1,4 @@
-import {
-  FloatingActionButton,
-  Host,
-  Icon,
-} from '@expo/ui/jetpack-compose';
+import { FloatingActionButton, Host, Icon } from '@expo/ui/jetpack-compose';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { palette } from '~/lib/theme';
@@ -12,7 +8,7 @@ import { palette } from '~/lib/theme';
  * native bottom tabs. The wrapper covers the screen but passes
  * touches through everywhere except the button itself.
  */
-export function QuickAddFab({ onPress }: { onPress: () => void }) {
+export default function QuickAddFab({ onPress }: { onPress: () => void }) {
   const insets = useSafeAreaInsets();
 
   return (

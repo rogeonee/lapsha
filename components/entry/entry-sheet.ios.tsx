@@ -84,7 +84,7 @@ export type { EntrySheetConfig };
  * renders its own zero-size Host, so it can be dropped into RN screens
  * and the tab-bar quick-add accessory alike.
  */
-export function EntrySheet({
+export default function EntrySheet({
   config,
   onClose,
 }: {

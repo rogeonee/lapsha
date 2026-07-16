@@ -32,7 +32,7 @@ const cardStyle = {
  * Same contract as the iOS SwiftUI sheet — pass a config to open,
  * null to dismiss.
  */
-export function EntrySheet({
+export default function EntrySheet({
   config,
   onClose,
 }: {

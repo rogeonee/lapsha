@@ -2,12 +2,12 @@ import { Stack, useRouter } from 'expo-router';
 import { Controller } from 'react-hook-form';
 import { Pressable, ScrollView, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { AddPersonSheet } from '~/components/person/add-person-sheet';
+import AddPersonSheet from '~/components/person/add-person-sheet';
 import { Avatar } from '~/components/person/avatar';
-import { BirthdayDateRow } from '~/components/person/birthday-date-row';
+import BirthdayDateRow from '~/components/person/birthday-date-row';
 import { useAddPersonForm } from '~/components/person/use-add-person-form';
 import { Input } from '~/components/ui/input';
-import { Switch } from '~/components/ui/switch';
+import Switch from '~/components/ui/switch';
 import { Text } from '~/components/ui/text';
 import { palette, shadows } from '~/lib/theme';
 

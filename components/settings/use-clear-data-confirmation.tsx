@@ -1,6 +1,8 @@
-/**
- * TypeScript-only resolution target: tsc has no platform moduleSuffixes,
- * so imports resolve here for types. Metro picks the .ios.tsx / .android.tsx
- * implementation at runtime; this file is never bundled.
- */
-export { useClearDataConfirmation } from './use-clear-data-confirmation.ios';
+import useAndroidClearDataConfirmation from './use-clear-data-confirmation.android';
+import useIOSClearDataConfirmation from './use-clear-data-confirmation.ios';
+
+const useAndroidConfirmation: typeof useIOSClearDataConfirmation =
+  useAndroidClearDataConfirmation;
+void useAndroidConfirmation;
+
+export { default } from './use-clear-data-confirmation.ios';

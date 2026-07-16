@@ -13,7 +13,7 @@ import {
 } from '~/components/ui/icons';
 import { palette } from '~/lib/theme';
 
-export function PersonMenu({
+export default function PersonMenu({
   personName,
   hasPhoto,
   isPhotoChromeExpanded,

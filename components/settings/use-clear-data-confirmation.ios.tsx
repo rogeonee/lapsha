@@ -1,13 +1,15 @@
 import { Alert } from 'react-native';
-
-export interface ClearDataResult {
-  error: string | null;
-}
+import type {
+  ClearDataConfirmation,
+  ClearDataResult,
+} from '~/components/settings/clear-data-confirmation-types';
 
 const confirmationMessage =
   'This will permanently remove all people, their photos, facts, and dates stored on this device. This action cannot be undone.';
 
-export function useClearDataConfirmation(onClearData: () => ClearDataResult) {
+export default function useClearDataConfirmation(
+  onClearData: () => ClearDataResult,
+): ClearDataConfirmation {
   const confirmClearData = () => {
     Alert.alert('Clear all data?', confirmationMessage, [
       { text: 'Cancel', style: 'cancel' },

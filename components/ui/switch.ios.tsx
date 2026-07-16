@@ -11,7 +11,7 @@ type SwitchProps = {
  * Platform-split so Android gets the HeroUI/M3 switch instead — the RN
  * Switch there mixes the stock Material thumb with our gold track.
  */
-export function Switch({ value, onValueChange }: SwitchProps) {
+export default function Switch({ value, onValueChange }: SwitchProps) {
   return (
     <RNSwitch
       value={value}

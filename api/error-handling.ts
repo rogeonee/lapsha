@@ -127,25 +127,6 @@ export function mapValidationError(error: ZodError): ServiceError {
 }
 
 /**
- * Map generic errors to our standard error format
- */
-export function mapGenericError(error: unknown): ServiceError {
-  if (error instanceof Error) {
-    return {
-      code: ErrorCode.UNEXPECTED_ERROR,
-      message: error.message,
-      details: { stack: error.stack },
-    };
-  }
-
-  return {
-    code: ErrorCode.UNEXPECTED_ERROR,
-    message: 'An unexpected error occurred',
-    details: error,
-  };
-}
-
-/**
  * Wrapper to run a synchronous service operation with consistent
  * error handling. Throw NotFoundError inside the operation to produce
  * a NOT_FOUND response.

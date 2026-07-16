@@ -2,26 +2,25 @@ import Constants from 'expo-constants';
 import { Pressable, ScrollView, View } from 'react-native';
 import { clearAllData } from '~/api/database';
 import { mapDatabaseError } from '~/api/error-handling';
-import { useClearDataConfirmation } from '~/components/settings/use-clear-data-confirmation';
+import useClearDataConfirmation from '~/components/settings/use-clear-data-confirmation';
 import { TrashIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 import { palette, shadows } from '~/lib/theme';
 
+function clearDeviceData() {
+  try {
+    clearAllData();
+    return { error: null };
+  } catch (error) {
+    console.warn(error);
+    return { error: mapDatabaseError(error).message };
+  }
+}
+
 export default function SettingsScreen() {
   const version = Constants.expoConfig?.version ?? 'Unknown';
-
-  const onClearData = () => {
-    try {
-      clearAllData();
-      return { error: null };
-    } catch (error) {
-      console.warn(error);
-      return { error: mapDatabaseError(error).message };
-    }
-  };
-
   const { confirmClearData, confirmation } =
-    useClearDataConfirmation(onClearData);
+    useClearDataConfirmation(clearDeviceData);
 
   return (
     <>

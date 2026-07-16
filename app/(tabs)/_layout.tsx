@@ -1,11 +1,10 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useState } from 'react';
 import { DynamicColorIOS, Platform } from 'react-native';
-import {
-  EntrySheet,
+import EntrySheet, {
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
-import { QuickAddFab } from '~/components/quick-add/quick-add-fab';
+import QuickAddFab from '~/components/quick-add/quick-add-fab';
 import { palette } from '~/lib/theme';
 
 // iOS 26 renders a `role="search"` tab as a detached circular button on the

@@ -1,8 +1,11 @@
-/**
- * TypeScript-only resolution target: tsc has no platform moduleSuffixes,
- * so `~/components/entry/entry-sheet` resolves here for types. Metro
- * always picks entry-sheet.ios.tsx / entry-sheet.android.tsx at runtime,
- * which share this exact API; this file is never bundled.
- */
-export { EntrySheet } from './entry-sheet.ios';
+import AndroidEntrySheet from './entry-sheet.android';
+import IOSEntrySheet from './entry-sheet.ios';
+
+// TypeScript resolves this facade while Metro selects a platform file.
+// Keep both implementations structurally compatible without bundling one
+// platform's native dependencies into the other.
+const androidEntrySheet: typeof IOSEntrySheet = AndroidEntrySheet;
+void androidEntrySheet;
+
+export { default } from './entry-sheet.ios';
 export type { EntrySheetConfig } from './use-entry-form';

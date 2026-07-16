@@ -18,9 +18,9 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { Avatar } from '~/components/person/avatar';
-import { BirthdayDateRow } from '~/components/person/birthday-date-row';
+import BirthdayDateRow from '~/components/person/birthday-date-row';
 import { useAddPersonForm } from '~/components/person/use-add-person-form';
-import { Switch } from '~/components/ui/switch';
+import Switch from '~/components/ui/switch';
 import { Text } from '~/components/ui/text';
 
 /**
@@ -28,9 +28,10 @@ import { Text } from '~/components/ui/text';
  * one Android sheet vocabulary everywhere. Mounted by the /add-person
  * route (transparentModal); closing the sheet pops the route.
  */
-export function AddPersonSheet() {
+export default function AddPersonSheet() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const form = useAddPersonForm();
+  const isSubmitting = form.isSubmitting;
 
   // HeroUI's bottom sheet only animates open on an isOpen false -> true
   // transition, AND gorhom silently drops the snapToIndex call that
@@ -123,9 +124,9 @@ export function AddPersonSheet() {
           }}
         >
           <SheetForm
+            form={form}
             canFocus={opening}
             onLayout={handleContentLayout}
-            onSubmittingChange={setIsSubmitting}
           />
         </BottomSheet.Content>
       </BottomSheet.Portal>
@@ -134,20 +135,15 @@ export function AddPersonSheet() {
 }
 
 function SheetForm({
+  form,
   canFocus,
   onLayout,
-  onSubmittingChange,
 }: {
+  form: ReturnType<typeof useAddPersonForm>;
   canFocus: boolean;
   onLayout: () => void;
-  onSubmittingChange: (isSubmitting: boolean) => void;
 }) {
-  const form = useAddPersonForm();
   const { onFocus, onBlur } = useBottomSheetAwareHandlers();
-
-  useEffect(() => {
-    onSubmittingChange(form.isSubmitting);
-  }, [form.isSubmitting, onSubmittingChange]);
 
   // Autofocus the name field shortly after the open animation starts:
   // the head start lets the sheet establish its spring before dynamic

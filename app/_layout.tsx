@@ -12,7 +12,7 @@ import { Appearance } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { Uniwind } from 'uniwind';
-import { UIProviders } from '~/components/ui-providers';
+import UIProviders from '~/components/ui-providers';
 import { NAV_THEME } from '~/lib/constants';
 import { palette } from '~/lib/theme';
 import { useColorScheme } from '~/lib/useColorScheme';

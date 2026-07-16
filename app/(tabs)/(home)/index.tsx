@@ -1,6 +1,11 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  View,
+  type ListRenderItemInfo,
+} from 'react-native';
 import { getPeople } from '~/api/people/people-service';
 import { getTimeline } from '~/api/timeline/timeline-service';
 import { Avatar } from '~/components/person/avatar';
@@ -242,6 +247,66 @@ function UpcomingRow({
   );
 }
 
+function TimelineSectionCard({
+  section,
+  onPersonPress,
+}: {
+  section: TimelineSection;
+  onPersonPress: (personId: string) => void;
+}) {
+  return (
+    <View>
+      <Text
+        className={cn(
+          'mb-2 px-1 text-base font-medium',
+          section.key === 'today' && 'text-broth',
+        )}
+      >
+        {section.title}
+        {section.subtitle ? (
+          <Text className="text-base font-normal text-muted-foreground">
+            {` · ${section.subtitle}`}
+          </Text>
+        ) : null}
+      </Text>
+      <View
+        className="overflow-hidden rounded-2xl bg-white"
+        style={{ borderCurve: 'continuous', boxShadow: shadows.whisper }}
+      >
+        {section.items.map((group, index) => (
+          <UpcomingRow
+            key={group.key}
+            group={group}
+            showDay={section.showDay}
+            divider={index > 0}
+            onPress={() => onPersonPress(group.personId)}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function TimelineSectionListItem({ section }: { section: TimelineSection }) {
+  const router = useRouter();
+
+  return (
+    <TimelineSectionCard
+      section={section}
+      onPersonPress={(personId) =>
+        router.push({
+          pathname: '/(tabs)/(home)/person/[id]',
+          params: { id: personId },
+        })
+      }
+    />
+  );
+}
+
+function renderTimelineSection({ item }: ListRenderItemInfo<TimelineSection>) {
+  return <TimelineSectionListItem section={item} />;
+}
+
 function loadTimeline(_datesVersion: number, _retryNonce: number) {
   return getTimeline();
 }
@@ -307,46 +372,12 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView
+    <FlatList
+      data={sections}
+      keyExtractor={(section) => section.key}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerClassName="p-4 gap-5"
-    >
-      {sections.map((section) => (
-        <View key={section.key}>
-          <Text
-            className={cn(
-              'mb-2 px-1 text-base font-medium',
-              section.key === 'today' && 'text-broth',
-            )}
-          >
-            {section.title}
-            {section.subtitle ? (
-              <Text className="text-base font-normal text-muted-foreground">
-                {` · ${section.subtitle}`}
-              </Text>
-            ) : null}
-          </Text>
-          <View
-            className="overflow-hidden rounded-2xl bg-white"
-            style={{ borderCurve: 'continuous', boxShadow: shadows.whisper }}
-          >
-            {section.items.map((group, index) => (
-              <UpcomingRow
-                key={group.key}
-                group={group}
-                showDay={section.showDay}
-                divider={index > 0}
-                onPress={() =>
-                  router.push({
-                    pathname: '/(tabs)/(home)/person/[id]',
-                    params: { id: group.personId },
-                  })
-                }
-              />
-            ))}
-          </View>
-        </View>
-      ))}
-    </ScrollView>
+      renderItem={renderTimelineSection}
+    />
   );
 }

@@ -3,7 +3,7 @@ import { SwapVertIcon } from '~/components/ui/icons';
 import { palette } from '~/lib/theme';
 import type { EntrySort } from '~/types/db';
 
-export function FactSortMenu({
+export default function FactSortMenu({
   sort,
   isOpen,
   onOpenChange,

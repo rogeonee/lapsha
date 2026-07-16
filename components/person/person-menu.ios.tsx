@@ -3,7 +3,7 @@ import { Alert, Platform } from 'react-native';
 
 const isLiquidGlass = Number.parseInt(String(Platform.Version), 10) >= 26;
 
-export function PersonMenu({
+export default function PersonMenu({
   personName,
   hasPhoto,
   isPhotoChromeExpanded,

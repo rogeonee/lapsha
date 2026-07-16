@@ -1,6 +1,5 @@
 import { randomUUID } from 'expo-crypto';
 import { db } from '~/api/database';
-import { rowToDate, type DateRow } from '~/api/dates/dates-service';
 import {
   ErrorCode,
   NotFoundError,
@@ -140,32 +139,5 @@ export function deletePerson(personId: string): ServiceResponse<Person> {
     }
 
     return deleted;
-  });
-}
-
-/**
- * Get a person with all associated facts and dates
- */
-export function getPersonWithDetails(
-  personId: string,
-): ServiceResponse<PersonWithDetails> {
-  return runServiceOperation(() => {
-    const person = getPersonOrThrow(personId);
-
-    const facts = db.getAllSync<PersonWithDetails['facts'][number]>(
-      `SELECT * FROM facts
-       WHERE person_id = ? AND deleted_at IS NULL
-       ORDER BY created_at DESC`,
-      personId,
-    );
-
-    const dates = db.getAllSync<DateRow>(
-      `SELECT * FROM dates
-       WHERE person_id = ? AND deleted_at IS NULL
-       ORDER BY date ASC`,
-      personId,
-    );
-
-    return { ...person, facts, dates: dates.map(rowToDate) };
   });
 }

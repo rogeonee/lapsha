@@ -75,18 +75,3 @@ export function formatDateDetail(personDate: PersonDate): string | null {
       : `${elapsed} ${elapsed === 1 ? 'year' : 'years'}`;
   return `${year} · ${suffix}`;
 }
-
-/** "March 15, 1990" when the year is known, "March 15" otherwise */
-export function formatDisplayDate(personDate: PersonDate): string {
-  const year = Number(personDate.date.slice(0, 4));
-  const value = new Date(
-    personDate.year_known ? year : 2000,
-    personDate.month - 1,
-    personDate.day,
-  );
-  return value.toLocaleDateString(undefined, {
-    month: 'long',
-    day: 'numeric',
-    ...(personDate.year_known ? { year: 'numeric' } : {}),
-  });
-}

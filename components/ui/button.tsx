@@ -1,64 +1,11 @@
-import { cva, type VariantProps } from 'class-variance-authority';
-import * as React from 'react';
 import { Pressable } from 'react-native';
 import { TextClassContext } from '~/components/ui/text';
+import {
+  buttonTextVariants,
+  buttonVariants,
+  type ButtonProps,
+} from '~/components/ui/button-variants';
 import { cn } from '~/lib/utils';
-
-const buttonVariants = cva(
-  'flex items-center justify-center rounded-md web:ring-offset-background web:transition-colors web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2',
-  {
-    variants: {
-      variant: {
-        default: 'bg-primary web:hover:opacity-90 active:opacity-90',
-        destructive: 'bg-destructive web:hover:opacity-90 active:opacity-90',
-        outline:
-          'border border-input bg-background web:hover:bg-secondary active:bg-secondary',
-        secondary: 'bg-secondary web:hover:opacity-80 active:opacity-80',
-        ghost: 'web:hover:bg-secondary active:bg-secondary',
-        link: 'web:underline-offset-4 web:hover:underline web:focus:underline',
-      },
-      size: {
-        default: 'h-10 px-4 py-2 native:h-12 native:px-5 native:py-3',
-        sm: 'h-9 rounded-md px-3',
-        lg: 'h-11 rounded-md px-8 native:h-14',
-        icon: 'h-10 w-10',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default',
-    },
-  },
-);
-
-const buttonTextVariants = cva(
-  'web:whitespace-nowrap text-sm native:text-base font-medium text-foreground web:transition-colors',
-  {
-    variants: {
-      variant: {
-        default: 'text-primary-foreground',
-        destructive: 'text-destructive-foreground',
-        outline: '',
-        secondary: 'text-secondary-foreground',
-        ghost: '',
-        link: 'text-primary',
-      },
-      size: {
-        default: '',
-        sm: '',
-        lg: 'native:text-lg',
-        icon: '',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default',
-    },
-  },
-);
-
-type ButtonProps = React.ComponentProps<typeof Pressable> &
-  VariantProps<typeof buttonVariants>;
 
 function Button({ ref, className, variant, size, ...props }: ButtonProps) {
   return (
@@ -82,5 +29,4 @@ function Button({ ref, className, variant, size, ...props }: ButtonProps) {
   );
 }
 
-export { Button, buttonTextVariants, buttonVariants };
-export type { ButtonProps };
+export { Button };

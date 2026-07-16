@@ -13,29 +13,23 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
-import {
-  BIRTHDAY_LABEL,
-  deleteDate,
-  getDatesByPerson,
-} from '~/api/dates/dates-service';
+import { deleteDate, getDatesByPerson } from '~/api/dates/dates-service';
 import { deleteFact, getFactsByPerson } from '~/api/facts/facts-service';
 import {
   deletePerson,
   getPerson,
   updatePerson,
 } from '~/api/people/people-service';
-import {
-  EntrySheet,
+import EntrySheet, {
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
-import { AddRow, DateRow, EntryRow } from '~/components/person/entry-row';
-import { FactSortMenu } from '~/components/person/fact-sort-menu';
-import { PersonMenu } from '~/components/person/person-menu';
+import { PersonDetailSections } from '~/components/person/person-detail-sections';
+import PersonMenu from '~/components/person/person-menu';
+import { PersonPhotoHero } from '~/components/person/person-photo-hero';
 import {
   personPhotoCompactHeight,
   personPhotoExpandedHeight,
-  PersonPhotoHero,
-} from '~/components/person/person-photo-hero';
+} from '~/components/person/person-photo-layout';
 import { Text } from '~/components/ui/text';
 import {
   avatarUri,
@@ -44,7 +38,7 @@ import {
   saveAvatarFile,
 } from '~/lib/avatars';
 import { getSortPref, setSortPref } from '~/lib/prefs';
-import { palette, shadows } from '~/lib/theme';
+import { palette } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import type { EntrySort, Fact, Person, Date as PersonDate } from '~/types/db';
 
@@ -54,11 +48,6 @@ const isIOS = process.env.EXPO_OS === 'ios';
 // pre-26 headers (plain buttons over the scrim) take the white flip.
 const isLiquidGlass =
   isIOS && Number.parseInt(String(Platform.Version), 10) >= 26;
-
-const cardStyle = {
-  borderCurve: 'continuous',
-  boxShadow: shadows.whisper,
-} as const;
 
 const PHOTO_SNAP_VELOCITY = 650;
 const PHOTO_CHROME_THRESHOLD = 0.22;
@@ -101,26 +90,18 @@ function loadPersonData(
   };
 }
 
-function SectionCard({
-  title,
-  accessory,
-  children,
-}: {
-  title: string;
-  accessory?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <View className="gap-2">
-      <View className="flex-row items-center justify-between px-1">
-        <Text className="text-base font-medium">{title}</Text>
-        {accessory}
-      </View>
-      <View className="overflow-hidden rounded-2xl bg-white" style={cardStyle}>
-        {children}
-      </View>
-    </View>
-  );
+function handleDeleteFact(factId: string) {
+  const response = deleteFact(factId);
+  if (response.error) {
+    Alert.alert('Error', 'Failed to delete fact. Please try again.');
+  }
+}
+
+function handleDeleteDate(dateId: string) {
+  const response = deleteDate(dateId);
+  if (response.error) {
+    Alert.alert('Error', 'Failed to delete date. Please try again.');
+  }
 }
 
 export function PersonScreen() {
@@ -151,9 +132,6 @@ export function PersonScreen() {
     dataVersion,
   );
 
-  const birthday =
-    dates.find((d) => d.label.toLowerCase() === BIRTHDAY_LABEL) ?? null;
-  const otherDates = dates.filter((d) => d.id !== birthday?.id);
   const photo = avatarUri(person?.avatar);
   const photoTravel = Math.max(
     1,
@@ -227,20 +205,6 @@ export function PersonScreen() {
   const changeFactSort = (sort: EntrySort) => {
     setSortPref('facts', sort);
     setFactSort(sort);
-  };
-
-  const handleDeleteFact = (factId: string) => {
-    const response = deleteFact(factId);
-    if (response.error) {
-      Alert.alert('Error', 'Failed to delete fact. Please try again.');
-    }
-  };
-
-  const handleDeleteDate = (dateId: string) => {
-    const response = deleteDate(dateId);
-    if (response.error) {
-      Alert.alert('Error', 'Failed to delete date. Please try again.');
-    }
   };
 
   const choosePhoto = async () => {
@@ -357,93 +321,18 @@ export function PersonScreen() {
             onAddPhoto={() => void choosePhoto()}
           />
 
-          <View className="gap-5 px-4">
-            <SectionCard title="Dates">
-              {birthday ? (
-                <DateRow
-                  date={birthday}
-                  onPress={() =>
-                    setSheetConfig({
-                      mode: 'edit',
-                      kind: 'date',
-                      date: birthday,
-                    })
-                  }
-                  onDelete={() => handleDeleteDate(birthday.id)}
-                />
-              ) : (
-                <AddRow
-                  title="Add birthday"
-                  onPress={() =>
-                    setSheetConfig({
-                      mode: 'create',
-                      kind: 'date',
-                      personId: id,
-                      dateLabel: 'Birthday',
-                    })
-                  }
-                />
-              )}
-              {otherDates.map((date) => (
-                <DateRow
-                  key={date.id}
-                  divider
-                  date={date}
-                  onPress={() =>
-                    setSheetConfig({ mode: 'edit', kind: 'date', date })
-                  }
-                  onDelete={() => handleDeleteDate(date.id)}
-                />
-              ))}
-              <AddRow
-                title="Add date"
-                divider
-                onPress={() =>
-                  setSheetConfig({ mode: 'create', kind: 'date', personId: id })
-                }
-              />
-            </SectionCard>
-
-            <SectionCard
-              title="Facts"
-              accessory={
-                <FactSortMenu
-                  sort={factSort}
-                  isOpen={openMenu === 'sort'}
-                  onOpenChange={(open) => setOpenMenu(open ? 'sort' : null)}
-                  onChange={changeFactSort}
-                />
-              }
-            >
-              {facts.length === 0 ? (
-                <View className="px-4 py-3">
-                  <Text className="text-base text-muted-foreground">
-                    Nothing here yet — save the little things worth remembering.
-                  </Text>
-                </View>
-              ) : (
-                facts.map((fact, index) => (
-                  <EntryRow
-                    key={fact.id}
-                    divider={index > 0}
-                    label={fact.label}
-                    value={fact.value}
-                    onPress={() =>
-                      setSheetConfig({ mode: 'edit', kind: 'fact', fact })
-                    }
-                    onDelete={() => handleDeleteFact(fact.id)}
-                  />
-                ))
-              )}
-              <AddRow
-                title="Add fact"
-                divider
-                onPress={() =>
-                  setSheetConfig({ mode: 'create', kind: 'fact', personId: id })
-                }
-              />
-            </SectionCard>
-          </View>
+          <PersonDetailSections
+            personId={id}
+            dates={dates}
+            facts={facts}
+            factSort={factSort}
+            isSortMenuOpen={openMenu === 'sort'}
+            onSortMenuOpenChange={(open) => setOpenMenu(open ? 'sort' : null)}
+            onFactSortChange={changeFactSort}
+            onOpenSheet={setSheetConfig}
+            onDeleteDate={handleDeleteDate}
+            onDeleteFact={handleDeleteFact}
+          />
         </Animated.ScrollView>
       </GestureDetector>
 

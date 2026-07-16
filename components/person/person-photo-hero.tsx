@@ -8,20 +8,11 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import { Avatar } from '~/components/person/avatar';
-
-const COMPACT_PHOTO_SIZE = 96;
-const COMPACT_PHOTO_GAP = 16;
-const EXPANDED_SECTION_GAP = 20;
-
-export function personPhotoCompactHeight(headerHeight: number): number {
-  return (
-    headerHeight + COMPACT_PHOTO_GAP + COMPACT_PHOTO_SIZE + EXPANDED_SECTION_GAP
-  );
-}
-
-export function personPhotoExpandedHeight(screenWidth: number): number {
-  return screenWidth + EXPANDED_SECTION_GAP;
-}
+import {
+  personPhotoCompactHeight,
+  personPhotoExpandedHeight,
+  personPhotoLayout,
+} from '~/components/person/person-photo-layout';
 
 export function PersonPhotoHero({
   name,
@@ -42,11 +33,11 @@ export function PersonPhotoHero({
   onToggle: () => void;
   onAddPhoto: () => void;
 }) {
-  const compactPhotoTop = headerHeight + COMPACT_PHOTO_GAP;
+  const compactPhotoTop = headerHeight + personPhotoLayout.compactGap;
   const compactHeight = personPhotoCompactHeight(headerHeight);
   const expandedHeight = personPhotoExpandedHeight(screenWidth);
-  const compactScale = COMPACT_PHOTO_SIZE / screenWidth;
-  const compactCenterY = compactPhotoTop + COMPACT_PHOTO_SIZE / 2;
+  const compactScale = personPhotoLayout.compactSize / screenWidth;
+  const compactCenterY = compactPhotoTop + personPhotoLayout.compactSize / 2;
 
   const containerStyle = useAnimatedStyle(() => ({
     height: interpolate(
@@ -109,7 +100,7 @@ export function PersonPhotoHero({
           className="active:opacity-80"
           style={{ marginTop: compactPhotoTop }}
         >
-          <Avatar name={name} size={COMPACT_PHOTO_SIZE} />
+          <Avatar name={name} size={personPhotoLayout.compactSize} />
         </Pressable>
       </View>
     );
@@ -165,10 +156,10 @@ export function PersonPhotoHero({
             ? { top: 0, left: 0, width: screenWidth, height: screenWidth }
             : {
                 top: compactPhotoTop,
-                left: (screenWidth - COMPACT_PHOTO_SIZE) / 2,
-                width: COMPACT_PHOTO_SIZE,
-                height: COMPACT_PHOTO_SIZE,
-                borderRadius: COMPACT_PHOTO_SIZE / 2,
+                left: (screenWidth - personPhotoLayout.compactSize) / 2,
+                width: personPhotoLayout.compactSize,
+                height: personPhotoLayout.compactSize,
+                borderRadius: personPhotoLayout.compactSize / 2,
               }
         }
       />

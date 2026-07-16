@@ -1,6 +1,6 @@
 import { db } from '~/api/database';
 import { runServiceOperation } from '~/api/error-handling';
-import { ServiceResponse, TimelineEntry, UpcomingDate } from '~/types/db';
+import { ServiceResponse, TimelineEntry } from '~/types/db';
 
 /**
  * Options for filtering timeline results
@@ -89,73 +89,5 @@ export function getTimeline(
 
       return dateA.getTime() - dateB.getTime();
     });
-  });
-}
-
-/**
- * Get upcoming dates within a specified number of days
- * Useful for dashboard widgets or notifications
- */
-export function getUpcomingDates(
-  daysAhead: number = 30,
-): ServiceResponse<UpcomingDate[]> {
-  return runServiceOperation(() => {
-    const rows = db.getAllSync<TimelineRow>(
-      `SELECT d.*, p.name AS person_name, p.avatar AS person_avatar
-       FROM dates d
-       JOIN persons p ON p.id = d.person_id
-       WHERE d.deleted_at IS NULL AND p.deleted_at IS NULL`,
-    );
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const cutoff = new Date(today);
-    cutoff.setDate(cutoff.getDate() + daysAhead);
-
-    const upcoming: (UpcomingDate & { nextTime: number })[] = [];
-
-    for (const row of rows) {
-      // Next occurrence of this month/day, today or later
-      let next = new Date(today.getFullYear(), row.month - 1, row.day);
-      if (next < today) {
-        next = new Date(today.getFullYear() + 1, row.month - 1, row.day);
-      }
-
-      if (next <= cutoff) {
-        const pad = (n: number) => String(n).padStart(2, '0');
-        upcoming.push({
-          date_id: row.id,
-          person_id: row.person_id,
-          label: row.label,
-          event_date: row.date,
-          next_occurrence: `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`,
-          nextTime: next.getTime(),
-        });
-      }
-    }
-
-    return upcoming
-      .sort((a, b) => a.nextTime - b.nextTime)
-      .map(({ nextTime, ...entry }) => entry);
-  });
-}
-
-/**
- * Get dates for a specific month across all people
- * Useful for calendar views
- */
-export function getTimelineForMonth(
-  year: number,
-  month: number,
-): ServiceResponse<TimelineEntry[]> {
-  // Create start and end dates for the month
-  const startDate = new Date(year, month - 1, 1);
-  const endDate = new Date(year, month, 0); // Last day of the month
-
-  return getTimeline({
-    startDate: startDate.toISOString().split('T')[0],
-    endDate: endDate.toISOString().split('T')[0],
-    includeUnknownYears: true,
   });
 }

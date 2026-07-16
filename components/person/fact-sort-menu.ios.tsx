@@ -3,7 +3,7 @@ import { pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
 import { palette } from '~/lib/theme';
 import type { EntrySort } from '~/types/db';
 
-export function FactSortMenu({
+export default function FactSortMenu({
   sort,
   isOpen: _isOpen,
   onOpenChange: _onOpenChange,

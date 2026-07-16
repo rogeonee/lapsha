@@ -2,17 +2,19 @@ import { Button } from 'heroui-native/button';
 import { Dialog } from 'heroui-native/dialog';
 import { useState } from 'react';
 import { View } from 'react-native';
-
-interface ClearDataResult {
-  error: string | null;
-}
+import type {
+  ClearDataConfirmation,
+  ClearDataResult,
+} from '~/components/settings/clear-data-confirmation-types';
 
 type ConfirmationPhase = 'confirm' | 'success' | 'error';
 
 const confirmationMessage =
   'This will permanently remove all people, their photos, facts, and dates stored on this device. This action cannot be undone.';
 
-export function useClearDataConfirmation(onClearData: () => ClearDataResult) {
+export default function useClearDataConfirmation(
+  onClearData: () => ClearDataResult,
+): ClearDataConfirmation {
   const [isOpen, setIsOpen] = useState(false);
   const [phase, setPhase] = useState<ConfirmationPhase>('confirm');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

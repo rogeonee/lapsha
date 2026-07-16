@@ -1,16 +1,49 @@
 import { Link, Stack, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  View,
+  type ListRenderItemInfo,
+} from 'react-native';
 import { getPeople } from '~/api/people/people-service';
 import { PersonCard } from '~/components/person/person-card';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
 import { useTableVersion } from '~/lib/use-table-version';
+import type { Person } from '~/types/db';
 
 // Synchronous read, derived during render. The unused args are
 // invalidation tokens: React Compiler re-runs this when they change.
 function loadPeople(_personsVersion: number, _retryNonce: number) {
   return getPeople();
+}
+
+function PersonSeparator() {
+  return <View className="h-3" />;
+}
+
+function PersonListItem({ person }: { person: Person }) {
+  return (
+    <Link
+      href={{
+        pathname: '/(tabs)/(people)/person/[id]',
+        params: { id: person.id },
+      }}
+      asChild
+    >
+      <Link.Trigger>
+        <Pressable>
+          <PersonCard person={person} />
+        </Pressable>
+      </Link.Trigger>
+      <Link.Preview />
+    </Link>
+  );
+}
+
+function renderPerson({ item }: ListRenderItemInfo<Person>) {
+  return <PersonListItem person={item} />;
 }
 
 export default function PeopleScreen() {
@@ -46,7 +79,7 @@ export default function PeopleScreen() {
           </Text>
           <Text
             selectable
-            className="text-sm text-muted-foreground text-center mb-6"
+            className="mb-6 text-center text-sm text-muted-foreground"
           >
             {error}
           </Text>
@@ -55,34 +88,20 @@ export default function PeopleScreen() {
           </Button>
         </View>
       ) : people.length > 0 ? (
-        <ScrollView
+        <FlatList
+          data={people}
+          keyExtractor={(person) => person.id}
           contentInsetAdjustmentBehavior="automatic"
-          contentContainerClassName="p-4 gap-3"
-        >
-          {people.map((person) => (
-            <Link
-              key={person.id}
-              href={{
-                pathname: '/(tabs)/(people)/person/[id]',
-                params: { id: person.id },
-              }}
-              asChild
-            >
-              <Link.Trigger>
-                <Pressable>
-                  <PersonCard person={person} />
-                </Pressable>
-              </Link.Trigger>
-              <Link.Preview />
-            </Link>
-          ))}
-        </ScrollView>
+          contentContainerClassName="p-4"
+          ItemSeparatorComponent={PersonSeparator}
+          renderItem={renderPerson}
+        />
       ) : (
         <View className="flex-1 items-center justify-center px-8">
-          <Text className="text-lg text-muted-foreground text-center mb-6">
+          <Text className="mb-6 text-center text-lg text-muted-foreground">
             No people added yet.
           </Text>
-          <Text className="text-sm text-muted-foreground text-center mb-8">
+          <Text className="mb-8 text-center text-sm text-muted-foreground">
             Add people to start keeping track of important facts and dates about
             them.
           </Text>

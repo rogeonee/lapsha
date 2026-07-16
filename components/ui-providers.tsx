@@ -1,10 +1,7 @@
-import type { ReactNode } from 'react';
+import AndroidUIProviders from './ui-providers.android';
+import IOSUIProviders from './ui-providers.ios';
 
-/**
- * iOS / default: no extra UI-library providers — iOS uses native
- * SwiftUI surfaces. Android wraps children in HeroUINativeProvider
- * (see ui-providers.android.tsx), keeping HeroUI out of the iOS bundle.
- */
-export function UIProviders({ children }: { children: ReactNode }) {
-  return children;
-}
+const androidUIProviders: typeof IOSUIProviders = AndroidUIProviders;
+void androidUIProviders;
+
+export { default } from './ui-providers.ios';

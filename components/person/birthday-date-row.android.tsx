@@ -15,7 +15,7 @@ type BirthdayDateRowProps = {
  * Material 3 date picker dialog — same row style and dialog handling as
  * the entry sheet.
  */
-export function BirthdayDateRow({
+export default function BirthdayDateRow({
   date,
   includeYear,
   onChange,
