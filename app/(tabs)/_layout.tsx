@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useState } from 'react';
 import { DynamicColorIOS, Platform } from 'react-native';
@@ -13,6 +14,28 @@ import { palette } from '~/lib/theme';
 // so we hide it; Android keeps the FAB.
 const SEARCH_TAB_QUICK_ADD =
   Platform.OS === 'ios' && Number.parseInt(String(Platform.Version), 10) >= 26;
+
+// Android's tab bar defaults every slot to Material You dynamic (wallpaper
+// derived) colors, so pin them all to the Lapsha palette: a Deep Paper bar
+// (one step below Paper, so it separates from screens without a border), a
+// Cream Swirl indicator pill, Broth selected items, Ink Muted idle items.
+// Kept Android-only so iOS retains the system blur bar untouched.
+// The ripple is masked to the indicator pill and drawn over the icon on
+// press, so it must be a low-alpha state layer (M3 uses ~12%); an opaque
+// color flashes a solid pill that swallows the icon.
+const ANDROID_TAB_BAR_PROPS =
+  Platform.OS === 'android'
+    ? {
+        backgroundColor: palette.paperDeep,
+        indicatorColor: palette.creamSwirl,
+        rippleColor: `${palette.broth}1F`,
+        iconColor: { default: palette.inkMuted, selected: palette.broth },
+        labelStyle: {
+          default: { color: palette.inkMuted },
+          selected: { color: palette.broth },
+        },
+      }
+    : {};
 
 export default function TabLayout() {
   const [quickAdd, setQuickAdd] = useState<EntrySheetConfig | null>(null);
@@ -30,12 +53,26 @@ export default function TabLayout() {
               })
             : undefined
         }
+        {...ANDROID_TAB_BAR_PROPS}
       >
         <NativeTabs.Trigger name="(home)">
           <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
           <NativeTabs.Trigger.Icon
             sf={{ default: 'house', selected: 'house.fill' }}
-            drawable="ic_menu_mylocation"
+            src={{
+              default: (
+                <NativeTabs.Trigger.VectorIcon
+                  family={MaterialCommunityIcons}
+                  name="home-outline"
+                />
+              ),
+              selected: (
+                <NativeTabs.Trigger.VectorIcon
+                  family={MaterialCommunityIcons}
+                  name="home"
+                />
+              ),
+            }}
           />
         </NativeTabs.Trigger>
 
@@ -43,13 +80,42 @@ export default function TabLayout() {
           <NativeTabs.Trigger.Label>People</NativeTabs.Trigger.Label>
           <NativeTabs.Trigger.Icon
             sf={{ default: 'person.2', selected: 'person.2.fill' }}
-            drawable="ic_menu_myplaces"
+            src={{
+              default: (
+                <NativeTabs.Trigger.VectorIcon
+                  family={MaterialCommunityIcons}
+                  name="account-multiple-outline"
+                />
+              ),
+              selected: (
+                <NativeTabs.Trigger.VectorIcon
+                  family={MaterialCommunityIcons}
+                  name="account-multiple"
+                />
+              ),
+            }}
           />
         </NativeTabs.Trigger>
 
         <NativeTabs.Trigger name="(settings)">
           <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
-          <NativeTabs.Trigger.Icon sf={'gear'} drawable="ic_menu_preferences" />
+          <NativeTabs.Trigger.Icon
+            sf={'gear'}
+            src={{
+              default: (
+                <NativeTabs.Trigger.VectorIcon
+                  family={MaterialCommunityIcons}
+                  name="cog-outline"
+                />
+              ),
+              selected: (
+                <NativeTabs.Trigger.VectorIcon
+                  family={MaterialCommunityIcons}
+                  name="cog"
+                />
+              ),
+            }}
+          />
         </NativeTabs.Trigger>
 
         {/* Quick-add as a detached search-role button (iOS 26 only). `disabled`

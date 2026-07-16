@@ -29,9 +29,15 @@ export default function HomeStackLayout() {
             }),
       }}
     >
+      {/* Android draws its own collapsing large-title header in-screen
+          (use-collapsing-header); the native pinned toolbar stays hidden. */}
       <Stack.Screen
         name="index"
-        options={{ title: 'Upcoming', headerLargeTitle: true }}
+        options={{
+          title: 'Upcoming',
+          headerLargeTitle: true,
+          headerShown: isIOS,
+        }}
       />
       <Stack.Screen name="person/[id]" options={{ headerLargeTitle: false }} />
     </Stack>

@@ -9,6 +9,7 @@ import Animated, {
   ReduceMotion,
   useAnimatedReaction,
   useAnimatedScrollHandler,
+  useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
@@ -30,6 +31,7 @@ import {
   personPhotoCompactHeight,
   personPhotoExpandedHeight,
 } from '~/components/person/person-photo-layout';
+import { HeaderScrim } from '~/components/ui/header-scrim';
 import { Text } from '~/components/ui/text';
 import {
   avatarUri,
@@ -164,6 +166,13 @@ export function PersonScreen() {
   const scrollHandler = useAnimatedScrollHandler((event) => {
     scrollY.value = event.contentOffset.y;
   });
+
+  // Android's transparent header gets the shared paper scrim so rows
+  // dissolve under it; it hands the top of the screen to the photo in
+  // step with the expand gesture.
+  const headerScrimStyle = useAnimatedStyle(() => ({
+    opacity: 1 - photoProgress.value,
+  }));
 
   const nativeScrollGesture = Gesture.Native();
   const pullGesture = Gesture.Pan()
@@ -335,6 +344,18 @@ export function PersonScreen() {
           />
         </Animated.ScrollView>
       </GestureDetector>
+
+      {!isIOS ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            { position: 'absolute', top: 0, left: 0, right: 0 },
+            headerScrimStyle,
+          ]}
+        >
+          <HeaderScrim height={headerHeight} />
+        </Animated.View>
+      ) : null}
 
       <EntrySheet config={sheetConfig} onClose={() => setSheetConfig(null)} />
     </>

@@ -12,6 +12,7 @@
      lib/theme.ts for native props — keep both in sync. The app is locked
      to light mode, so these have no dark variants yet. */
   --color-paper: #f9f7f4;
+  --color-paper-deep: #f1ede6;
   --color-broth: #b07818;
   --color-cream-swirl: #fbeac9;
 

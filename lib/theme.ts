@@ -12,6 +12,8 @@ export const palette = {
   creamSwirl: '#FBEAC9',
   /** Screen background. Screens sit on Paper; white is earned by cards. */
   paper: '#F9F7F4',
+  /** Android tab-bar surface — one tonal step below Paper so chrome separates. */
+  paperDeep: '#F1EDE6',
   /** Card and row surface — earned by sitting on Paper (card-white). */
   cardWhite: '#FFFFFF',
   /** Body text and values (Tailwind side: the default foreground token). */
@@ -20,6 +22,8 @@ export const palette = {
   inkPrimary: '#18181B',
   /** Text on filled primary buttons (`primary-foreground`). */
   primaryForeground: '#FAFAFA',
+  /** Muted secondary text and inactive tab items (`muted-foreground`). */
+  inkMuted: '#71717A',
   /** Disclosure chevrons. Decorative wayfinding, never text. */
   warmGrayDeep: '#8A8577',
   /** Destructive actions (matches --color-destructive / HeroUI --danger). */
