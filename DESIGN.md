@@ -63,6 +63,11 @@ components:
     rounded: '{rounded.md}'
     height: '48px'
     padding: '12px 20px'
+  button-sheet-primary:
+    backgroundColor: '{colors.ink-primary}'
+    textColor: '#FAFAFA'
+    rounded: '{rounded.card}'
+    padding: '14px 20px'
   card:
     backgroundColor: '{colors.card-white}'
     rounded: '{rounded.card}'
@@ -82,6 +87,11 @@ components:
     rounded: '{rounded.md}'
     height: '48px'
     padding: '0 0.75rem'
+  field-card:
+    backgroundColor: '{colors.card-white}'
+    textColor: '{colors.ink}'
+    rounded: '{rounded.card}'
+    padding: '14px 16px'
 ---
 
 # Design System: Lapsha
@@ -90,7 +100,7 @@ components:
 
 **Creative North Star: "The Well-Kept Notebook"**
 
-Lapsha looks like a notebook someone actually keeps: quiet warm paper, tidy white cards, and one golden thread of amber marking identity and accent actions. The content — people and the details you've saved about them — is intimate, so the interface stays out of the way. Chrome is native wherever the platform provides it (large-title headers, sheets, swipe actions on iOS; Material 3 on Android), and the custom layer on top is deliberately plain: white cards on paper, hairline dividers, system type. Components are **native and quiet** — system affordances first, custom chrome only where the platform has no answer.
+Lapsha looks like a notebook someone actually keeps: quiet warm paper, tidy white cards, and one golden thread of amber marking identity and accent actions. The content — people and the details you've saved about them — is intimate, so the interface stays out of the way. Chrome is native wherever the platform provides a reliable answer (large-title headers and SwiftUI sheets on iOS; Material 3 controls on Android), and the custom layer on top is deliberately plain: white cards on paper, hairline dividers, system type. Components are **native and quiet** — system affordances first, custom chrome only where the platform has no reliable answer.
 
 This system explicitly rejects the sales-CRM look (data tables, pipelines, "contacts as leads" coldness), the generic web-app-in-a-wrapper feel, and social-network profile aesthetics. A person's screen should read as "my notes about Anna," never as a database record or a public profile.
 
@@ -144,7 +154,7 @@ Tokens live in two mirrored places: `global.css` `@theme` for Tailwind classes (
 
 - **Title** (700, ~34px, system-rendered): Native large-title headers ("People", person name). Owned by the platform; never hand-rolled.
 - **Headline** (500 medium, 1.125rem ≈ 15.75px): Person names in list cards, fact values and date labels on the person screen, button text at `lg` size.
-- **Body** (400, 1rem = 14px): Notes, row detail lines, section headers above card groups (medium weight, sentence case). Selectable where it's user data.
+- **Body** (400, 1rem = 14px): Notes, row detail lines, section headers above card groups (medium weight, sentence case). Standalone user data may be selectable; text inside swipeable fact/date rows deliberately is not, so the pan gesture cannot trigger native text selection.
 - **Label** (400, 0.875rem ≈ 12.25px, Ink Muted): The caption above a fact value ("Favorite coffee"). Sentence case, never uppercase-tracked.
 
 ### Named Rules
@@ -165,15 +175,15 @@ Whisper elevation. Depth is carried first by tone (white cards on warm Paper) an
 
 ## 5. Components
 
-Native and quiet: system components wherever the platform has one (sheets, headers, swipe actions, date pickers), and this vocabulary for the custom layer.
+Native and quiet: system components wherever the platform has a reliable one (sheets, headers, date pickers), and this vocabulary for the custom layer.
 
 ### Buttons
 
-- **Shape:** Gently rounded (0.375rem), 48px tall on native
+- **Shape:** Compact and fallback buttons are gently rounded (0.375rem), 48px tall on native. Primary actions inside EntrySheets use the card radius (1rem / 14px) so they belong to the sheet's grouped form language.
 - **Primary:** Ink Primary (#18181B) fill, near-white (#FAFAFA) medium text — deliberately _not_ amber; amber is for accents, primary actions are calm ink
 - **Pressed:** Opacity drop to 90% (fills) or Pressed Fill background (ghost/outline); no scale effects, no springs
 - **Destructive:** Destructive (#EF4444) fill, same geometry
-- **Outline / Secondary / Ghost:** Hairline border on white / Pressed Fill / transparent with pressed fill — same shape family throughout
+- **Outline / Secondary / Ghost:** Hairline border on white / Pressed Fill / transparent with pressed fill. Keep compact controls together; do not mix their smaller radius into the card-shaped EntrySheet vocabulary.
 
 ### Cards / Containers
 
@@ -185,14 +195,15 @@ Native and quiet: system components wherever the platform has one (sheets, heade
 
 ### Inputs / Fields
 
-- **Style:** Card White fill, Hairline (#E4E4E7) border, 0.375rem radius, 48px tall
+- **Compact / fallback style:** Card White fill, Hairline (#E4E4E7) border, 0.375rem radius, 48px tall
+- **EntrySheet style:** Borderless Card White fields and grouped controls with the card radius (1rem / 14px). iOS uses hand-laid SwiftUI `VStack` groups on a fitted Paper sheet; Android uses HeroUI fields and grouped cards with Material 3 pickers. Sheet save actions use Ink Primary with the same 14px radius.
 - **Placeholder:** Ink Muted
 - **Disabled:** 50% opacity
 - **Pickers:** Always the platform's own (SwiftUI date picker on iOS, M3 DatePickerDialog on Android)
 
 ### Entry Row (signature component)
 
-The atom of the person screen, in two forms. **Fact row:** optional Ink Muted label (0.875rem) above an Ink value (1.125rem). **Date row:** the timeline's row language — a `w-11` day-number-over-short-month block (semibold Ink day, muted month) beside a prominent label (1.125rem medium), with a muted year + age detail line ("2019 · turns 8", counted at the next occurrence) when the year is known; always the literal date, never today/tomorrow relative form. Both: tap to edit (pressed state `black/5`), swipe left to reveal an 80px-wide Destructive delete action, `black/5` hairline dividers between rows. The "Add …" foot row pairs a Noodle Gold plus-circle icon with a Broth label — the Golden Thread marking the primary action of every card. The Facts card's title row carries a small Broth sort glyph on the right with a SwiftUI menu on iOS and a HeroUI popover on Android.
+The atom of the person screen, in two forms. **Fact row:** optional Ink Muted label (0.875rem) above an Ink value (1.125rem). **Date row:** the timeline's row language — a `w-11` day-number-over-short-month block (semibold Ink day, muted month) beside a prominent label (1.125rem medium), with a muted year + age detail line ("2019 · turns 8", counted at the next occurrence) when the year is known; always the literal date, never today/tomorrow relative form. Both: tap to edit (pressed state `black/5`), then use the shared custom pan gesture on either platform to reveal an 80px-wide Destructive delete action while the text stays stationary. Row text is deliberately non-selectable to prevent the gesture from invoking native text selection. `black/5` hairlines divide rows. The "Add …" foot row pairs a Noodle Gold plus-circle icon with a Broth label — the Golden Thread marking the primary action of every card. The Facts card's title row carries a small Broth sort glyph on the right with a SwiftUI menu on iOS and a HeroUI popover on Android.
 
 ### Avatar
 
@@ -208,7 +219,7 @@ Native tabs use SF Symbols on iOS and XML drawables on Android. iOS uses a Noodl
 
 - **Do** keep every screen on Paper (#F9F7F4) with Card White groups — the tonal step is the layout system.
 - **Do** route all interactivity signaling through the amber family: Noodle Gold for icons/tints, Broth for accent text, Cream Swirl for soft fills.
-- **Do** use platform components first (sheets, pickers, swipe actions, large titles); reach for custom chrome only when the platform has no answer — and then keep it quiet.
+- **Do** use platform components first (sheets, pickers, large titles); reach for custom chrome only when the platform has no reliable answer. The shared stationary-content swipe row is the deliberate exception.
 - **Do** use `borderCurve: 'continuous'` on every rounded card.
 - **Do** keep body text at full Ink (#09090B); labels may be Ink Muted, values never are.
 - **Do** keep pressed states instant and plain: opacity or `black/5`, 150–250ms, nothing choreographed.

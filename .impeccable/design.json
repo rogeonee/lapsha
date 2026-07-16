@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-14T01:00:39Z",
+  "generatedAt": "2026-07-16T01:21:22Z",
   "title": "Design System: Lapsha",
   "extensions": {
     "colorMeta": {
@@ -53,6 +53,11 @@
       "body": { "displayName": "Body", "purpose": "Fact values, notes, row content. 1rem = 14px (Uniwind rem polyfill)." },
       "label": { "displayName": "Label", "purpose": "Caption above a fact value; Ink Muted, sentence case." }
     },
+    "roundedMeta": {
+      "md": { "canonical": "0.375rem", "aliases": ["5px", "5.25px", "6px"] },
+      "card": { "canonical": "1rem", "aliases": ["14px", "16px"] },
+      "full": { "canonical": "9999px", "role": "pill" }
+    },
     "shadows": [
       { "name": "whisper", "value": "0 1px 3px rgba(28, 20, 8, 0.06)", "purpose": "The only shadow. Warm-tinted; applied to cards sitting on Paper." }
     ],
@@ -66,9 +71,17 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Calm ink fill for primary actions — deliberately not amber.",
+      "description": "Compact calm-ink action used outside the grouped EntrySheet vocabulary.",
       "html": "<button class=\"ds-btn-primary\">Save</button>",
       "css": ".ds-btn-primary { background: #18181B; color: #FAFAFA; height: 48px; padding: 12px 20px; border: none; border-radius: 5px; font-family: system-ui, sans-serif; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.15s; } .ds-btn-primary:hover { opacity: 0.9; } .ds-btn-primary:active { opacity: 0.9; } .ds-btn-primary:focus-visible { outline: 2px solid #18181B; outline-offset: 2px; }"
+    },
+    {
+      "name": "EntrySheet Save Button",
+      "kind": "button",
+      "refersTo": "button-sheet-primary",
+      "description": "Card-shaped ink action used for Save and Save changes inside platform EntrySheets.",
+      "html": "<button class=\"ds-sheet-save\">Save changes</button>",
+      "css": ".ds-sheet-save { background: #18181B; color: #FAFAFA; min-height: 48px; padding: 14px 20px; border: none; border-radius: 14px; font-family: system-ui, sans-serif; font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.15s; } .ds-sheet-save:hover, .ds-sheet-save:active { opacity: 0.9; } .ds-sheet-save:focus-visible { outline: 2px solid #18181B; outline-offset: 2px; } .ds-sheet-save:disabled { opacity: 0.5; }"
     },
     {
       "name": "Destructive Button",
@@ -90,17 +103,17 @@
       "name": "Entry Row",
       "kind": "custom",
       "refersTo": "entry-row",
-      "description": "Fact row: optional muted label over a prominent value; tap to edit and swipe to delete.",
+      "description": "Fact row: optional muted label over a prominent stationary value; tap to edit and use the shared pan gesture to reveal delete.",
       "html": "<div class=\"ds-entry-row\"><span class=\"ds-entry-label\">Favorite coffee</span><span class=\"ds-entry-value\">Flat white, oat milk</span></div>",
-      "css": ".ds-entry-row { display: flex; flex-direction: column; background: #FFFFFF; padding: 10.5px 14px; font-family: system-ui, sans-serif; cursor: pointer; transition: background 0.18s; } .ds-entry-row:hover { background: rgba(0, 0, 0, 0.05); } .ds-entry-row:active { background: rgba(0, 0, 0, 0.05); } .ds-entry-row:focus-visible { outline: 2px solid #18181B; outline-offset: -2px; } .ds-entry-label { font-size: 12.25px; color: #71717A; margin-bottom: 1.75px; } .ds-entry-value { font-size: 15.75px; color: #09090B; }"
+      "css": ".ds-entry-row { display: flex; flex-direction: column; background: #FFFFFF; padding: 10.5px 14px; font-family: system-ui, sans-serif; cursor: pointer; user-select: none; transition: background 0.18s; } .ds-entry-row:hover { background: rgba(0, 0, 0, 0.05); } .ds-entry-row:active { background: rgba(0, 0, 0, 0.05); } .ds-entry-row:focus-visible { outline: 2px solid #18181B; outline-offset: -2px; } .ds-entry-label { font-size: 12.25px; color: #71717A; margin-bottom: 1.75px; } .ds-entry-value { font-size: 15.75px; color: #09090B; }"
     },
     {
       "name": "Date Row",
       "kind": "custom",
       "refersTo": "entry-row",
-      "description": "Timeline-derived date row: day over month, prominent label, and optional year-plus-age detail; tap to edit and swipe to delete.",
+      "description": "Timeline-derived date row with stationary non-selectable text and the shared pan-to-delete behavior.",
       "html": "<div class=\"ds-date-row\"><span class=\"ds-date-block\"><strong>15</strong><small>Mar</small></span><span class=\"ds-date-copy\"><strong>Birthday</strong><small>1990 · turns 37</small></span></div>",
-      "css": ".ds-date-row { display: flex; align-items: center; gap: 10.5px; background: #FFFFFF; padding: 10.5px 14px; font-family: system-ui, sans-serif; color: #09090B; cursor: pointer; transition: background 0.18s; } .ds-date-row:hover, .ds-date-row:active { background: rgba(0, 0, 0, 0.05); } .ds-date-row:focus-visible { outline: 2px solid #18181B; outline-offset: -2px; } .ds-date-block { width: 38.5px; display: flex; flex-direction: column; align-items: center; } .ds-date-block strong, .ds-date-copy strong { font-size: 15.75px; line-height: 1.4; font-weight: 600; } .ds-date-block small { font-size: 12.25px; color: #71717A; } .ds-date-copy { display: flex; flex-direction: column; flex: 1; } .ds-date-copy strong { font-weight: 500; } .ds-date-copy small { margin-top: 1.75px; font-size: 14px; color: #71717A; }"
+      "css": ".ds-date-row { display: flex; align-items: center; gap: 10.5px; background: #FFFFFF; padding: 10.5px 14px; font-family: system-ui, sans-serif; color: #09090B; cursor: pointer; user-select: none; transition: background 0.18s; } .ds-date-row:hover, .ds-date-row:active { background: rgba(0, 0, 0, 0.05); } .ds-date-row:focus-visible { outline: 2px solid #18181B; outline-offset: -2px; } .ds-date-block { width: 38.5px; display: flex; flex-direction: column; align-items: center; } .ds-date-block strong, .ds-date-copy strong { font-size: 15.75px; line-height: 1.4; font-weight: 600; } .ds-date-block small { font-size: 12.25px; color: #71717A; } .ds-date-copy { display: flex; flex-direction: column; flex: 1; } .ds-date-copy strong { font-weight: 500; } .ds-date-copy small { margin-top: 1.75px; font-size: 14px; color: #71717A; }"
     },
     {
       "name": "Add Row",
@@ -114,14 +127,22 @@
       "name": "Input",
       "kind": "input",
       "refersTo": "input",
-      "description": "Text field: white fill, hairline border, quiet focus.",
+      "description": "Compact fallback text field: white fill, hairline border, quiet focus.",
       "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"The fact itself\" />",
       "css": ".ds-input { background: #FFFFFF; color: #09090B; border: 1px solid #E4E4E7; border-radius: 5px; height: 48px; padding: 0 10px; font-family: system-ui, sans-serif; font-size: 16px; width: 100%; box-sizing: border-box; } .ds-input::placeholder { color: #71717A; } .ds-input:focus-visible { outline: 2px solid #18181B; outline-offset: 1px; } .ds-input:disabled { opacity: 0.5; }"
+    },
+    {
+      "name": "EntrySheet Field",
+      "kind": "input",
+      "refersTo": "field-card",
+      "description": "Borderless Card White field with the 14px grouped-form radius used by the platform EntrySheets.",
+      "html": "<label class=\"ds-sheet-field\"><span>Fact</span><input type=\"text\" placeholder=\"The fact itself\" /></label>",
+      "css": ".ds-sheet-field { display: flex; flex-direction: column; gap: 5px; background: #FFFFFF; color: #09090B; border-radius: 14px; padding: 14px 16px; font-family: system-ui, sans-serif; font-size: 12.25px; } .ds-sheet-field input { appearance: none; background: transparent; color: #09090B; border: 0; outline: 0; padding: 0; font: inherit; font-size: 15.75px; } .ds-sheet-field input::placeholder { color: #71717A; } .ds-sheet-field:focus-within { outline: 2px solid #18181B; outline-offset: 1px; }"
     }
   ],
   "narrative": {
     "northStar": "The Well-Kept Notebook",
-    "overview": "Lapsha looks like a notebook someone actually keeps: quiet warm paper, tidy white cards, and one golden thread of amber marking identity and accent actions. The content — people and the details you've saved about them — is intimate, so the interface stays out of the way. Chrome is native wherever the platform provides it, and the custom layer on top is deliberately plain: white cards on paper, hairline dividers, system type. This system explicitly rejects the sales-CRM look, the generic web-app-in-a-wrapper feel, and social-network profile aesthetics.",
+    "overview": "Lapsha looks like a notebook someone actually keeps: quiet warm paper, tidy white cards, and one golden thread of amber marking identity and accent actions. The content — people and the details you've saved about them — is intimate, so the interface stays out of the way. Chrome is native wherever the platform provides a reliable answer (large-title headers and SwiftUI sheets on iOS; Material 3 controls on Android), and the custom layer on top is deliberately plain: white cards on paper, hairline dividers, system type. Components are **native and quiet** — system affordances first, custom chrome only where the platform has no reliable answer.\n\nThis system explicitly rejects the sales-CRM look (data tables, pipelines, \"contacts as leads\" coldness), the generic web-app-in-a-wrapper feel, and social-network profile aesthetics. A person's screen should read as \"my notes about Anna,\" never as a database record or a public profile.",
     "keyCharacteristics": [
       "Warm paper background with white cards; separation by tone, not lines or heavy shadows",
       "One amber family (Noodle Gold / Broth / Cream Swirl) carries warmth, identity, and accent interactions",
@@ -138,7 +159,7 @@
     "dos": [
       "Do keep every screen on Paper (#F9F7F4) with Card White groups — the tonal step is the layout system.",
       "Do route all interactivity signaling through the amber family: Noodle Gold for icons/tints, Broth for accent text, Cream Swirl for soft fills.",
-      "Do use platform components first (sheets, pickers, swipe actions, large titles); reach for custom chrome only when the platform has no answer — and then keep it quiet.",
+      "Do use platform components first (sheets, pickers, large titles); reach for custom chrome only when the platform has no reliable answer. The shared stationary-content swipe row is the deliberate exception.",
       "Do use borderCurve: 'continuous' on every rounded card.",
       "Do keep body text at full Ink (#09090B); labels may be Ink Muted, values never are.",
       "Do keep pressed states instant and plain: opacity or black/5, 150–250ms, nothing choreographed."

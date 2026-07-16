@@ -5,6 +5,29 @@ Technical guidance for coding agents working in this repository.
 See `AGENTS.md` for app context, implemented state, and current gaps.
 See `notebook.md` for non-obvious decisions and device-tested gotchas.
 
+## Project Handling
+
+### Device Verification
+
+- **iOS:** Run `bunx serve-sim` to stream the active iOS Simulator to localhost for inspection and interaction. Codex agents should use the Chrome plugin against that stream; Claude agents should operate it manually.
+- **iOS versions:** For platform-sensitive UI or native behavior, verify on both iOS 18 and the current iOS 26 simulator when relevant. Report exactly which versions were tested; do not imply cross-version coverage from one simulator.
+- **Android:** Prefer the physical Android phone connected over USB in debug mode. Check for an authorized device and use it when present. If none is available, ask the user to connect the phone before attempting Android verification; do not silently substitute an emulator.
+
+### Reviews and Consistency
+
+- Keep code reviews scoped to the requested changes. Respect explicitly accepted tradeoffs and previously approved work; do not re-flag acknowledged dependency bumps or unrelated changes.
+- When changing a shared interaction or visual pattern, search for its other consumers. Update them together when they should stay consistent, or explicitly call out any intentional or remaining differences.
+
+### Pull Requests
+
+Before drafting a PR, inspect the 2–3 most recent PRs and match their writing style while keeping the new PR focused. The current house style is:
+
+- A short, sentence-case title.
+- One concise opening paragraph describing the outcome.
+- A small number of `###` headings grouped by feature area when the scope benefits from them.
+- Concise, past-tense bullets covering user-visible changes and material implementation details; omit routine file-by-file narration and boilerplate.
+- Keep the body proportional to the change. Add screenshots when they materially help explain visual work.
+
 ## Design Context
 
 - `PRODUCT.md` defines the product, users, brand personality (“warm, personal, native”), anti-references, and design principles.
