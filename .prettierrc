@@ -6,6 +6,6 @@
   "tabWidth": 2,
   "bracketSpacing": true,
   "plugins": ["prettier-plugin-tailwindcss"],
-  "tailwindStylesheet": "./global.css",
+  "tailwindStylesheet": "./src/global.css",
   "tailwindFunctions": ["cva", "cn"]
 }

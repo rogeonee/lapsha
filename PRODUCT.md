@@ -23,6 +23,7 @@ Success looks like: capture takes under ten seconds from anywhere in the app (qu
 The app should feel like a well-kept notebook about friends — cozy and human, never clinical. The content (people and their details) is intimate; the interface honors that with warmth rather than data-management coldness. The amber accent carries the warmth; the neutral surfaces stay quiet so the people are the content.
 
 References:
+
 - **Apple's own apps** (Contacts, Notes, Journal): native affordances — large titles, sheets, swipe actions, system materials — with personal content at the center.
 - **Clay / Monaru** (personal CRMs): people-first layouts where relationship warmth is a design feature, not decoration.
 
@@ -42,4 +43,4 @@ References:
 
 ## Accessibility & Inclusion
 
-No formal commitments recorded yet — revisit before App Store release. Practical baseline in the meantime: keep text contrast readable against the neutral palette, respect standard touch-target sizes, and prefer system components (which carry Dynamic Type and platform accessibility for free). The app is currently locked to light mode. The semantic dark values in `global.css` are compatibility scaffolding for third-party components, not a designed Lapsha dark theme.
+No formal commitments recorded yet — revisit before App Store release. Practical baseline in the meantime: keep text contrast readable against the neutral palette, respect standard touch-target sizes, and prefer system components (which carry Dynamic Type and platform accessibility for free). The app is currently locked to light mode. The semantic dark values in `src/global.css` are compatibility scaffolding for third-party components, not a designed Lapsha dark theme.

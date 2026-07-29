@@ -3,14 +3,13 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "~/*": ["./*"]
+      "~/*": ["./src/*"]
     }
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "uniwind-types.d.ts"
+    "expo-env.d.ts"
   ]
 }

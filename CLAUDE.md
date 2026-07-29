@@ -71,39 +71,40 @@ Web is not a supported target. The app relies on native Expo Router, SwiftUI, an
 ### Project Structure
 
 ```
-app/
-├── _layout.tsx                         # Providers, theme lock, root stack
-├── add-person.tsx                     # iOS modal / Android sheet route host
-└── (tabs)/
-    ├── _layout.tsx                    # NativeTabs + global quick add
-    ├── quick-add.tsx                  # Disabled/hidden route required by NativeTabs
-    ├── settings.tsx
-    ├── (home)/
-    │   ├── index.tsx                  # Upcoming timeline
-    │   └── person/[id].tsx            # Re-exports shared PersonScreen
-    └── (people)/
-        ├── people.tsx                 # People list
-        └── person/[id].tsx            # Re-exports shared PersonScreen
-
-api/
-├── database.ts                        # SQLite singleton + migrations
-├── people/                            # Person services/schema
-├── facts/                             # Fact services/schema
-├── dates/                             # Date services/schema
-├── timeline/                          # Cross-person date queries
-└── error-handling.ts                  # ServiceResponse/error mapping
-
-components/
-├── entry/                             # Platform-split EntrySheet + shared state
-├── person/                            # Add-person UI, rows, cards
-├── quick-add/                         # Android FAB (iOS no-op shim)
-├── ui/                                # Shared primitives/icons
-└── ui-providers.*.tsx                 # Android-only HeroUI provider
-
-screens/person/person-screen.tsx       # Shared detail screen for both stacks
-lib/                                   # Preferences, avatar/date/theme helpers, DB hook
-types/db.ts                            # Database and service types
-global.css                             # Uniwind/HeroUI theme tokens
+src/
+├── app/
+│   ├── _layout.tsx                         # Providers, theme lock, root stack
+│   ├── add-person.tsx                     # iOS modal / Android sheet route host
+│   └── (tabs)/
+│       ├── _layout.tsx                    # NativeTabs + global quick add
+│       ├── quick-add.tsx                  # Disabled/hidden route required by NativeTabs
+│       ├── settings.tsx
+│       ├── (home)/
+│       │   ├── index.tsx                  # Upcoming timeline
+│       │   └── person/[id].tsx            # Re-exports shared PersonScreen
+│       └── (people)/
+│           ├── people.tsx                 # People list
+│           └── person/[id].tsx            # Re-exports shared PersonScreen
+│
+├── api/
+│   ├── database.ts                        # SQLite singleton + migrations
+│   ├── people/                            # Person services/schema
+│   ├── facts/                             # Fact services/schema
+│   ├── dates/                             # Date services/schema
+│   ├── timeline/                          # Cross-person date queries
+│   └── error-handling.ts                  # ServiceResponse/error mapping
+│
+├── components/
+│   ├── entry/                             # Platform-split EntrySheet + shared state
+│   ├── person/                            # Add-person UI, rows, cards
+│   ├── quick-add/                         # Android FAB (iOS no-op shim)
+│   ├── ui/                                # Shared primitives/icons
+│   └── ui-providers.*.tsx                 # Android-only HeroUI provider
+│
+├── screens/person/person-screen.tsx       # Shared detail screen for both stacks
+├── lib/                                   # Preferences, avatar/date/theme helpers, DB hook
+├── types/db.ts                            # Database and service types
+└── global.css                             # Uniwind/HeroUI theme tokens
 ```
 
 ### Platform UI Boundaries
@@ -113,7 +114,7 @@ global.css                             # Uniwind/HeroUI theme tokens
 - Shared behavior belongs in hooks (`use-entry-form.ts`, `use-add-person-form.ts`); platform files own presentation and platform quirks.
 - Unsuffixed platform shims must stay free of the other platform's runtime imports. TypeScript does not use Metro platform suffix resolution, while Metro does.
 - `HeroUINativeProvider` mounts Android-only so iOS does not bundle HeroUI.
-- Global quick-add state and the single EntrySheet instance live beside `<NativeTabs>` in `app/(tabs)/_layout.tsx`: iOS 26+ opens it through `onTabSelectionPrevented`; Android opens it from the FAB.
+- Global quick-add state and the single EntrySheet instance live beside `<NativeTabs>` in `src/app/(tabs)/_layout.tsx`: iOS 26+ opens it through `onTabSelectionPrevented`; Android opens it from the FAB.
 
 ## Data and State Patterns
 
@@ -146,29 +147,29 @@ Preferences live in `expo-sqlite/kv-store`, separate from the main database. Cur
 ## Styling and Themes
 
 - Prefer Uniwind `className` / `contentContainerClassName` utilities.
-- Tailwind v4 tokens live in `global.css`; imperative native colors and shadows live in `lib/theme.ts`. Keep the two token sets synchronized.
+- Tailwind v4 tokens live in `src/global.css`; imperative native colors and shadows live in `src/lib/theme.ts`. Keep the two token sets synchronized.
 - Metro's `withUniwindConfig` sets `polyfills: { rem: 14 }`. Do not remove it: changing rem back to 16 silently scales the interface.
 - `group-*` and `peer-*` variants are Uniwind Pro-only and no-op in this project.
 - Use native `style` props where required for headers, shadows, animated values, or unsupported properties.
-- The app is intentionally light-only for now. `Appearance.setColorScheme('light')` and `Uniwind.setTheme('light')` in `app/_layout.tsx` must change together when dark mode is implemented.
-- Use `components/ui/icons.tsx` for shared icons. Android toolbar icons require bundled XML drawables; `expo-image` SF-symbol sources are iOS-only.
+- The app is intentionally light-only for now. `Appearance.setColorScheme('light')` and `Uniwind.setTheme('light')` in `src/app/_layout.tsx` must change together when dark mode is implemented.
+- Use `src/components/ui/icons.tsx` for shared icons. Android toolbar icons require bundled XML drawables; `expo-image` SF-symbol sources are iOS-only.
 
 ## Forms
 
 - Service input schemas live beside their domains and use Zod.
 - Add person uses React Hook Form with `zodResolver` in `use-add-person-form.ts`.
 - EntrySheet uses shared React state in `use-entry-form.ts` because SwiftUI and HeroUI own their platform controls.
-- Keep UTC storage conversion in `lib/dates.ts`. An unknown year is stored as year `0001`; Android date pickers return UTC-midnight milliseconds and must be read with UTC getters.
+- Keep UTC storage conversion in `src/lib/dates.ts`. An unknown year is stored as year `0001`; Android date pickers return UTC-midnight milliseconds and must be read with UTC getters.
 
 ## Database
 
-The local database is `lapsha.db`; schema and migrations are in `api/database.ts`.
+The local database is `lapsha.db`; schema and migrations are in `src/api/database.ts`.
 
-| Table     | Key columns                                                              | Notes                                                                                                                          |
-| --------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| `persons` | `id`, `name`, nullable `avatar`                                          | `avatar` is a bare photo file name resolved by `lib/avatars.ts`; name edit and delete live in the person screen's toolbar menu |
-| `facts`   | `person_id`, nullable `label`, `value`, `sort_order`                     | `NULL` label is an unlabeled/free-form fact                                                                                    |
-| `dates`   | `person_id`, `label`, `date`, `month`, `day`, `year_known`, `sort_order` | `birthday` is reserved case-insensitively and pinned first                                                                     |
+| Table     | Key columns                                                              | Notes                                                                                                                              |
+| --------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `persons` | `id`, `name`, nullable `avatar`                                          | `avatar` is a bare photo file name resolved by `src/lib/avatars.ts`; name edit and delete live in the person screen's toolbar menu |
+| `facts`   | `person_id`, nullable `label`, `value`, `sort_order`                     | `NULL` label is an unlabeled/free-form fact                                                                                        |
+| `dates`   | `person_id`, `label`, `date`, `month`, `day`, `year_known`, `sort_order` | `birthday` is reserved case-insensitively and pinned first                                                                         |
 
 All tables include `created_at`, `updated_at`, and nullable `deleted_at`. CRUD uses soft deletes; normal reads must filter `deleted_at IS NULL`. IDs come from `randomUUID()` in `expo-crypto`; Expo native does not provide a usable global `crypto` here.
 
@@ -176,9 +177,9 @@ Schema migrations are keyed by `PRAGMA user_version`. Each migration must stamp 
 
 ## Conventions
 
-- Root import alias: `~/`.
+- Source import alias: `~/`, mapped to `src/`.
 - Expo Router screens default-export; reusable components use named exports.
 - Component and hook module names use kebab-case.
 - Platform implementations use `.ios.tsx` / `.android.tsx` and an unsuffixed shim where required.
-- Prefer synchronous, domain-focused services and central database types from `types/db.ts`.
+- Prefer synchronous, domain-focused services and central database types from `src/types/db.ts`.
 - Preserve the originating tab stack when linking to a person; both person routes share `PersonScreen` intentionally.

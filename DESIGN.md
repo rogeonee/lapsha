@@ -116,7 +116,7 @@ This system explicitly rejects the sales-CRM look (data tables, pipelines, "cont
 
 A restrained warm palette: near-neutral surfaces, zinc-cool ink, and a single amber family used only where it means something.
 
-Tokens live in two mirrored places: `global.css` `@theme` for Tailwind classes (`bg-paper`, `text-broth`, `bg-cream-swirl`, plus the shadcn/HeroUI semantic set) and `lib/theme.ts` (`palette`, `shadows`) for native props — header tints, icon colors, the Android FAB, shadows. Never hard-code a hex from this palette in a component; add a token instead and keep both files in sync.
+Tokens live in two mirrored places: `src/global.css` `@theme` for Tailwind classes (`bg-paper`, `text-broth`, `bg-cream-swirl`, plus the shadcn/HeroUI semantic set) and `src/lib/theme.ts` (`palette`, `shadows`) for native props — header tints, icon colors, the Android FAB, shadows. Never hard-code a hex from this palette in a component; add a token instead and keep both files in sync.
 
 ### Primary
 

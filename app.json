@@ -22,11 +22,6 @@
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.rogeonee.lapsha"
     },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
     "plugins": [
       "expo-router",
       [

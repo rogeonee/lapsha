@@ -53,7 +53,7 @@ There is no separate notes table. The current UI treats unlabeled/free-form deta
 - Avatar photos: picked from the system photo library with the platform square-crop editor, downscaled to 1536px JPEG files under `<documents>/avatars/`, and shown by the shared `Avatar` component (photo → initial → person glyph) on the people list, person screen, add-person preview, and today/tomorrow timeline rows.
 - Platform-specific add-person flow with an optional birthday and a live avatar preview that doubles as the photo picker: native iOS modal with toolbar actions; HeroUI bottom sheet hosted by a transparent route on Android.
 - Person detail screen shared by the Home and People stacks: pinned Birthday slot, facts and dates, tap-to-edit, swipe-to-delete, and created/modified sorting for facts only (a small menu on the Facts section header). Other dates stay in date-added order. A toolbar menu manages the person: edit name, add/change/remove photo, and delete (soft) with confirmation; tapping the empty initials circle also opens the photo picker.
-- Platform-split EntrySheet for adding/editing facts and dates plus a single-field edit-name mode: SwiftUI via `@expo/ui` on iOS; HeroUI Native plus Jetpack Compose date controls on Android. Shared form/save behavior lives in `components/entry/use-entry-form.ts`.
+- Platform-split EntrySheet for adding/editing facts and dates plus a single-field edit-name mode: SwiftUI via `@expo/ui` on iOS; HeroUI Native plus Jetpack Compose date controls on Android. Shared form/save behavior lives in `src/components/entry/use-entry-form.ts`.
 - Global quick add: detached disabled native-tab action on iOS 26+ and Material FAB on Android. The person picker defaults to the last-used person.
 - Local SQLite database with versioned migrations, soft deletes, synchronous services, and change-listener-driven UI refresh.
 - Settings screen with app version and destructive “Clear All Data.”
@@ -67,17 +67,17 @@ There is no separate notes table. The current UI treats unlabeled/free-form deta
 
 ## Key Screens
 
-| Route                                 | Purpose                                       |
-| ------------------------------------- | --------------------------------------------- |
-| `app/(tabs)/(home)/index.tsx`         | Upcoming timeline/home screen                 |
-| `app/(tabs)/(home)/person/[id].tsx`   | Person detail reached from Home               |
-| `app/(tabs)/(people)/people.tsx`      | People list                                   |
-| `app/(tabs)/(people)/person/[id].tsx` | Person detail reached from People             |
-| `app/add-person.tsx`                  | Platform-specific add-person modal/sheet host |
-| `app/(tabs)/settings.tsx`             | App info and clear-data action                |
-| `app/(tabs)/_layout.tsx`              | Native tabs and global quick-add state        |
+| Route                                     | Purpose                                       |
+| ----------------------------------------- | --------------------------------------------- |
+| `src/app/(tabs)/(home)/index.tsx`         | Upcoming timeline/home screen                 |
+| `src/app/(tabs)/(home)/person/[id].tsx`   | Person detail reached from Home               |
+| `src/app/(tabs)/(people)/people.tsx`      | People list                                   |
+| `src/app/(tabs)/(people)/person/[id].tsx` | Person detail reached from People             |
+| `src/app/add-person.tsx`                  | Platform-specific add-person modal/sheet host |
+| `src/app/(tabs)/(settings)/settings.tsx`  | App info and clear-data action                |
+| `src/app/(tabs)/_layout.tsx`              | Native tabs and global quick-add state        |
 
-Both person routes re-export the shared `screens/person/person-screen.tsx` implementation so navigation stays inside the originating tab stack.
+Both person routes re-export the shared `src/screens/person/person-screen.tsx` implementation so navigation stays inside the originating tab stack.
 
 ## Coding Conventions
 
