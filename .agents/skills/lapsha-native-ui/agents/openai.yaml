@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lapsha Native UI"
+  short_description: "Shape and verify native Lapsha interfaces"
+  default_prompt: "Use $lapsha-native-ui to design, implement, or review this Lapsha interface."

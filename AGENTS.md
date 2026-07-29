@@ -3,6 +3,7 @@
 See `CLAUDE.md` for commands, architecture, and technical patterns.
 See `notebook.md` for non-obvious decisions and device-tested gotchas.
 Read `PRODUCT.md` (strategic product context) and `DESIGN.md` (visual system) before any UI/design work.
+Use the repo-local `lapsha-native-ui` skill for UI/design implementation, shaping, critique, polish, and native-platform verification.
 
 ## Project Handling
 
