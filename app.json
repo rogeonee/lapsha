@@ -8,6 +8,7 @@
     "scheme": "lapsha",
     "userInterfaceStyle": "light",
     "ios": {
+      "icon": "./assets/lapsha-ios.icon",
       "supportsTablet": false,
       "bundleIdentifier": "com.rogeonee.lapsha",
       "infoPlist": {
