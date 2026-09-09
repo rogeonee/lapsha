@@ -5,7 +5,7 @@
    components pick up our palette; `accent` and `muted` are HeroUI's. */
 @import 'heroui-native/styles';
 
-@source './node_modules/heroui-native/lib';
+@source '../node_modules/heroui-native/lib';
 
 @theme {
   /* Lapsha palette (DESIGN.md § Colors). Raw values are mirrored in
