@@ -16,9 +16,11 @@
       }
     },
     "android": {
+      "icon": "./assets/android-icon/legacy.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/android-icon/foreground.png",
+        "monochromeImage": "./assets/android-icon/monochrome.png",
+        "backgroundColor": "#F9F7F4"
       },
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.rogeonee.lapsha"
