@@ -18,6 +18,7 @@ import {
 } from '~/components/entry/use-entry-form';
 import { CheckIcon, ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
+import { fromAndroidPickerDate, toAndroidPickerDate } from '~/lib/dates';
 import { palette, shadows } from '~/lib/theme';
 
 export type { EntrySheetConfig };
@@ -320,20 +321,12 @@ function EntryForm({
             // The dialog renders in its own window; the Host is zero-size
             <Host style={{ position: 'absolute', width: 0, height: 0 }}>
               <DatePickerDialog
-                initialDate={form.pickedDate.toISOString()}
+                initialDate={toAndroidPickerDate(form.pickedDate)}
                 variant="picker"
                 showVariantToggle={false}
                 color={palette.noodleGold}
                 onDateSelected={(date) => {
-                  // Material 3 returns UTC-midnight millis; re-read the
-                  // date in UTC or it shifts a day in western timezones
-                  form.setPickedDate(
-                    new Date(
-                      date.getUTCFullYear(),
-                      date.getUTCMonth(),
-                      date.getUTCDate(),
-                    ),
-                  );
+                  form.setPickedDate(fromAndroidPickerDate(date));
                   setDatePickerOpen(false);
                 }}
                 onDismissRequest={() => setDatePickerOpen(false)}

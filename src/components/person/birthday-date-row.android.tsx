@@ -2,6 +2,7 @@ import { DatePickerDialog, Host } from '@expo/ui/jetpack-compose';
 import { useState } from 'react';
 import { Pressable } from 'react-native';
 import { Text } from '~/components/ui/text';
+import { fromAndroidPickerDate, toAndroidPickerDate } from '~/lib/dates';
 import { palette } from '~/lib/theme';
 
 type BirthdayDateRowProps = {
@@ -42,20 +43,12 @@ export default function BirthdayDateRow({
         // The dialog renders in its own window; the Host is zero-size
         <Host style={{ position: 'absolute', width: 0, height: 0 }}>
           <DatePickerDialog
-            initialDate={date.toISOString()}
+            initialDate={toAndroidPickerDate(date)}
             variant="picker"
             showVariantToggle={false}
             color={palette.noodleGold}
             onDateSelected={(picked) => {
-              // Material 3 returns UTC-midnight millis; re-read the
-              // date in UTC or it shifts a day in western timezones
-              onChange(
-                new Date(
-                  picked.getUTCFullYear(),
-                  picked.getUTCMonth(),
-                  picked.getUTCDate(),
-                ),
-              );
+              onChange(fromAndroidPickerDate(picked));
               setPickerOpen(false);
             }}
             onDismissRequest={() => setPickerOpen(false)}

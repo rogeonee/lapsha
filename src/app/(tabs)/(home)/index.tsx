@@ -14,6 +14,7 @@ import { ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 import { useCollapsingHeader } from '~/components/ui/use-collapsing-header';
 import { avatarUri } from '~/lib/avatars';
+import { nextDateOccurrence } from '~/lib/dates';
 import { palette, shadows } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import { cn } from '~/lib/utils';
@@ -57,10 +58,7 @@ function projectUpcoming(entries: TimelineEntry[]): UpcomingEntry[] {
 
   return entries
     .map((entry) => {
-      let next = new Date(today.getFullYear(), entry.month - 1, entry.day);
-      if (next < today) {
-        next = new Date(today.getFullYear() + 1, entry.month - 1, entry.day);
-      }
+      const next = nextDateOccurrence(entry.month, entry.day, today);
       const daysUntil = Math.round((next.getTime() - today.getTime()) / DAY_MS);
       const originalYear = Number(entry.date.slice(0, 4));
       const elapsed = next.getFullYear() - originalYear;
