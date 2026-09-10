@@ -1,5 +1,5 @@
 diff --git a/ios/TextFieldView.swift b/ios/TextFieldView.swift
-index 987b28475eac2717f3ea635274a0e3537ad4a517..aa88a3987967f1e39aaacb205c79a7763c3b9963 100644
+index ec381d1ac16a287283d1a0e116cc91018c7ba070..422809e6fd1f65feb7a2b5ba73743be1b3f6ca5a 100644
 --- a/ios/TextFieldView.swift
 +++ b/ios/TextFieldView.swift
 @@ -79,7 +79,12 @@ struct TextFieldView: ExpoSwiftUI.View, ExpoSwiftUI.FocusableView {
