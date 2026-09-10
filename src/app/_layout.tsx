@@ -1,11 +1,6 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  SplashScreen,
-  Stack,
-  ThemeProvider,
-} from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import type { Theme } from 'expo-router/react-navigation';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Appearance } from 'react-native';
@@ -41,6 +36,9 @@ Appearance.setColorScheme('light');
 Uniwind.setTheme('light');
 
 SplashScreen.preventAutoHideAsync();
+if (isIOS) {
+  SplashScreen.setOptions({ fade: true, duration: 150 });
+}
 
 export default function Root() {
   const { isDarkColorScheme } = useColorScheme();
