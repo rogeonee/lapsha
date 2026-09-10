@@ -58,7 +58,7 @@ Web is not a supported target. The app relies on native Expo Router, SwiftUI, an
 
 ### Tech Stack
 
-- Expo SDK 56, React Native 0.85, React 19, and Expo Router.
+- Expo SDK 57, React Native 0.86, React 19, and Expo Router.
 - TypeScript 6 in strict mode with React Compiler enabled.
 - `expo-sqlite` for the local, single-user database; no authentication or backend.
 - Uniwind 1.8 with Tailwind CSS v4 for utility styling.
