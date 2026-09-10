@@ -2,6 +2,7 @@ import type { Date as PersonDate } from '~/types/db';
 
 /** Year used in stored dates when the year is unknown (recurring dates) */
 const UNKNOWN_YEAR = '0001';
+const UNKNOWN_YEAR_EDITOR = 2000;
 
 function pad(value: number, length: number): string {
   return String(value).padStart(length, '0');
@@ -18,7 +19,7 @@ export function toStorageDate(date: Date, includeYear: boolean): string {
 
 /**
  * Inverse of toStorageDate, for prefilling edit forms. Year-unknown dates
- * come back in the current year with `includeYear: false`.
+ * use a leap year so February 29 survives editing in any calendar year.
  */
 export function fromStorageDate(stored: string): {
   date: Date;
@@ -26,14 +27,34 @@ export function fromStorageDate(stored: string): {
 } {
   const [year, month, day] = stored.split('-').map(Number);
   const includeYear = year !== Number(UNKNOWN_YEAR);
-  return {
-    date: new Date(
-      includeYear ? year : new Date().getFullYear(),
-      month - 1,
-      day,
-    ),
-    includeYear,
-  };
+  const date = new Date(2000, month - 1, day);
+  // setFullYear avoids the Date constructor's 1900 offset for years 0–99.
+  date.setFullYear(includeYear ? year : UNKNOWN_YEAR_EDITOR);
+  return { date, includeYear };
+}
+
+/** Material date pickers interpret calendar dates at UTC midnight. */
+export function toAndroidPickerDate(date: Date): string {
+  return `${toStorageDate(date, true)}T00:00:00.000Z`;
+}
+
+export function fromAndroidPickerDate(date: Date): Date {
+  const local = new Date(2000, date.getUTCMonth(), date.getUTCDate());
+  local.setFullYear(date.getUTCFullYear());
+  return local;
+}
+
+/** February 29 anniversaries fall on March 1 in non-leap years. */
+export function nextDateOccurrence(
+  month: number,
+  day: number,
+  today: Date,
+): Date {
+  let next = new Date(today.getFullYear(), month - 1, day);
+  if (next < today) {
+    next = new Date(today.getFullYear() + 1, month - 1, day);
+  }
+  return next;
 }
 
 /** "Jul" — short month name, for the date row's day block */
@@ -55,18 +76,7 @@ export function formatDateDetail(personDate: PersonDate): string | null {
   const year = Number(personDate.date.slice(0, 4));
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  let next = new Date(
-    today.getFullYear(),
-    personDate.month - 1,
-    personDate.day,
-  );
-  if (next < today) {
-    next = new Date(
-      today.getFullYear() + 1,
-      personDate.month - 1,
-      personDate.day,
-    );
-  }
+  const next = nextDateOccurrence(personDate.month, personDate.day, today);
   const elapsed = next.getFullYear() - year;
   if (elapsed <= 0) return String(year);
   const suffix =
