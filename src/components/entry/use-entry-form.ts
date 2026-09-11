@@ -54,8 +54,7 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
   const initialPersonName = editPerson?.name ?? '';
   const [personName, setPersonName] = useState(initialPersonName);
 
-  // Fact fields: initial values prefill platform inputs (which are
-  // uncontrolled), plain state mirrors them for validation and saving
+  // Initial values seed iOS native state; Android binds to the current drafts.
   const initialFactValue = editFact?.value ?? '';
   const initialFactLabel = editFact?.label ?? '';
   const [factValue, setFactValue] = useState(initialFactValue);
@@ -136,6 +135,9 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
     initialFactLabel,
     initialDateLabel,
     initialPersonName,
+    factValue,
+    factLabel,
+    dateLabel,
     setFactValue,
     setFactLabel,
     setDateLabel,

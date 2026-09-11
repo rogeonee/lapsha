@@ -262,7 +262,7 @@ function EntryForm({
               placeholder="The fact itself"
               className="shadow-none"
               style={cardStyle}
-              defaultValue={form.initialFactValue}
+              value={form.factValue}
               onChangeText={form.setFactValue}
               onFocus={onFocus}
               onBlur={onBlur}
@@ -273,7 +273,7 @@ function EntryForm({
               placeholder="Label (optional)"
               className="shadow-none"
               style={cardStyle}
-              defaultValue={form.initialFactLabel}
+              value={form.factLabel}
               onChangeText={form.setFactLabel}
               onFocus={onFocus}
               onBlur={onBlur}
@@ -287,7 +287,7 @@ function EntryForm({
               placeholder="Label (e.g. Wedding anniversary)"
               className="shadow-none"
               style={cardStyle}
-              defaultValue={form.initialDateLabel}
+              value={form.dateLabel}
               onChangeText={form.setDateLabel}
               onFocus={onFocus}
               onBlur={onBlur}
