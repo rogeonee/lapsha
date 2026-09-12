@@ -1,7 +1,7 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useHeaderHeight } from 'expo-router/react-navigation';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { Alert, Platform, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -39,7 +39,12 @@ import {
   pickAvatarImage,
   saveAvatarFile,
 } from '~/lib/avatars';
-import { getSortPref, setSortPref } from '~/lib/prefs';
+import {
+  getPreferencesVersion,
+  getSortPref,
+  setSortPref,
+  subscribeToPreferences,
+} from '~/lib/prefs';
 import { palette } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import type { EntrySort, Fact, Person, Date as PersonDate } from '~/types/db';
@@ -112,9 +117,12 @@ export function PersonScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const headerHeight = useHeaderHeight();
   const dataVersion = useTableVersion(['persons', 'facts', 'dates']);
-  const [factSort, setFactSort] = useState<EntrySort>(() =>
-    getSortPref('facts'),
+  useSyncExternalStore(
+    subscribeToPreferences,
+    getPreferencesVersion,
+    getPreferencesVersion,
   );
+  const factSort = getSortPref('facts');
   const [sheetConfig, setSheetConfig] = useState<EntrySheetConfig | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPhotoExpanded, setIsPhotoExpanded] = useState(false);
@@ -213,7 +221,6 @@ export function PersonScreen() {
 
   const changeFactSort = (sort: EntrySort) => {
     setSortPref('facts', sort);
-    setFactSort(sort);
   };
 
   const choosePhoto = async () => {
