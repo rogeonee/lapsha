@@ -42,6 +42,7 @@ import {
 import { getSortPref, setSortPref, subscribeToPreferences } from '~/lib/prefs';
 import { palette } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
+import { useCurrentDay } from '~/lib/use-current-day';
 import type { EntrySort, Fact, Person, Date as PersonDate } from '~/types/db';
 
 const isIOS = process.env.EXPO_OS === 'ios';
@@ -112,6 +113,7 @@ export function PersonScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const headerHeight = useHeaderHeight();
   const dataVersion = useTableVersion(['persons', 'facts', 'dates']);
+  const today = useCurrentDay();
   const factSort = useSyncExternalStore(
     subscribeToPreferences,
     () => getSortPref('facts'),
@@ -334,6 +336,7 @@ export function PersonScreen() {
           <PersonDetailSections
             personId={id}
             dates={dates}
+            today={today}
             facts={facts}
             factSort={factSort}
             isSortMenuOpen={openMenu === 'sort'}
