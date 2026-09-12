@@ -10,11 +10,14 @@ import { palette, shadows } from '~/lib/theme';
 
 function clearDeviceData() {
   try {
-    clearAllData();
-    return { error: null };
+    const result = clearAllData();
+    return { error: null, incompleteCleanup: result.incompleteCleanup };
   } catch (error) {
     console.warn(error);
-    return { error: mapDatabaseError(error).message };
+    return {
+      error: mapDatabaseError(error).message,
+      incompleteCleanup: [],
+    };
   }
 }
 

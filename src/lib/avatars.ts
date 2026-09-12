@@ -51,11 +51,20 @@ export function deleteAvatarFile(fileName: string | null | undefined): void {
   } catch {}
 }
 
-export function clearAvatarFiles(): void {
+/** Delete every stored avatar and report whether any cleanup was incomplete. */
+export function clearAvatarFiles(): boolean {
   try {
-    if (!avatarsDir.exists) return;
+    if (!avatarsDir.exists) return true;
+    let complete = true;
     for (const entry of avatarsDir.list()) {
-      entry.delete();
+      try {
+        entry.delete();
+      } catch {
+        complete = false;
+      }
     }
-  } catch {}
+    return complete;
+  } catch {
+    return false;
+  }
 }
