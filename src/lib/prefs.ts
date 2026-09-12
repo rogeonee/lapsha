@@ -16,20 +16,14 @@ export type SortSection = keyof typeof SORT_KEYS;
 const LAST_PERSON_KEY = 'lastPersonId';
 
 const listeners = new Set<() => void>();
-let version = 0;
 
 function notifyPreferenceChange(): void {
-  version += 1;
   for (const listener of listeners) listener();
 }
 
 export function subscribeToPreferences(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
-}
-
-export function getPreferencesVersion(): number {
-  return version;
 }
 
 export function getSortPref(section: SortSection): EntrySort {

@@ -39,12 +39,7 @@ import {
   pickAvatarImage,
   saveAvatarFile,
 } from '~/lib/avatars';
-import {
-  getPreferencesVersion,
-  getSortPref,
-  setSortPref,
-  subscribeToPreferences,
-} from '~/lib/prefs';
+import { getSortPref, setSortPref, subscribeToPreferences } from '~/lib/prefs';
 import { palette } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import type { EntrySort, Fact, Person, Date as PersonDate } from '~/types/db';
@@ -117,12 +112,11 @@ export function PersonScreen() {
   const { width: screenWidth } = useWindowDimensions();
   const headerHeight = useHeaderHeight();
   const dataVersion = useTableVersion(['persons', 'facts', 'dates']);
-  useSyncExternalStore(
+  const factSort = useSyncExternalStore(
     subscribeToPreferences,
-    getPreferencesVersion,
-    getPreferencesVersion,
+    () => getSortPref('facts'),
+    () => getSortPref('facts'),
   );
-  const factSort = getSortPref('facts');
   const [sheetConfig, setSheetConfig] = useState<EntrySheetConfig | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isPhotoExpanded, setIsPhotoExpanded] = useState(false);

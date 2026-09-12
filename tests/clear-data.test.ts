@@ -2,7 +2,6 @@ import { Database } from 'bun:sqlite';
 import { describe, expect, test } from 'bun:test';
 import {
   clearDeviceData,
-  clearRelationalData,
   type TransactionDatabase,
 } from '../src/api/clear-data';
 import { clearPreferenceKeys } from '../src/lib/preference-cleanup';
@@ -68,15 +67,30 @@ describe('clear all data', () => {
 
   test('rolls every relational delete back when a statement fails', () => {
     const { sqlite, database } = databaseFixture();
+    let preferencesAttempted = false;
+    let photosAttempted = false;
     sqlite.exec(`
       CREATE TRIGGER fail_date_delete BEFORE DELETE ON dates
       BEGIN SELECT RAISE(ABORT, 'injected failure'); END;
     `);
 
-    expect(() => clearRelationalData(database)).toThrow('injected failure');
+    expect(() =>
+      clearDeviceData(
+        database,
+        () => {
+          preferencesAttempted = true;
+        },
+        () => {
+          photosAttempted = true;
+          return true;
+        },
+      ),
+    ).toThrow('injected failure');
     expect(rowCount(sqlite, 'persons')).toBe(1);
     expect(rowCount(sqlite, 'facts')).toBe(1);
     expect(rowCount(sqlite, 'dates')).toBe(1);
+    expect(preferencesAttempted).toBe(false);
+    expect(photosAttempted).toBe(false);
   });
 
   test('reports failed preferences and photos, then permits an idempotent retry', () => {
