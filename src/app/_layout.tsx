@@ -11,6 +11,7 @@ import UIProviders from '~/components/ui-providers';
 import { NAV_THEME } from '~/lib/constants';
 import { palette } from '~/lib/theme';
 import { useColorScheme } from '~/lib/useColorScheme';
+import { CurrentDayProvider } from '~/lib/use-current-day';
 import '../global.css';
 
 const isIOS = process.env.EXPO_OS === 'ios';
@@ -51,36 +52,38 @@ export default function Root() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
         <UIProviders>
-          <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-            <StatusBar style={!isDarkColorScheme ? 'dark' : 'light'} />
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="add-person"
-                options={{
-                  title: 'New Person',
-                  ...(isIOS
-                    ? {
-                        presentation: 'modal' as const,
-                        headerTintColor: palette.broth,
-                        contentStyle: { backgroundColor: palette.paper },
-                        headerTransparent: true,
-                        headerShadowVisible: false,
-                        headerBlurEffect: 'none' as const,
-                      }
-                    : {
-                        // Android: the route is an invisible host for the
-                        // HeroUI bottom sheet (AddPersonSheet), which
-                        // renders its own scrim and pops the route on close
-                        presentation: 'transparentModal' as const,
-                        animation: 'none' as const,
-                        headerShown: false,
-                        contentStyle: { backgroundColor: 'transparent' },
-                      }),
-                }}
-              />
-            </Stack>
-          </ThemeProvider>
+          <CurrentDayProvider>
+            <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+              <StatusBar style={!isDarkColorScheme ? 'dark' : 'light'} />
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="add-person"
+                  options={{
+                    title: 'New Person',
+                    ...(isIOS
+                      ? {
+                          presentation: 'modal' as const,
+                          headerTintColor: palette.broth,
+                          contentStyle: { backgroundColor: palette.paper },
+                          headerTransparent: true,
+                          headerShadowVisible: false,
+                          headerBlurEffect: 'none' as const,
+                        }
+                      : {
+                          // Android: the route is an invisible host for the
+                          // HeroUI bottom sheet (AddPersonSheet), which
+                          // renders its own scrim and pops the route on close
+                          presentation: 'transparentModal' as const,
+                          animation: 'none' as const,
+                          headerShown: false,
+                          contentStyle: { backgroundColor: 'transparent' },
+                        }),
+                  }}
+                />
+              </Stack>
+            </ThemeProvider>
+          </CurrentDayProvider>
         </UIProviders>
       </KeyboardProvider>
     </GestureHandlerRootView>
