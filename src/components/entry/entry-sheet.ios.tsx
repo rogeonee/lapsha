@@ -6,6 +6,8 @@ import {
   Group,
   Host,
   HStack,
+  Image,
+  Menu,
   Picker,
   ScrollView,
   Spacer,
@@ -19,10 +21,12 @@ import {
   background,
   cornerRadius,
   disabled,
+  fixedSize,
   font,
   foregroundStyle,
   frame,
   labelsHidden,
+  lineLimit,
   opacity,
   padding,
   pickerStyle,
@@ -340,33 +344,65 @@ function PersonPickerRow({
   onPersonChange: (id: string) => void;
   expanded: boolean;
 }) {
-  const picker = (
-    <Picker
-      selection={personId}
-      onSelectionChange={(selection) => onPersonChange(String(selection))}
-      modifiers={[
-        pickerStyle('menu'),
-        ...(expanded ? [frame({ maxWidth: FILL })] : []),
-      ]}
-    >
-      {people.map((person) => (
-        <Text key={person.id} modifiers={[tag(person.id)]}>
-          {person.name}
-        </Text>
-      ))}
-    </Picker>
-  );
+  if (!expanded) {
+    return (
+      <HStack modifiers={personRowModifiers}>
+        <Text>Person</Text>
+        <Spacer />
+        <Picker
+          selection={personId}
+          onSelectionChange={(selection) => onPersonChange(String(selection))}
+          modifiers={[pickerStyle('menu')]}
+        >
+          {people.map((person) => (
+            <Text key={person.id} modifiers={[tag(person.id)]}>
+              {person.name}
+            </Text>
+          ))}
+        </Picker>
+      </HStack>
+    );
+  }
 
-  return expanded ? (
+  const selectedName =
+    people.find((person) => person.id === personId)?.name ?? 'Choose person';
+
+  return (
     <VStack alignment="leading" spacing={8} modifiers={personRowModifiers}>
       <Text>Person</Text>
-      {picker}
+      <Menu
+        label={
+          <HStack
+            spacing={8}
+            modifiers={[
+              fixedSize({ horizontal: false, vertical: true }),
+              frame({ maxWidth: FILL }),
+            ]}
+          >
+            <Text
+              modifiers={[
+                foregroundStyle(palette.broth),
+                lineLimit(1),
+                fixedSize({ horizontal: false, vertical: true }),
+              ]}
+            >
+              {selectedName}
+            </Text>
+            <Spacer />
+            <Image systemName="chevron.down" size={16} color={palette.broth} />
+          </HStack>
+        }
+        modifiers={[frame({ maxWidth: FILL })]}
+      >
+        {people.map((person) => (
+          <Button
+            key={person.id}
+            label={person.name}
+            systemImage={person.id === personId ? 'checkmark' : undefined}
+            onPress={() => onPersonChange(person.id)}
+          />
+        ))}
+      </Menu>
     </VStack>
-  ) : (
-    <HStack modifiers={personRowModifiers}>
-      <Text>Person</Text>
-      <Spacer />
-      {picker}
-    </HStack>
   );
 }
