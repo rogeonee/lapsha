@@ -48,16 +48,29 @@ export default function EntrySheet({
   config: EntrySheetConfig | null;
   onClose: () => void;
 }) {
+  const { fontScale, height } = useWindowDimensions();
+
   // Keep the last config (+ a nonce to reset form state per open) so the
   // sheet content stays rendered during the dismiss animation
   const [rendered, setRendered] = useState<{
     config: EntrySheetConfig;
     nonce: number;
+    needsBoundedScroll: boolean;
   } | null>(null);
 
   if (config && config !== rendered?.config) {
+    const globalCreate = config.mode === 'create' && !config.personId;
+    const peopleResponse = globalCreate ? getPeople() : null;
+    const peopleCount = peopleResponse?.error
+      ? 0
+      : (peopleResponse?.data?.length ?? 0);
+
     // Derived state: adjust during render when a new config arrives
-    setRendered({ config, nonce: (rendered?.nonce ?? 0) + 1 });
+    setRendered({
+      config,
+      nonce: (rendered?.nonce ?? 0) + 1,
+      needsBoundedScroll: fontScale > 1 || height < 600 || peopleCount > 8,
+    });
   }
 
   // The keyboard outlives the sheet otherwise (overlay tap, save, swipe)
@@ -71,11 +84,7 @@ export default function EntrySheet({
   // together, and waiting for the sheet to settle first serialized the
   // two animations into a visible pause
   const [opening, setOpening] = useState(false);
-  const { fontScale, height } = useWindowDimensions();
-  const globalCreate =
-    config?.mode === 'create' && config.personId === undefined;
-  const peopleCount = globalCreate ? (getPeople().data?.length ?? 0) : 0;
-  const needsBoundedScroll = fontScale > 1 || height < 600 || peopleCount > 8;
+  const needsBoundedScroll = rendered?.needsBoundedScroll ?? false;
 
   // The sheet stays mounted: HeroUI's bottom sheet only animates open on
   // an isOpen false -> true transition, so mounting it already-open

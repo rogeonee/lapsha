@@ -39,7 +39,7 @@ export default function AddPersonSheet() {
   const form = useAddPersonForm();
   const isSubmitting = form.isSubmitting;
   const { fontScale, height } = useWindowDimensions();
-  const needsBoundedScroll = fontScale > 1 || height < 600;
+  const [needsBoundedScroll] = useState(() => fontScale > 1 || height < 600);
 
   // HeroUI's bottom sheet only animates open on an isOpen false -> true
   // transition, AND gorhom silently drops the snapToIndex call that

@@ -96,24 +96,30 @@ export default function EntrySheet({
   config: EntrySheetConfig | null;
   onClose: () => void;
 }) {
+  const { fontScale, height } = useWindowDimensions();
+
   // Keep the last config (+ a nonce to reset form state per open) so the
   // sheet content stays rendered during the dismiss animation
   const [rendered, setRendered] = useState<{
     config: EntrySheetConfig;
     nonce: number;
+    needsBoundedScroll: boolean;
   } | null>(null);
 
   if (config && config !== rendered?.config) {
     // Derived state: adjust during render when a new config arrives
-    setRendered({ config, nonce: (rendered?.nonce ?? 0) + 1 });
+    setRendered({
+      config,
+      nonce: (rendered?.nonce ?? 0) + 1,
+      needsBoundedScroll: fontScale > 1 || height < 600,
+    });
   }
-
-  const { fontScale, height } = useWindowDimensions();
-  const needsBoundedScroll = fontScale > 1 || height < 600;
 
   if (!rendered) {
     return null;
   }
+
+  const needsBoundedScroll = rendered.needsBoundedScroll;
 
   return (
     <Host style={{ position: 'absolute', width: 0, height: 0 }}>
