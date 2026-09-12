@@ -9,6 +9,7 @@ import { formatDateDetail, formatMonthShort } from '~/lib/dates';
 import { palette } from '~/lib/theme';
 import { cn } from '~/lib/utils';
 import type { Date as PersonDate } from '~/types/db';
+import type { CalendarDay } from '~/lib/current-day';
 
 const DELETE_ACTION_WIDTH = 80;
 const SWIPE_OPEN_THRESHOLD = 32;
@@ -171,11 +172,13 @@ export function EntryRow({
  */
 export function DateRow({
   date,
+  today,
   divider,
   onPress,
   onDelete,
 }: {
   date: PersonDate;
+  today: CalendarDay;
   divider?: boolean;
   onPress: () => void;
   onDelete: () => void;
@@ -184,7 +187,7 @@ export function DateRow({
   // user-authored labels display exactly as typed
   const label =
     date.label.toLowerCase() === BIRTHDAY_LABEL ? 'Birthday' : date.label;
-  const detail = formatDateDetail(date);
+  const detail = formatDateDetail(date, today);
   const accessibleDate = new Date(
     2000,
     date.month - 1,

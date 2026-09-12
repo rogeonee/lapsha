@@ -1,4 +1,5 @@
 import type { Date as PersonDate } from '~/types/db';
+import type { CalendarDay } from '~/lib/current-day';
 
 /** Year used in stored dates when the year is unknown (recurring dates) */
 const UNKNOWN_YEAR = '0001';
@@ -57,6 +58,52 @@ export function nextDateOccurrence(
   return next;
 }
 
+function calendarDayNumber(day: CalendarDay): number {
+  return Date.UTC(day.year, day.month - 1, day.day) / (24 * 60 * 60 * 1000);
+}
+
+function occurrenceInYear(
+  year: number,
+  month: number,
+  day: number,
+): CalendarDay {
+  const occurrence = new Date(Date.UTC(year, month - 1, day));
+  return {
+    year: occurrence.getUTCFullYear(),
+    month: occurrence.getUTCMonth() + 1,
+    day: occurrence.getUTCDate(),
+  };
+}
+
+/** Recurrence projection using calendar fields only, independent of Date's local zone. */
+export function nextCalendarDateOccurrence(
+  month: number,
+  day: number,
+  today: CalendarDay,
+): CalendarDay {
+  let next = occurrenceInYear(today.year, month, day);
+  if (calendarDayNumber(next) < calendarDayNumber(today)) {
+    next = occurrenceInYear(today.year + 1, month, day);
+  }
+  return next;
+}
+
+export function calendarDaysBetween(
+  from: CalendarDay,
+  to: CalendarDay,
+): number {
+  return calendarDayNumber(to) - calendarDayNumber(from);
+}
+
+export function formatCalendarDay(
+  day: CalendarDay,
+  options: Intl.DateTimeFormatOptions,
+): string {
+  return new Date(
+    Date.UTC(day.year, day.month - 1, day.day),
+  ).toLocaleDateString(undefined, { ...options, timeZone: 'UTC' });
+}
+
 /** "Jul" — short month name, for the date row's day block */
 export function formatMonthShort(personDate: PersonDate): string {
   return new Date(
@@ -71,13 +118,18 @@ export function formatMonthShort(personDate: PersonDate): string {
  * "2019 · 8 years" otherwise. The count is at the next occurrence, matching
  * the timeline. Null when the year is unknown.
  */
-export function formatDateDetail(personDate: PersonDate): string | null {
+export function formatDateDetail(
+  personDate: PersonDate,
+  today: CalendarDay,
+): string | null {
   if (!personDate.year_known) return null;
   const year = Number(personDate.date.slice(0, 4));
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const next = nextDateOccurrence(personDate.month, personDate.day, today);
-  const elapsed = next.getFullYear() - year;
+  const next = nextCalendarDateOccurrence(
+    personDate.month,
+    personDate.day,
+    today,
+  );
+  const elapsed = next.year - year;
   if (elapsed <= 0) return String(year);
   const suffix =
     personDate.label.toLowerCase() === 'birthday'

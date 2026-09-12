@@ -8,6 +8,8 @@ Record only non-obvious decisions, device-tested traps, and context that cannot 
 
 ## Decisions
 
+- **2026-09-12 — Hermes can mix stale and current device timezones.** On the physical Pixel 6 / Android 17, changing Edmonton ↔ Tokyo inside one running process left local `Date` getters/constructors inconsistent, even when a fresh `Intl.DateTimeFormat().resolvedOptions().timeZone` reported the new zone. Relative UI therefore carries plain Gregorian year/month/day fields from explicit-zone Intl formatting and uses UTC-only calendar arithmetic. Do not convert that reference back into a synthetic local-midnight Date; it reintroduces wrong Today/Tomorrow groups and ages.
+
 - **2026-09-11 — Beta recovery uses OS backups, with no Android photos.** Keep iOS defaults. Android cloud backup and device transfer exclude only `files/avatars/`; other eligible data stays included. Expo SQLite stores both the main DB and preferences under `files/SQLite/`, not Android's `database` backup domain. SecureStore was unused and removed because its shared-preferences-only rules excluded our databases. Settings explains the photo omission; missing files resolve to initials. Full restore/transfer testing is explicitly deferred to the friends beta.
 
 - **2026-09-10 — Unknown-year dates use 2000 only inside the editor.** Storage still uses `0001-MM-DD`, including the intentional `0001-02-29` sentinel. February 29 anniversaries appear on March 1 in non-leap years; projection never changes the stored day. Android picker values are UTC-midnight calendar dates in both directions, not local instants.
