@@ -110,6 +110,7 @@ function AddPersonScreen() {
           <View className="flex-row items-center justify-between px-4 py-3">
             <Text className="text-base">Birthday</Text>
             <Switch
+              accessibilityLabel="Birthday"
               value={form.withBirthday}
               onValueChange={form.setWithBirthday}
             />
@@ -127,6 +128,7 @@ function AddPersonScreen() {
               <View className="flex-row items-center justify-between border-t border-black/5 px-4 py-3">
                 <Text className="text-base">Include year</Text>
                 <Switch
+                  accessibilityLabel="Include year"
                   value={form.includeYear}
                   onValueChange={form.setIncludeYear}
                 />

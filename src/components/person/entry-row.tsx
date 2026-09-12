@@ -16,12 +16,16 @@ const SWIPE_VELOCITY_THRESHOLD = 500;
 
 /** Swipe-left-to-delete wrapper shared by fact and date rows. */
 function SwipeableRow({
+  accessibilityValue,
+  editLabel,
   deleteLabel,
   divider,
   onPress,
   onDelete,
   children,
 }: {
+  accessibilityValue: string;
+  editLabel: string;
   deleteLabel: string;
   divider?: boolean;
   onPress: () => void;
@@ -82,8 +86,9 @@ function SwipeableRow({
           className="bg-white active:bg-black/5"
           style={{ zIndex: 1 }}
           accessibilityRole="button"
-          accessibilityLabel={`Edit ${deleteLabel}`}
-          accessibilityHint="Swipe left to reveal delete"
+          accessibilityLabel={`Edit ${editLabel}`}
+          accessibilityValue={{ text: accessibilityValue }}
+          accessibilityHint="Double tap to edit. Swipe left to reveal delete"
           accessibilityActions={[
             { name: 'delete', label: `Delete ${deleteLabel}` },
           ]}
@@ -136,6 +141,8 @@ export function EntryRow({
 }) {
   return (
     <SwipeableRow
+      accessibilityValue={value}
+      editLabel={label || 'fact'}
       deleteLabel={label || value}
       divider={divider}
       onPress={onPress}
@@ -178,9 +185,19 @@ export function DateRow({
   const label =
     date.label.toLowerCase() === BIRTHDAY_LABEL ? 'Birthday' : date.label;
   const detail = formatDateDetail(date);
+  const accessibleDate = new Date(
+    2000,
+    date.month - 1,
+    date.day,
+  ).toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
+  const accessibilityValue = detail
+    ? `${accessibleDate}, ${detail.replace(' · ', ', ')}`
+    : accessibleDate;
 
   return (
     <SwipeableRow
+      accessibilityValue={accessibilityValue}
+      editLabel={label}
       deleteLabel={label}
       divider={divider}
       onPress={onPress}

@@ -222,6 +222,7 @@ function SheetForm({
       <View className="flex-row items-center justify-between px-1">
         <Text className="text-base">Birthday</Text>
         <Switch
+          accessibilityLabel="Birthday"
           value={form.withBirthday}
           onValueChange={form.setWithBirthday}
         />
@@ -240,6 +241,7 @@ function SheetForm({
           <View className="flex-row items-center justify-between px-1">
             <Text className="text-base">Include year</Text>
             <Switch
+              accessibilityLabel="Include year"
               value={form.includeYear}
               onValueChange={form.setIncludeYear}
             />

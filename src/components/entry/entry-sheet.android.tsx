@@ -312,6 +312,7 @@ function EntryForm({
             <View className="flex-row items-center justify-between px-4 py-3">
               <Text className="text-base">Include year</Text>
               <Switch
+                accessibilityLabel="Include year"
                 isSelected={form.includeYear}
                 onSelectedChange={form.setIncludeYear}
               />
