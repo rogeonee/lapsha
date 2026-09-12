@@ -22,6 +22,7 @@ import {
   font,
   foregroundStyle,
   frame,
+  labelsHidden,
   opacity,
   padding,
   pickerStyle,
@@ -104,6 +105,7 @@ export default function EntrySheet({
     config: EntrySheetConfig;
     nonce: number;
     needsBoundedScroll: boolean;
+    usesExpandedRows: boolean;
   } | null>(null);
 
   if (config && config !== rendered?.config) {
@@ -112,6 +114,7 @@ export default function EntrySheet({
       config,
       nonce: (rendered?.nonce ?? 0) + 1,
       needsBoundedScroll: fontScale > 1 || height < 600,
+      usesExpandedRows: fontScale > 1,
     });
   }
 
@@ -147,6 +150,7 @@ export default function EntrySheet({
                 key={rendered.nonce}
                 config={rendered.config}
                 onClose={onClose}
+                usesExpandedRows={rendered.usesExpandedRows}
               />
             </ScrollView>
           ) : (
@@ -154,6 +158,7 @@ export default function EntrySheet({
               key={rendered.nonce}
               config={rendered.config}
               onClose={onClose}
+              usesExpandedRows={rendered.usesExpandedRows}
             />
           )}
         </Group>
@@ -165,9 +170,11 @@ export default function EntrySheet({
 function EntryForm({
   config,
   onClose,
+  usesExpandedRows,
 }: {
   config: EntrySheetConfig;
   onClose: () => void;
+  usesExpandedRows: boolean;
 }) {
   const router = useRouter();
   const form = useEntryForm(config, onClose);
@@ -231,23 +238,12 @@ function EntryForm({
       </Text>
 
       {form.showPersonPicker && (
-        <HStack modifiers={personRowModifiers}>
-          <Text>Person</Text>
-          <Spacer />
-          <Picker
-            selection={form.personId}
-            onSelectionChange={(selection) =>
-              form.setPersonId(String(selection))
-            }
-            modifiers={[pickerStyle('menu')]}
-          >
-            {form.people.map((p) => (
-              <Text key={p.id} modifiers={[tag(p.id)]}>
-                {p.name}
-              </Text>
-            ))}
-          </Picker>
-        </HStack>
+        <PersonPickerRow
+          people={form.people}
+          personId={form.personId}
+          onPersonChange={form.setPersonId}
+          expanded={usesExpandedRows}
+        />
       )}
 
       {config.mode === 'create' && (
@@ -289,13 +285,30 @@ function EntryForm({
             modifiers={fieldCardModifiers}
           />
           <VStack spacing={0} modifiers={cardModifiers}>
-            <DatePicker
-              title="Date"
-              selection={form.pickedDate}
-              displayedComponents={['date']}
-              onDateChange={form.setPickedDate}
-              modifiers={controlRowModifiers}
-            />
+            {usesExpandedRows ? (
+              <VStack
+                alignment="leading"
+                spacing={8}
+                modifiers={fieldRowModifiers}
+              >
+                <Text>Date</Text>
+                <DatePicker
+                  title="Date"
+                  selection={form.pickedDate}
+                  displayedComponents={['date']}
+                  onDateChange={form.setPickedDate}
+                  modifiers={[labelsHidden(), frame({ maxWidth: FILL })]}
+                />
+              </VStack>
+            ) : (
+              <DatePicker
+                title="Date"
+                selection={form.pickedDate}
+                displayedComponents={['date']}
+                onDateChange={form.setPickedDate}
+                modifiers={controlRowModifiers}
+              />
+            )}
             <Divider />
             <Toggle
               label="Include year"
@@ -313,5 +326,47 @@ function EntryForm({
         modifiers={form.isValid ? saveEnabledModifiers : saveDisabledModifiers}
       />
     </VStack>
+  );
+}
+
+function PersonPickerRow({
+  people,
+  personId,
+  onPersonChange,
+  expanded,
+}: {
+  people: ReturnType<typeof useEntryForm>['people'];
+  personId: string | null;
+  onPersonChange: (id: string) => void;
+  expanded: boolean;
+}) {
+  const picker = (
+    <Picker
+      selection={personId}
+      onSelectionChange={(selection) => onPersonChange(String(selection))}
+      modifiers={[
+        pickerStyle('menu'),
+        ...(expanded ? [frame({ maxWidth: FILL })] : []),
+      ]}
+    >
+      {people.map((person) => (
+        <Text key={person.id} modifiers={[tag(person.id)]}>
+          {person.name}
+        </Text>
+      ))}
+    </Picker>
+  );
+
+  return expanded ? (
+    <VStack alignment="leading" spacing={8} modifiers={personRowModifiers}>
+      <Text>Person</Text>
+      {picker}
+    </VStack>
+  ) : (
+    <HStack modifiers={personRowModifiers}>
+      <Text>Person</Text>
+      <Spacer />
+      {picker}
+    </HStack>
   );
 }
