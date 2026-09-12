@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Platform, Pressable, ScrollView, View } from 'react-native';
 import { clearAllData } from '~/api/database';
 import { mapDatabaseError } from '~/api/error-handling';
 import useClearDataConfirmation from '~/components/settings/use-clear-data-confirmation';
@@ -54,6 +54,23 @@ export default function SettingsScreen() {
             </View>
           </View>
         </View>
+
+        {Platform.OS === 'android' && (
+          <View>
+            <Text className="mb-2 px-1 text-base font-medium">Backup</Text>
+            <View
+              className="rounded-2xl bg-white px-4 py-4"
+              style={{ borderCurve: 'continuous', boxShadow: shadows.whisper }}
+            >
+              <Text className="text-base leading-5">
+                Android can back up your people, facts, dates, and preferences,
+                depending on your device settings. Photos are not included in
+                backups or transfers to another device. You’ll need to add them
+                again after restoring.
+              </Text>
+            </View>
+          </View>
+        )}
 
         <View>
           <Text className="mb-2 px-1 text-base font-medium">Data</Text>

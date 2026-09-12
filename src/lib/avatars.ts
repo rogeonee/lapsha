@@ -8,7 +8,9 @@ const AVATAR_SIZE = 1536;
 const avatarsDir = new Directory(Paths.document, 'avatars');
 
 export function avatarUri(fileName: string | null | undefined): string | null {
-  return fileName ? new File(avatarsDir, fileName).uri : null;
+  if (!fileName) return null;
+  const file = new File(avatarsDir, fileName);
+  return file.exists ? file.uri : null;
 }
 
 export async function pickAvatarImage(): Promise<ImagePicker.ImagePickerAsset | null> {
