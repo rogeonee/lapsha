@@ -2,6 +2,7 @@ import { Switch as RNSwitch } from 'react-native';
 import { palette } from '~/lib/theme';
 
 type SwitchProps = {
+  accessibilityLabel: string;
   value: boolean;
   onValueChange: (value: boolean) => void;
 };
@@ -11,9 +12,14 @@ type SwitchProps = {
  * Platform-split so Android gets the HeroUI/M3 switch instead — the RN
  * Switch there mixes the stock Material thumb with our gold track.
  */
-export default function Switch({ value, onValueChange }: SwitchProps) {
+export default function Switch({
+  accessibilityLabel,
+  value,
+  onValueChange,
+}: SwitchProps) {
   return (
     <RNSwitch
+      accessibilityLabel={accessibilityLabel}
       value={value}
       onValueChange={onValueChange}
       trackColor={{ true: palette.noodleGold }}

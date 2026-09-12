@@ -6,7 +6,10 @@ import {
   Group,
   Host,
   HStack,
+  Image,
+  Menu,
   Picker,
+  ScrollView,
   Spacer,
   Text,
   TextField,
@@ -18,19 +21,25 @@ import {
   background,
   cornerRadius,
   disabled,
+  fixedSize,
   font,
   foregroundStyle,
   frame,
+  labelsHidden,
+  lineLimit,
   opacity,
   padding,
   pickerStyle,
   presentationBackground,
+  presentationDetents,
   presentationDragIndicator,
+  scrollDismissesKeyboard,
   tag,
   tint,
 } from '@expo/ui/swift-ui/modifiers';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useWindowDimensions } from 'react-native';
 import {
   useEntryForm,
   type EntryKind,
@@ -75,6 +84,7 @@ const saveModifiers = (isValid: boolean) => [
 ];
 const saveEnabledModifiers = saveModifiers(true);
 const saveDisabledModifiers = saveModifiers(false);
+const sheetScrollModifiers = [scrollDismissesKeyboard('interactively')];
 
 export type { EntrySheetConfig };
 
@@ -91,21 +101,32 @@ export default function EntrySheet({
   config: EntrySheetConfig | null;
   onClose: () => void;
 }) {
+  const { fontScale, height } = useWindowDimensions();
+
   // Keep the last config (+ a nonce to reset form state per open) so the
   // sheet content stays rendered during the dismiss animation
   const [rendered, setRendered] = useState<{
     config: EntrySheetConfig;
     nonce: number;
+    needsBoundedScroll: boolean;
+    usesExpandedRows: boolean;
   } | null>(null);
 
   if (config && config !== rendered?.config) {
     // Derived state: adjust during render when a new config arrives
-    setRendered({ config, nonce: (rendered?.nonce ?? 0) + 1 });
+    setRendered({
+      config,
+      nonce: (rendered?.nonce ?? 0) + 1,
+      needsBoundedScroll: fontScale > 1 || height < 600,
+      usesExpandedRows: fontScale > 1,
+    });
   }
 
   if (!rendered) {
     return null;
   }
+
+  const needsBoundedScroll = rendered.needsBoundedScroll;
 
   return (
     <Host style={{ position: 'absolute', width: 0, height: 0 }}>
@@ -116,21 +137,34 @@ export default function EntrySheet({
             onClose();
           }
         }}
-        // Every mode hugs its content so no dead space rides above the
-        // keyboard; height re-fits when the fact/date tab switches
-        fitToContents
+        fitToContents={!needsBoundedScroll}
       >
         <Group
           modifiers={[
             presentationBackground(palette.paper),
+            ...(needsBoundedScroll
+              ? [presentationDetents(['medium', 'large'])]
+              : []),
             presentationDragIndicator('visible'),
           ]}
         >
-          <EntryForm
-            key={rendered.nonce}
-            config={rendered.config}
-            onClose={onClose}
-          />
+          {needsBoundedScroll ? (
+            <ScrollView modifiers={sheetScrollModifiers}>
+              <EntryForm
+                key={rendered.nonce}
+                config={rendered.config}
+                onClose={onClose}
+                usesExpandedRows={rendered.usesExpandedRows}
+              />
+            </ScrollView>
+          ) : (
+            <EntryForm
+              key={rendered.nonce}
+              config={rendered.config}
+              onClose={onClose}
+              usesExpandedRows={rendered.usesExpandedRows}
+            />
+          )}
         </Group>
       </BottomSheet>
     </Host>
@@ -140,9 +174,11 @@ export default function EntrySheet({
 function EntryForm({
   config,
   onClose,
+  usesExpandedRows,
 }: {
   config: EntrySheetConfig;
   onClose: () => void;
+  usesExpandedRows: boolean;
 }) {
   const router = useRouter();
   const form = useEntryForm(config, onClose);
@@ -206,23 +242,12 @@ function EntryForm({
       </Text>
 
       {form.showPersonPicker && (
-        <HStack modifiers={personRowModifiers}>
-          <Text>Person</Text>
-          <Spacer />
-          <Picker
-            selection={form.personId}
-            onSelectionChange={(selection) =>
-              form.setPersonId(String(selection))
-            }
-            modifiers={[pickerStyle('menu')]}
-          >
-            {form.people.map((p) => (
-              <Text key={p.id} modifiers={[tag(p.id)]}>
-                {p.name}
-              </Text>
-            ))}
-          </Picker>
-        </HStack>
+        <PersonPickerRow
+          people={form.people}
+          personId={form.personId}
+          onPersonChange={form.setPersonId}
+          expanded={usesExpandedRows}
+        />
       )}
 
       {config.mode === 'create' && (
@@ -264,13 +289,30 @@ function EntryForm({
             modifiers={fieldCardModifiers}
           />
           <VStack spacing={0} modifiers={cardModifiers}>
-            <DatePicker
-              title="Date"
-              selection={form.pickedDate}
-              displayedComponents={['date']}
-              onDateChange={form.setPickedDate}
-              modifiers={controlRowModifiers}
-            />
+            {usesExpandedRows ? (
+              <VStack
+                alignment="leading"
+                spacing={8}
+                modifiers={fieldRowModifiers}
+              >
+                <Text>Date</Text>
+                <DatePicker
+                  title="Date"
+                  selection={form.pickedDate}
+                  displayedComponents={['date']}
+                  onDateChange={form.setPickedDate}
+                  modifiers={[labelsHidden(), frame({ maxWidth: FILL })]}
+                />
+              </VStack>
+            ) : (
+              <DatePicker
+                title="Date"
+                selection={form.pickedDate}
+                displayedComponents={['date']}
+                onDateChange={form.setPickedDate}
+                modifiers={controlRowModifiers}
+              />
+            )}
             <Divider />
             <Toggle
               label="Include year"
@@ -287,6 +329,80 @@ function EntryForm({
         onPress={form.handleSave}
         modifiers={form.isValid ? saveEnabledModifiers : saveDisabledModifiers}
       />
+    </VStack>
+  );
+}
+
+function PersonPickerRow({
+  people,
+  personId,
+  onPersonChange,
+  expanded,
+}: {
+  people: ReturnType<typeof useEntryForm>['people'];
+  personId: string | null;
+  onPersonChange: (id: string) => void;
+  expanded: boolean;
+}) {
+  if (!expanded) {
+    return (
+      <HStack modifiers={personRowModifiers}>
+        <Text>Person</Text>
+        <Spacer />
+        <Picker
+          selection={personId}
+          onSelectionChange={(selection) => onPersonChange(String(selection))}
+          modifiers={[pickerStyle('menu')]}
+        >
+          {people.map((person) => (
+            <Text key={person.id} modifiers={[tag(person.id)]}>
+              {person.name}
+            </Text>
+          ))}
+        </Picker>
+      </HStack>
+    );
+  }
+
+  const selectedName =
+    people.find((person) => person.id === personId)?.name ?? 'Choose person';
+
+  return (
+    <VStack alignment="leading" spacing={8} modifiers={personRowModifiers}>
+      <Text>Person</Text>
+      <Menu
+        label={
+          <HStack
+            spacing={8}
+            modifiers={[
+              fixedSize({ horizontal: false, vertical: true }),
+              frame({ maxWidth: FILL }),
+            ]}
+          >
+            <Text
+              modifiers={[
+                foregroundStyle(palette.broth),
+                lineLimit(1),
+                fixedSize({ horizontal: false, vertical: true }),
+              ]}
+            >
+              {selectedName}
+            </Text>
+            <Spacer />
+            <Image systemName="chevron.down" size={16} color={palette.broth} />
+          </HStack>
+        }
+        modifiers={[frame({ maxWidth: FILL })]}
+      >
+        {people.map((person) => (
+          <Button
+            key={person.id}
+            label={person.name}
+            systemImage={person.id === personId ? 'checkmark' : undefined}
+            onPress={() => onPersonChange(person.id)}
+          />
+        ))}
+      </Menu>
     </VStack>
   );
 }

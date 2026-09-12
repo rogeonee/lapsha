@@ -29,6 +29,7 @@ export default function QuickAddFab({ onPress }: { onPress: () => void }) {
             <Icon
               source={require('~/assets/icons/add.xml')}
               tint={palette.broth}
+              contentDescription="Quick add"
             />
           </FloatingActionButton.Icon>
         </FloatingActionButton>

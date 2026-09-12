@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { BottomSheet } from 'heroui-native/bottom-sheet';
 import { Button } from 'heroui-native/button';
 import { useBottomSheetAwareHandlers } from 'heroui-native/hooks';
@@ -7,7 +8,12 @@ import { Label } from 'heroui-native/label';
 import { TextField } from 'heroui-native/text-field';
 import { useEffect, useRef, useState, type ComponentRef } from 'react';
 import { Controller } from 'react-hook-form';
-import { Pressable, View, type TextInput } from 'react-native';
+import {
+  Pressable,
+  View,
+  useWindowDimensions,
+  type TextInput,
+} from 'react-native';
 import {
   KeyboardController,
   useReanimatedKeyboardAnimation,
@@ -32,6 +38,8 @@ export default function AddPersonSheet() {
   const router = useRouter();
   const form = useAddPersonForm();
   const isSubmitting = form.isSubmitting;
+  const { fontScale, height } = useWindowDimensions();
+  const [needsBoundedScroll] = useState(() => fontScale > 1 || height < 600);
 
   // HeroUI's bottom sheet only animates open on an isOpen false -> true
   // transition, AND gorhom silently drops the snapToIndex call that
@@ -110,6 +118,10 @@ export default function AddPersonSheet() {
         <BottomSheet.Overlay />
         <BottomSheet.Content
           ref={sheetRef}
+          snapPoints={needsBoundedScroll ? ['85%'] : undefined}
+          enableDynamicSizing={!needsBoundedScroll}
+          enableOverDrag={!needsBoundedScroll}
+          contentContainerClassName={needsBoundedScroll ? 'h-full' : undefined}
           keyboardBehavior="interactive"
           // Keeps gorhom's own keyboard lift inert (its in-container
           // height math is broken under the root KeyboardProvider), so
@@ -123,11 +135,21 @@ export default function AddPersonSheet() {
             setOpening(toIndex >= 0);
           }}
         >
-          <SheetForm
-            form={form}
-            canFocus={opening}
-            onLayout={handleContentLayout}
-          />
+          {needsBoundedScroll ? (
+            <BottomSheetScrollView
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ flexGrow: 1 }}
+              onLayout={handleContentLayout}
+            >
+              <SheetForm form={form} canFocus={opening} />
+            </BottomSheetScrollView>
+          ) : (
+            <SheetForm
+              form={form}
+              canFocus={opening}
+              onLayout={handleContentLayout}
+            />
+          )}
         </BottomSheet.Content>
       </BottomSheet.Portal>
     </BottomSheet>
@@ -141,13 +163,13 @@ function SheetForm({
 }: {
   form: ReturnType<typeof useAddPersonForm>;
   canFocus: boolean;
-  onLayout: () => void;
+  onLayout?: () => void;
 }) {
   const { onFocus, onBlur } = useBottomSheetAwareHandlers();
 
   // Autofocus the name field shortly after the open animation starts:
-  // the head start lets the sheet establish its spring before dynamic
-  // sizing retargets it for the keyboard (see entry-sheet.android)
+  // the head start lets the sheet establish its spring before the
+  // keyboard changes the scrollable content inset (see entry-sheet.android)
   const nameInputRef = useRef<TextInput>(null);
   const focusedOnce = useRef(false);
   useEffect(() => {
@@ -159,8 +181,8 @@ function SheetForm({
   }, [canFocus]);
 
   // Keyboard avoidance: pad the content from keyboard-controller's
-  // animated height (per-frame, UI thread); dynamic sizing re-snaps the
-  // sheet above it. Same pattern as the entry sheet.
+  // animated height (per-frame, UI thread), leaving enough scroll extent
+  // to reach the submit action. Same pattern as the entry sheet.
   const { height: keyboardHeight } = useReanimatedKeyboardAnimation();
   const keyboardPad = useAnimatedStyle(() => ({
     // height runs 0 -> -keyboardHeight as the keyboard animates in
@@ -222,6 +244,7 @@ function SheetForm({
       <View className="flex-row items-center justify-between px-1">
         <Text className="text-base">Birthday</Text>
         <Switch
+          accessibilityLabel="Birthday"
           value={form.withBirthday}
           onValueChange={form.setWithBirthday}
         />
@@ -240,6 +263,7 @@ function SheetForm({
           <View className="flex-row items-center justify-between px-1">
             <Text className="text-base">Include year</Text>
             <Switch
+              accessibilityLabel="Include year"
               value={form.includeYear}
               onValueChange={form.setIncludeYear}
             />
