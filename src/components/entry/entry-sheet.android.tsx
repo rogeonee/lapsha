@@ -1,4 +1,5 @@
 import { DatePickerDialog, Host } from '@expo/ui/jetpack-compose';
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useRouter } from 'expo-router';
 import { BottomSheet } from 'heroui-native/bottom-sheet';
 import { Button } from 'heroui-native/button';
@@ -8,7 +9,13 @@ import { Switch } from 'heroui-native/switch';
 import { Tabs } from 'heroui-native/tabs';
 import { TextField } from 'heroui-native/text-field';
 import { useEffect, useRef, useState } from 'react';
-import { Keyboard, Pressable, View, type TextInput } from 'react-native';
+import {
+  Keyboard,
+  Pressable,
+  View,
+  useWindowDimensions,
+  type TextInput,
+} from 'react-native';
 import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import {
@@ -18,6 +25,7 @@ import {
 } from '~/components/entry/use-entry-form';
 import { CheckIcon, ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
+import { getPeople } from '~/api/people/people-service';
 import { fromAndroidPickerDate, toAndroidPickerDate } from '~/lib/dates';
 import { palette, shadows } from '~/lib/theme';
 
@@ -63,6 +71,11 @@ export default function EntrySheet({
   // together, and waiting for the sheet to settle first serialized the
   // two animations into a visible pause
   const [opening, setOpening] = useState(false);
+  const { fontScale, height } = useWindowDimensions();
+  const globalCreate =
+    config?.mode === 'create' && config.personId === undefined;
+  const peopleCount = globalCreate ? (getPeople().data?.length ?? 0) : 0;
+  const needsBoundedScroll = fontScale > 1 || height < 600 || peopleCount > 8;
 
   // The sheet stays mounted: HeroUI's bottom sheet only animates open on
   // an isOpen false -> true transition, so mounting it already-open
@@ -80,6 +93,10 @@ export default function EntrySheet({
         <BottomSheet.Overlay />
         <BottomSheet.Content
           backgroundClassName="bg-paper"
+          snapPoints={needsBoundedScroll ? ['85%'] : undefined}
+          enableDynamicSizing={!needsBoundedScroll}
+          enableOverDrag={!needsBoundedScroll}
+          contentContainerClassName={needsBoundedScroll ? 'h-full' : undefined}
           keyboardBehavior="interactive"
           // Keeps gorhom's own keyboard lift inert (its in-container
           // height math is broken under the root KeyboardProvider), so
@@ -87,13 +104,29 @@ export default function EntrySheet({
           android_keyboardInputMode="adjustResize"
           onAnimate={(_fromIndex, toIndex) => setOpening(toIndex >= 0)}
         >
-          {rendered && (
-            <EntryForm
-              key={rendered.nonce}
-              config={rendered.config}
-              onClose={handleClose}
-              canFocus={opening}
-            />
+          {needsBoundedScroll ? (
+            <BottomSheetScrollView
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
+              {rendered && (
+                <EntryForm
+                  key={rendered.nonce}
+                  config={rendered.config}
+                  onClose={handleClose}
+                  canFocus={opening}
+                />
+              )}
+            </BottomSheetScrollView>
+          ) : (
+            rendered && (
+              <EntryForm
+                key={rendered.nonce}
+                config={rendered.config}
+                onClose={handleClose}
+                canFocus={opening}
+              />
+            )
           )}
         </BottomSheet.Content>
       </BottomSheet.Portal>
@@ -117,10 +150,10 @@ function EntryForm({
   const [personListOpen, setPersonListOpen] = useState(false);
 
   // Autofocus the first field shortly after the open animation starts:
-  // the head start lets the sheet establish its spring before dynamic
-  // sizing retargets it for the keyboard, without serializing the two
-  // animations into a full pause. Fires for create mode and for the
-  // single-field edit-name mode.
+  // the head start lets the sheet establish its spring before the
+  // keyboard changes the scrollable content inset, without serializing
+  // the two animations into a full pause. Fires for create mode and for
+  // the single-field edit-name mode.
   const autoFocusRef = useRef<TextInput>(null);
   const focusedOnce = useRef(false);
   const shouldAutoFocus = config.mode === 'create' || config.kind === 'person';
@@ -137,7 +170,7 @@ function EntryForm({
   // tracking — its computed in-container height resolves to 0 and the
   // sheet never lifts. Pad the content from keyboard-controller's
   // animated height (per-frame, UI thread) so it tracks the keyboard
-  // instead of jumping; dynamic sizing re-snaps the sheet above it.
+  // instead of jumping and leaves enough scroll extent to reach Save.
   const { height: keyboardHeight } = useReanimatedKeyboardAnimation();
   const keyboardPad = useAnimatedStyle(() => ({
     // height runs 0 -> -keyboardHeight as the keyboard animates in

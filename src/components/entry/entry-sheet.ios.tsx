@@ -7,6 +7,7 @@ import {
   Host,
   HStack,
   Picker,
+  ScrollView,
   Spacer,
   Text,
   TextField,
@@ -25,12 +26,15 @@ import {
   padding,
   pickerStyle,
   presentationBackground,
+  presentationDetents,
   presentationDragIndicator,
+  scrollDismissesKeyboard,
   tag,
   tint,
 } from '@expo/ui/swift-ui/modifiers';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useWindowDimensions } from 'react-native';
 import {
   useEntryForm,
   type EntryKind,
@@ -75,6 +79,7 @@ const saveModifiers = (isValid: boolean) => [
 ];
 const saveEnabledModifiers = saveModifiers(true);
 const saveDisabledModifiers = saveModifiers(false);
+const sheetScrollModifiers = [scrollDismissesKeyboard('interactively')];
 
 export type { EntrySheetConfig };
 
@@ -103,6 +108,9 @@ export default function EntrySheet({
     setRendered({ config, nonce: (rendered?.nonce ?? 0) + 1 });
   }
 
+  const { fontScale, height } = useWindowDimensions();
+  const needsBoundedScroll = fontScale > 1 || height < 600;
+
   if (!rendered) {
     return null;
   }
@@ -116,21 +124,32 @@ export default function EntrySheet({
             onClose();
           }
         }}
-        // Every mode hugs its content so no dead space rides above the
-        // keyboard; height re-fits when the fact/date tab switches
-        fitToContents
+        fitToContents={!needsBoundedScroll}
       >
         <Group
           modifiers={[
             presentationBackground(palette.paper),
+            ...(needsBoundedScroll
+              ? [presentationDetents(['medium', 'large'])]
+              : []),
             presentationDragIndicator('visible'),
           ]}
         >
-          <EntryForm
-            key={rendered.nonce}
-            config={rendered.config}
-            onClose={onClose}
-          />
+          {needsBoundedScroll ? (
+            <ScrollView modifiers={sheetScrollModifiers}>
+              <EntryForm
+                key={rendered.nonce}
+                config={rendered.config}
+                onClose={onClose}
+              />
+            </ScrollView>
+          ) : (
+            <EntryForm
+              key={rendered.nonce}
+              config={rendered.config}
+              onClose={onClose}
+            />
+          )}
         </Group>
       </BottomSheet>
     </Host>
