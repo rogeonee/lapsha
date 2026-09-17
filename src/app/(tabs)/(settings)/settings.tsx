@@ -1,12 +1,32 @@
 import Constants from 'expo-constants';
-import { Platform, Pressable, ScrollView, View } from 'react-native';
+import {
+  Alert,
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from 'react-native';
 import { clearAllData } from '~/api/database';
 import { mapDatabaseError } from '~/api/error-handling';
 import useClearDataConfirmation from '~/components/settings/use-clear-data-confirmation';
-import { TrashIcon } from '~/components/ui/icons';
+import { ChevronRightIcon, TrashIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 import { useCollapsingHeader } from '~/components/ui/use-collapsing-header';
 import { palette, shadows } from '~/lib/theme';
+
+const privacyPolicyUrl = 'https://lapsha-landing.vercel.app/privacy';
+
+async function openPrivacyPolicy() {
+  try {
+    await Linking.openURL(privacyPolicyUrl);
+  } catch {
+    Alert.alert(
+      "Couldn't open privacy policy",
+      `Please try again, or visit ${privacyPolicyUrl} in your browser.`,
+    );
+  }
+}
 
 function clearDeviceData() {
   try {
@@ -52,6 +72,16 @@ export default function SettingsScreen() {
                 {version}
               </Text>
             </View>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel="Privacy policy"
+              accessibilityHint="Opens the Lapsha privacy policy in your browser"
+              className="min-h-12 flex-row items-center justify-between gap-3 border-t border-black/5 px-4 py-3 active:bg-black/5"
+              onPress={openPrivacyPolicy}
+            >
+              <Text className="flex-1 text-base">Privacy policy</Text>
+              <ChevronRightIcon color={palette.warmGrayDeep} />
+            </Pressable>
           </View>
         </View>
 
