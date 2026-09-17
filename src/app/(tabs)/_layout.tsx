@@ -124,6 +124,7 @@ export default function TabLayout() {
             trigger so Expo Router does not surface it automatically. */}
         <NativeTabs.Trigger
           name="quick-add"
+          accessibilityLabel="Quick add"
           role={SEARCH_TAB_QUICK_ADD ? 'search' : undefined}
           hidden={!SEARCH_TAB_QUICK_ADD}
           disabled={SEARCH_TAB_QUICK_ADD}
