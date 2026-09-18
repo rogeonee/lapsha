@@ -55,7 +55,7 @@ For a small friends beta, start with **Google Play internal testing**: up to 100
 
 ### Both platforms
 
-- [ ] Show the build number alongside `0.1.0` in Settings so reports identify the exact binary; it currently shows only the marketing version.
+- [x] Show the version and build number in Settings. `expo-application` reads the installed binary’s version and build number. Verified `0.1.0 (1)` on the rebuilt iPhone 16 Pro / iOS 18.0 simulator on September 18, 2026. EAS remote versioning and production auto-increment remain enabled. Android and remote EAS build values were not exercised.
 - [ ] Give testers one feedback destination and a short script: add a person, optionally choose a photo/birthday, add and edit a fact/date, try quick add, and reopen the app the following day. Use synthetic details in screenshots and reports.
 - [ ] Confirm access to TestFlight crash feedback and Android crash/ANR reports. Start with platform diagnostics; adding analytics is not necessary for this beta.
 - [ ] Decide the supported OS range. Generated native settings currently admit iOS **16.4+** and Android **7/API 24+**, considerably wider than the devices inspected. Either test the advertised floor or intentionally raise it. Specifically include Android 14 or below if retained: the notebook records a possible keyboard double-shift there.

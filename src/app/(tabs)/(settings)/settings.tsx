@@ -1,4 +1,4 @@
-import Constants from 'expo-constants';
+import * as Application from 'expo-application';
 import {
   Alert,
   Linking,
@@ -39,7 +39,8 @@ function clearDeviceData() {
 }
 
 export default function SettingsScreen() {
-  const version = Constants.expoConfig?.version ?? 'Unknown';
+  const version = Application.nativeApplicationVersion ?? 'Unknown';
+  const buildNumber = Application.nativeBuildVersion ?? 'Unknown';
   const header = useCollapsingHeader({ title: 'Settings' });
   const { confirmClearData, confirmation } =
     useClearDataConfirmation(clearDeviceData);
@@ -69,7 +70,7 @@ export default function SettingsScreen() {
             <View className="min-h-12 flex-row items-center justify-between border-t border-black/5 px-4 py-3">
               <Text className="text-base">Version</Text>
               <Text selectable className="text-base text-muted-foreground">
-                {version}
+                {version} ({buildNumber})
               </Text>
             </View>
             <Pressable
