@@ -8,6 +8,10 @@ Record only non-obvious decisions, device-tested traps, and context that cannot 
 
 ## Decisions
 
+- **2026-09-18 — Xcode 27 builds require scene support on iOS 27.** UIKit traps at launch in `_UIApplicationEvaluateRuntimeIssueForNoSceneLifecycleAdoption` before JavaScript runs when the old AppDelegate-only template is used. SDK 57 supports opting in through `expo-build-properties` → `ios.enableSceneSupport: true` with Expo 57.0.23+. Keep this in app config so prebuild regenerates the scene manifest and factory-provider conformance; remove the opt-in after upgrading to SDK 58, where scenes are the default.
+
+- **2026-09-18 — Observe needs the matching dev-client patch on Android.** `expo-observe` 57.0.23 / `expo-app-metrics` 57.0.20 require `expo-updates-interface` 57.0.2 in their prebuilt Android artifacts. With `expo-dev-client` 57.0.18, Bun kept 57.0.1 at the root and 57.0.2 nested; autolinking picked the older copy, and Gradle tried to fetch the missing 57.0.2 artifact from public Maven repositories. Updating `expo-dev-client` to 57.0.19 deduplicates the interface at 57.0.2. Another clean prebuild does not fix that dependency mismatch.
+
 - **2026-09-11 — Beta recovery uses OS backups, with no Android photos.** Keep iOS defaults. Android cloud backup and device transfer exclude only `files/avatars/`; other eligible data stays included. Expo SQLite stores both the main DB and preferences under `files/SQLite/`, not Android's `database` backup domain. SecureStore was unused and removed because its shared-preferences-only rules excluded our databases. Settings explains the photo omission; missing files resolve to initials. Full restore/transfer testing is explicitly deferred to the friends beta.
 
 - **2026-09-10 — Unknown-year dates use 2000 only inside the editor.** Storage still uses `0001-MM-DD`, including the intentional `0001-02-29` sentinel. February 29 anniversaries appear on March 1 in non-leap years; projection never changes the stored day. Android picker values are UTC-midnight calendar dates in both directions, not local instants.

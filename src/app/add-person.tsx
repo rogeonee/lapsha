@@ -9,6 +9,7 @@ import { useAddPersonForm } from '~/components/person/use-add-person-form';
 import { Input } from '~/components/ui/input';
 import Switch from '~/components/ui/switch';
 import { Text } from '~/components/ui/text';
+import { useObserveScreen } from '~/lib/use-observe-screen';
 import { palette, shadows } from '~/lib/theme';
 
 const isIOS = process.env.EXPO_OS === 'ios';
@@ -19,6 +20,7 @@ const cardStyle = {
 } as const;
 
 export default function AddPersonModal() {
+  useObserveScreen();
   // Android renders the HeroUI bottom sheet (the app's Android sheet
   // vocabulary, shared with quick add); the route itself is a
   // transparentModal that the sheet pops on close

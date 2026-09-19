@@ -118,6 +118,14 @@ src/
 
 ## Data and State Patterns
 
+### Observability
+
+- `expo-observe` records startup, route timings, and errors for `@rogeonee/lapsha`. Configuration and the root error boundary live in `src/app/_layout.tsx`.
+- Screens call `useObserveScreen()` after their synchronous data reads render. Its effect waits for startup readiness, including the configured splash fade. Add a readiness condition if a screen gains asynchronous startup work.
+- Person route parameter `id` is filtered. Keep personal details, IDs, photo paths, and database values out of telemetry; handled failures use fixed error messages.
+- Production EAS builds upload source maps and require EAS CLI 22+. Debug telemetry is off by default; temporary `dispatchInDebug: true` requires a development build with the native module installed.
+- Inspect data with `eas observe:versions`, `eas observe:metrics-summary`, and `eas observe:routes`.
+
 ### ServiceResponse
 
 Every API service returns synchronously:

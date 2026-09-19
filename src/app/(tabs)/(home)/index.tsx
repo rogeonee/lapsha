@@ -15,6 +15,7 @@ import { Text } from '~/components/ui/text';
 import { useCollapsingHeader } from '~/components/ui/use-collapsing-header';
 import { avatarUri } from '~/lib/avatars';
 import { nextDateOccurrence } from '~/lib/dates';
+import { useObserveScreen } from '~/lib/use-observe-screen';
 import { palette, shadows } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import { cn } from '~/lib/utils';
@@ -315,6 +316,7 @@ function loadPeople(_datesVersion: number, _retryNonce: number) {
 }
 
 export default function HomeScreen() {
+  useObserveScreen();
   const router = useRouter();
   const header = useCollapsingHeader({ title: 'Upcoming' });
   const datesVersion = useTableVersion(['dates', 'persons']);
