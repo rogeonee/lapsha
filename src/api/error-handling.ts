@@ -1,3 +1,4 @@
+import { Observe } from 'expo-observe';
 import { ZodError } from 'zod';
 
 /**
@@ -145,6 +146,7 @@ export function runServiceOperation<T>(
     } else if (error instanceof ZodError) {
       serviceError = mapValidationError(error);
     } else {
+      Observe.reportError(new Error('Database operation failed'));
       serviceError = mapDatabaseError(error);
     }
 

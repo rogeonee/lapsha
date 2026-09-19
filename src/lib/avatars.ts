@@ -1,3 +1,4 @@
+import { Observe } from 'expo-observe';
 import { randomUUID } from 'expo-crypto';
 import { Directory, File, Paths } from 'expo-file-system';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
@@ -48,7 +49,9 @@ export function deleteAvatarFile(fileName: string | null | undefined): void {
   try {
     const file = new File(avatarsDir, fileName);
     if (file.exists) file.delete();
-  } catch {}
+  } catch {
+    Observe.reportError(new Error('Avatar deletion failed'));
+  }
 }
 
 export function clearAvatarFiles(): void {
@@ -57,5 +60,7 @@ export function clearAvatarFiles(): void {
     for (const entry of avatarsDir.list()) {
       entry.delete();
     }
-  } catch {}
+  } catch {
+    Observe.reportError(new Error('Avatar cleanup failed'));
+  }
 }

@@ -1,3 +1,4 @@
+import { Observe } from 'expo-observe';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useHeaderHeight } from 'expo-router/react-navigation';
 import { StatusBar } from 'expo-status-bar';
@@ -40,6 +41,7 @@ import {
   saveAvatarFile,
 } from '~/lib/avatars';
 import { getSortPref, setSortPref } from '~/lib/prefs';
+import { useObserveScreen } from '~/lib/use-observe-screen';
 import { palette } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import type { EntrySort, Fact, Person, Date as PersonDate } from '~/types/db';
@@ -107,6 +109,7 @@ function handleDeleteDate(dateId: string) {
 }
 
 export function PersonScreen() {
+  useObserveScreen();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
@@ -232,6 +235,7 @@ export function PersonScreen() {
       }
       deleteAvatarFile(previous);
     } catch {
+      Observe.reportError(new Error('Person photo change failed'));
       Alert.alert('Error', "The photo couldn't be saved. Please try again.");
     }
   };
