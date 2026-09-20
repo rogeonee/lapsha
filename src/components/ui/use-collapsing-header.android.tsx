@@ -12,10 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  HeaderScrim,
-  headerScrimHeight,
-} from '~/components/ui/header-scrim';
+import { HeaderScrim, headerScrimHeight } from '~/components/ui/header-scrim';
 import { Text } from '~/components/ui/text';
 import { palette } from '~/lib/theme';
 import type {

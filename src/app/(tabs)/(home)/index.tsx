@@ -399,7 +399,7 @@ export default function HomeScreen() {
         data={sections}
         keyExtractor={(section) => section.key}
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="p-4 gap-5"
+        contentContainerClassName="gap-5 p-4"
         renderItem={renderTimelineSection}
         ListHeaderComponent={header.largeTitle}
         onScroll={header.onScroll}
