@@ -12,7 +12,7 @@ Build and evaluate Lapsha as a warm, personal, platform-native mobile app. Treat
 Before acting:
 
 1. Read `PRODUCT.md` and `DESIGN.md`.
-2. Read the UI-relevant parts of `CLAUDE.md` and the relevant entries in `notebook.md`.
+2. Follow `AGENTS.md` and read the relevant entries in `notebook.md`.
 3. Inspect the target screen or component and its surrounding route.
 4. Search for other consumers of any shared interaction or visual pattern that may change.
 5. Inspect the existing platform-specific implementation before proposing a shared abstraction.
@@ -104,7 +104,7 @@ Preserve these architectural boundaries:
 
 ## Device rules
 
-- Use `bunx serve-sim` and the Chrome plugin for iOS inspection.
+- Run `bunx serve-sim` to stream the active iOS Simulator. Codex uses the Chrome plugin to inspect and interact with the stream; Claude operates it manually.
 - Prefer the authorized physical Android device. If none is connected and Android verification is required, ask the user to connect it; do not silently substitute an emulator.
 - Report exactly which platforms and OS versions were exercised.
 - Distinguish static inspection from device verification and state any unverified scope.
