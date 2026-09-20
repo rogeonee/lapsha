@@ -1,0 +1,576 @@
+[
+  {
+    "id": "s-little",
+    "title": "Little Things",
+    "type": "Primary · US store",
+    "links": [
+      {
+        "title": "Product & privacy limits",
+        "url": "https://www.getlittlethings.app/"
+      },
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/little-things-remember-people/id6766800274"
+      }
+    ],
+    "note": "Local people/gift/support model; 8-person free tier; $12.99 Full. Apple lookup: launched 10 Sep 2026, no US ratings. Android store link failed during research.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-hippo",
+    "title": "Hippo — Contact Notes",
+    "type": "Primary · US store",
+    "links": [
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/hippo-contact-notes/id1458330948"
+      }
+    ],
+    "note": "Native devices, iCloud, 25-person free tier and listed IAPs. Several annual SKUs exist; current checkout offer was not inspected. Known historical complaints had developer fixes.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-revere",
+    "title": "Revere",
+    "type": "Primary · US store",
+    "links": [
+      {
+        "title": "Product site",
+        "url": "https://www.revereapp.com/"
+      },
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/revere-remember-people/id1260429188"
+      }
+    ],
+    "note": "Core notes/people/reminders, voice/AI and price references. Site/store wording is not fully consistent about which reminder types are premium.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-coleva",
+    "title": "Coleva",
+    "type": "Primary · US store",
+    "links": [
+      {
+        "title": "Product site",
+        "url": "https://getcoleva.com/"
+      },
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/coleva/id6789749534"
+      }
+    ],
+    "note": "Sentence filing and contextual nudges advertised; optional cloud assist. App quality not tested; no US ratings in lookup.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-kinu",
+    "title": "Kinu",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Product & pricing",
+        "url": "https://kinu.care/"
+      },
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/kinu-remember-your-people/id6760111924"
+      }
+    ],
+    "note": "People context, encrypted backup/sync claims and plans. An account is required. Security claims were not audited.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-mesh",
+    "title": "Mesh / former Clay",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Pricing",
+        "url": "https://me.sh/pricing"
+      },
+      {
+        "title": "Acquisition & rename",
+        "url": "https://me.sh/next"
+      }
+    ],
+    "note": "Clay.earth redirects to Mesh. Free 1,000 contacts; displayed $10 Pro has billing/promotion ambiguity. Do not confuse this with Clay.com.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-dex",
+    "title": "Dex",
+    "type": "Primary · US store",
+    "links": [
+      {
+        "title": "Pricing",
+        "url": "https://getdex.com/pricing/"
+      },
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/dex-rolodex-and-personal-crm/id1472132715"
+      }
+    ],
+    "note": "Integration-heavy CRM features and US price SKUs; annual-equivalent web prices differ from monthly-billed prices.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-monica",
+    "title": "Monica",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Hosted / self-host pricing",
+        "url": "https://monicahq.com/en/pricing/"
+      },
+      {
+        "title": "Product",
+        "url": "https://monicahq.com/en/"
+      }
+    ],
+    "note": "Hosted $9 USD/month or $90/year; free self-hosted software. Hosting/maintenance costs remain separate.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-covve",
+    "title": "Covve Personal CRM",
+    "type": "Primary · US store",
+    "links": [
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/covve-personal-crm/id958935377"
+      },
+      {
+        "title": "Product",
+        "url": "https://covve.com/personal-crm"
+      }
+    ],
+    "note": "Personal CRM features and current/legacy IAPs. Separate from Covve Scan pricing.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-fabriq",
+    "title": "Fabriq",
+    "type": "Primary · user review",
+    "links": [
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/fabriq-stay-in-touch/id1460143202"
+      },
+      {
+        "title": "Google Play / reviews",
+        "url": "https://play.google.com/store/apps/details?id=com.ourfabriq&hl=en_US"
+      }
+    ],
+    "note": "Official price and relationship-circle positioning. A 1 Sep 2026 review reports sync/reminder problems; one unverified user account.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-someday",
+    "title": "Someday",
+    "type": "Primary · US store",
+    "links": [
+      {
+        "title": "Product site",
+        "url": "https://somedayapp.co/"
+      },
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/someday-save-remember/id6772328197"
+      }
+    ],
+    "note": "Share-sheet person/occasion capture and early resurfacing. Apple lookup: 27 Aug 2026 launch, one US rating. IAP cadence not public; “Family” is not proof of collaboration.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-skarbi",
+    "title": "Skarbi",
+    "type": "Primary · US store",
+    "links": [
+      {
+        "title": "Product & pricing",
+        "url": "https://skarbi.app/"
+      },
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/skarbi-family-gift-wishlist/id6762193456"
+      }
+    ],
+    "note": "People/list limits, gift states, reservations and US pricing. Website versus cached listing disagree on account timing; not resolved by hands-on use.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-giftster",
+    "title": "Giftster",
+    "type": "Primary · US store",
+    "links": [
+      {
+        "title": "Product / company",
+        "url": "https://www.giftster.com/about/"
+      },
+      {
+        "title": "Free business model",
+        "url": "https://www.giftster.com/free/"
+      },
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/giftster-wish-list-registry/id478126039"
+      }
+    ],
+    "note": "Family coordination and monetization. 3M+ members is a vendor total; not MAU or verified paying demand.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-elfster",
+    "title": "Elfster",
+    "type": "Primary · US store",
+    "links": [
+      {
+        "title": "How it works",
+        "url": "https://www.elfster.com/how-elfster-works/"
+      },
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/elfster-the-secret-santa-app/id751594890"
+      }
+    ],
+    "note": "Free exchanges, wishlists, affiliate/sponsored model. Approximately 331K US ratings at research time; ratings are not active users.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-hip",
+    "title": "hip: Birthday Reminder",
+    "type": "Primary · US store",
+    "links": [
+      {
+        "title": "US App Store",
+        "url": "https://apps.apple.com/us/app/hip-birthday-reminder-app/id401949944"
+      }
+    ],
+    "note": "Date-focused features and approximately 17.8K US ratings. Several IAPs prevent a confident universal annual-price claim.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-giftwhale",
+    "title": "Giftwhale / GiftThem",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Giftwhale gift ideas",
+        "url": "https://giftwhale.com/features/gift-ideas"
+      },
+      {
+        "title": "GiftThem",
+        "url": "https://www.lifeven.com/giftthem"
+      }
+    ],
+    "note": "Gift inspiration capture; GiftThem advertises gift closet and history. Feature references, not app-quality comparisons.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-toldme",
+    "title": "Told Me",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Product site",
+        "url": "https://www.toldmeto.com/"
+      }
+    ],
+    "note": "Recommendation source, completion/thank-you loop, trust scoring and cloud sync. On-site testimonials were not treated as independent validation.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-rememberr",
+    "title": "Rememberr",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Product site",
+        "url": "https://rememberr.app/"
+      }
+    ],
+    "note": "Advertises free, no signup, offline/on-device recommendation memory with who suggested it and reminders; web app.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-gotta",
+    "title": "gotta",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Product site",
+        "url": "https://www.joingotta.com/"
+      }
+    ],
+    "note": "Favorites across categories, shared lists, friend requests and nearby taste. Vendor-advertised feature set.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-nectar",
+    "title": "Nectar & Nest",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Product, pricing & features",
+        "url": "https://nectarandnestapp.com/"
+      }
+    ],
+    "note": "Hosting diary, contacts, menus and preparation. Web/PWA product; $ prices do not clearly identify currency in reviewed page. “Private account” is not local-only storage.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-picky",
+    "title": "Picky",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Product site",
+        "url": "https://www.alittlepicky.com/"
+      }
+    ],
+    "note": "Guest dietary profiles, browser viewing and host aggregation advertised. Distinguish live features from its explicitly “coming soon” roadmap.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-yestable",
+    "title": "YesTable",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Product site",
+        "url": "https://theyestable.com/"
+      }
+    ],
+    "note": "Guest preferences, allergies and accessibility requirements. Launch and adoption were not independently established.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-nudge",
+    "title": "Follow the Nudge",
+    "type": "Primary · 17 Nov 2022",
+    "links": [
+      {
+        "title": "WPSU / Penn State launch article",
+        "url": "https://www.psu.edu/news/impact/story/app-wpsu-offers-text-reminders-check-grieving-friends-family"
+      }
+    ],
+    "note": "Historical documented example of support reminders beyond the first weeks of grief. Current service availability was not tested.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-sincere",
+    "title": "SincereNotes",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Product site",
+        "url": "https://www.sincerenotes.com/"
+      }
+    ],
+    "note": "Important dates, life seasons and user-reviewed message reminders. An adjacent model; not an endorsement of automatic intimacy.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-dayone",
+    "title": "Day One book printing",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Product & prices",
+        "url": "https://dayoneapp.com/book-printing/"
+      },
+      {
+        "title": "Printing guide",
+        "url": "https://dayoneapp.com/guides/day-one-ios/book-printing/"
+      }
+    ],
+    "note": "Example of digital personal memory becoming a paid physical object; iOS book-ordering flow. Proposed Lapsha edition is a separate untested concept.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-gift-thread",
+    "title": "Where people save future gifts",
+    "type": "Qualitative · 28 Jul 2026",
+    "links": [
+      {
+        "title": "Reddit discussion",
+        "url": "https://www.reddit.com/r/Gifts/comments/1v8xfyx/where_do_you_keep_track_of_future_gift_ideas/"
+      }
+    ],
+    "note": "Notes/list practices and counterevidence to universal frustration. Quote in report is one user comment. Self-selected responses; possible promotional participation.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-notes",
+    "title": "Existing gift and people workflows",
+    "type": "Qualitative + primary",
+    "links": [
+      {
+        "title": "Gift notes, 20 Jan 2026",
+        "url": "https://www.reddit.com/r/GiftIdeas/comments/1qhtg50/how_do_you_actually_remember_gift_ideas/"
+      },
+      {
+        "title": "Apple Calendar settings",
+        "url": "https://support.apple.com/guide/iphone/change-calendar-settings-iphc37be2016/ios"
+      }
+    ],
+    "note": "Users describe Notes, Contacts and calendar-based workflows, including successful long-term use. Apple documents native birthday alert controls.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-maintenance",
+    "title": "Maintaining a personal CRM",
+    "type": "Qualitative · 18 Mar 2026",
+    "links": [
+      {
+        "title": "Notion discussion",
+        "url": "https://www.reddit.com/r/Notion/comments/1rwzxwg/anyone_actually_maintain_a_personal_crm_in_notion/"
+      }
+    ],
+    "note": "One user describes repeated abandonment from entry and recall effort. Replies contain promotion; not a retention study.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-sharing",
+    "title": "Household wishlists",
+    "type": "Qualitative · 29 Jan 2026",
+    "links": [
+      {
+        "title": "Parenting discussion",
+        "url": "https://www.reddit.com/r/Parenting/comments/1qpvnja/app_for_keeping_track_of_wish_lists/"
+      }
+    ],
+    "note": "A parent needs shared access with a spouse. Supports testing selective collaboration; cannot establish broad demand.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-spotify-top",
+    "title": "Spotify personal-data endpoints",
+    "type": "Primary docs",
+    "links": [
+      {
+        "title": "Top artists and tracks",
+        "url": "https://developer.spotify.com/documentation/web-api/reference/get-users-top-artists-and-tracks"
+      },
+      {
+        "title": "Saved tracks",
+        "url": "https://developer.spotify.com/documentation/web-api/reference/get-users-saved-tracks"
+      }
+    ],
+    "note": "Authenticated-user data and scopes. Listening affinity, saved tracks and declared favorites are distinct concepts.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-spotify-quota",
+    "title": "Spotify quota modes",
+    "type": "Primary docs",
+    "links": [
+      {
+        "title": "Current quota requirements",
+        "url": "https://developer.spotify.com/documentation/web-api/concepts/quota-modes"
+      }
+    ],
+    "note": "Five allowlisted development users, owner Premium, extended-access eligibility and review. Eligibility does not guarantee approval.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-spotify-policy",
+    "title": "Spotify Developer Policy",
+    "type": "Primary policy · effective 15 May 2025",
+    "links": [
+      {
+        "title": "Developer Policy",
+        "url": "https://developer.spotify.com/policy"
+      }
+    ],
+    "note": "User profiles, commercial offers, AI use, attribution and disconnect obligations. Implication for Lapsha is our reading of these constraints, not platform approval.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-spotify-july",
+    "title": "Spotify July 2026 changes",
+    "type": "Primary docs",
+    "links": [
+      {
+        "title": "July changelog",
+        "url": "https://developer.spotify.com/documentation/web-api/references/changes/july-2026"
+      }
+    ],
+    "note": "25 client IDs and pooled developer quotas supersede February’s one-client-ID restriction; not a production-access workaround.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-apple-music",
+    "title": "Apple Music / MusicKit",
+    "type": "Primary docs & terms",
+    "links": [
+      {
+        "title": "MusicKit",
+        "url": "https://developer.apple.com/musickit/"
+      },
+      {
+        "title": "License Agreement, MusicKit section",
+        "url": "https://developer.apple.com/support/terms/apple-developer-program-license-agreement/"
+      }
+    ],
+    "note": "Supported platforms and personal permission; permitted-purpose and monetization constraints need review for the exact feature.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-apple-fee",
+    "title": "Apple Small Business Program",
+    "type": "Primary program terms",
+    "links": [
+      {
+        "title": "Eligibility and commission",
+        "url": "https://developer.apple.com/app-store/small-business-program/"
+      }
+    ],
+    "note": "15% commission for qualifying enrolled developers. Used as an explicit scenario input, not an assertion of Lapsha eligibility.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-agenda",
+    "title": "Agenda ownership / update model",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Premium features guide",
+        "url": "https://agenda.com/manual/en/premium-features/"
+      }
+    ],
+    "note": "Current and subscription-period premium features remain unlocked after cancellation. A model Lapsha can adapt; entitlement mechanics add complexity.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-obsidian",
+    "title": "Obsidian pricing",
+    "type": "Primary",
+    "links": [
+      {
+        "title": "Plans and Sync",
+        "url": "https://obsidian.md/pricing"
+      }
+    ],
+    "note": "An adjacent example of local software plus an optional operated sync service. No inference that Lapsha can reach its scale.",
+    "accessed": "2026-09-19"
+  },
+  {
+    "id": "s-fonts",
+    "title": "Report typography",
+    "type": "Asset provenance",
+    "links": [
+      {
+        "title": "Bricolage Grotesque",
+        "url": "https://fonts.google.com/specimen/Bricolage+Grotesque"
+      },
+      {
+        "title": "Schibsted Grotesk",
+        "url": "https://fonts.google.com/specimen/Schibsted+Grotesk"
+      }
+    ],
+    "note": "Embedded font files for offline use; open font licenses included alongside this report. Native concept screens keep system typography.",
+    "accessed": "2026-09-19"
+  }
+]
