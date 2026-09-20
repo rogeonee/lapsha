@@ -181,7 +181,7 @@ export function PersonScreen() {
   );
 
   useAnimatedReaction(
-    () => photoProgress.value >= PHOTO_CHROME_THRESHOLD,
+    () => photoProgress.get() >= PHOTO_CHROME_THRESHOLD,
     (expanded, previous) => {
       if (expanded !== previous) {
         scheduleOnRN(setPhotoChromeExpanded, expanded);
@@ -206,14 +206,14 @@ export function PersonScreen() {
   };
 
   const scrollHandler = useAnimatedScrollHandler((event) => {
-    scrollY.value = event.contentOffset.y;
+    scrollY.set(event.contentOffset.y);
   });
 
   // Android's transparent header gets the shared paper scrim so rows
   // dissolve under it; it hands the top of the screen to the photo in
   // step with the expand gesture.
   const headerScrimStyle = useAnimatedStyle(() => ({
-    opacity: hasDisplayedPhoto ? 1 - photoProgress.value : 1,
+    opacity: hasDisplayedPhoto ? 1 - photoProgress.get() : 1,
   }));
 
   const nativeScrollGesture = Gesture.Native();
@@ -223,22 +223,25 @@ export function PersonScreen() {
     .failOffsetX([-12, 12])
     .onBegin(() => {
       if (openMenu !== null) scheduleOnRN(dismissMenus);
-      pullEligible.set(photo !== null && scrollY.value <= 0.5);
-      pullStart.set(photoProgress.value);
+      pullEligible.set(photo !== null && scrollY.get() <= 0.5);
+      pullStart.set(photoProgress.get());
     })
     .onUpdate((event) => {
-      if (!pullEligible.value) return;
-      if (pullStart.value <= 0.001 && event.translationY < 0) return;
+      if (!pullEligible.get()) return;
+      if (pullStart.get() <= 0.001 && event.translationY < 0) return;
       photoProgress.set(
-        Math.min(1, Math.max(0, pullStart.value + event.translationY / photoTravel)),
+        Math.min(
+          1,
+          Math.max(0, pullStart.get() + event.translationY / photoTravel),
+        ),
       );
     })
     .onEnd((event) => {
-      if (!pullEligible.value) return;
+      if (!pullEligible.get()) return;
 
       const shouldExpand =
         event.velocityY > PHOTO_SNAP_VELOCITY ||
-        (event.velocityY >= -PHOTO_SNAP_VELOCITY && photoProgress.value >= 0.5);
+        (event.velocityY >= -PHOTO_SNAP_VELOCITY && photoProgress.get() >= 0.5);
       photoProgress.set(
         withTiming(shouldExpand ? 1 : 0, photoTiming, (finished) => {
           if (finished) scheduleOnRN(setPhotoExpanded, shouldExpand);

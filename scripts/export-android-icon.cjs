@@ -3,7 +3,6 @@ const path = require('node:path');
 const Jimp = require('jimp-compact');
 
 // Export the approved artwork; keep color and themed layers in identical geometry.
-// eslint-disable-next-line no-undef
 const root = path.resolve(__dirname, '..');
 const output = path.join(root, 'assets/android-icon');
 const size = 1024;

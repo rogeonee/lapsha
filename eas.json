@@ -6,7 +6,8 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "bun": "1.3.6"
     },
     "ios-simulator": {
       "extends": "development",
@@ -15,11 +16,13 @@
       }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "bun": "1.3.6"
     },
     "production": {
       "autoIncrement": true,
-      "uploadSourceMaps": true
+      "uploadSourceMaps": true,
+      "bun": "1.3.6"
     }
   },
   "submit": {

@@ -15,3 +15,35 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```bash
    bunx expo start
    ```
+
+## Code checks
+
+Use Bun 1.3.6, matching `packageManager` and EAS. Install the recommended Oxc editor extension for formatting and lint fixes on save.
+
+```bash
+bun run check         # Lint, format check, Expo type generation, and TypeScript
+bun run lint:fix      # Apply safe lint fixes
+bun run format       # Format supported files, including Tailwind classes
+```
+
+Oxlint and Oxfmt are pinned in `package.json`. Configuration lives in `.oxlintrc.json` and `.oxfmtrc.json`. Import and package-field sorting are disabled; Tailwind sorting uses `src/global.css`, `cva`, `cn`, and `contentContainerClassName`. Generated native projects, Expo declarations, and Uniwind declarations are excluded.
+
+Oxlint retains the supported Expo preset rules and adds its correctness checks. React Hooks and React Compiler checks run natively, including immutability, refs, purity, and unsupported syntax. Reanimated shared values use `.get()` / `.set()` in callbacks and worklets. The existing React Hook Form `watch` exception remains local to that call; Oxlint understands its `eslint-disable` directive and `react-hooks` rule name.
+
+`eslint-plugin-expo` runs through Oxlint's JS-plugin support to preserve Expo's environment-variable and DOM-export checks. It still brings ESLint as a transitive dependency, but no ESLint command or config is used. Do not run `expo lint`, which would recreate the old setup.
+
+TypeScript checks source imports and types separately with Expo's TypeScript version. Oxlint does not implement `import/no-unresolved`, and its compiler uses fixed options rather than exposing the old `config` / `gating` rules. The former `react/no-deprecated` rule is not retained; type-aware linting would be needed for Oxlint's replacement. When upgrading Expo, review changes to its lint preset as well as the dependency versions.
+
+`bun run check` generates `expo-env.d.ts` and Router types before typechecking so it also works in a fresh checkout. These declarations stay untracked. Type-aware Oxlint is not enabled; `tsc --noEmit` remains the type checker.
+
+## EAS checks
+
+`.eas/workflows/quality.yml` runs checks for pushes and pull requests to `main` when the repository is connected to EAS. It can also be run manually:
+
+```bash
+eas workflow:run .eas/workflows/quality.yml
+```
+
+The workflow installs from `bun.lock` using EAS's frozen-lockfile behavior. Keep optional dependencies enabled: Oxlint and Oxfmt distribute platform binaries through them. The SDK 57 image supplies Node; the tools require Node 20.19+ on the 20.x line or 22.12+.
+
+`eas-build-post-install` runs the same checks for direct `eas build` calls, after prebuild (and CocoaPods on iOS). Future build or update jobs in the quality workflow should use `needs: [quality]` to fail before native builds start. Custom build configurations must call the checks explicitly because EAS does not automatically execute lifecycle hooks for them.

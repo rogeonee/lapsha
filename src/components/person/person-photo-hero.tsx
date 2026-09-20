@@ -41,7 +41,7 @@ export function PersonPhotoHero({
 
   const containerStyle = useAnimatedStyle(() => ({
     height: interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
       [compactHeight, expandedHeight],
       Extrapolation.CLAMP,
@@ -52,7 +52,7 @@ export function PersonPhotoHero({
     transform: [
       {
         translateY: interpolate(
-          progress.value,
+          progress.get(),
           [0, 1],
           [compactCenterY - screenWidth / 2, 0],
           Extrapolation.CLAMP,
@@ -63,7 +63,7 @@ export function PersonPhotoHero({
 
   const photoStyle = useAnimatedStyle(() => ({
     borderRadius: interpolate(
-      progress.value,
+      progress.get(),
       [0, 1],
       [screenWidth / 2, 0],
       Extrapolation.CLAMP,
@@ -71,7 +71,7 @@ export function PersonPhotoHero({
     transform: [
       {
         scale: interpolate(
-          progress.value,
+          progress.get(),
           [0, 1],
           [compactScale, 1],
           Extrapolation.CLAMP,
@@ -82,7 +82,7 @@ export function PersonPhotoHero({
 
   const scrimStyle = useAnimatedStyle(() => ({
     opacity: interpolate(
-      progress.value,
+      progress.get(),
       [0.12, 0.22],
       [0, 1],
       Extrapolation.CLAMP,

@@ -64,32 +64,32 @@ export function useCollapsingHeader({
 
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const next = event.nativeEvent.contentOffset.y >= collapsePoint;
-    if (collapsedSv.value !== next) collapsedSv.value = next;
+    if (collapsedSv.get() !== next) collapsedSv.set(next);
     setCollapsed(next);
   };
 
   // 0 = expanded (large title showing), 1 = collapsed (compact bar title).
   const collapseProgress = useDerivedValue(() =>
-    withTiming(collapsedSv.value ? 1 : 0, { duration: TITLE_SWAP_DURATION }),
+    withTiming(collapsedSv.get() ? 1 : 0, { duration: TITLE_SWAP_DURATION }),
   );
 
   const largeTitleStyle = useAnimatedStyle(() => ({
-    opacity: 1 - collapseProgress.value,
+    opacity: 1 - collapseProgress.get(),
   }));
 
   const largeTitleBlurStyle = useAnimatedStyle(() => ({
-    opacity: collapseProgress.value,
+    opacity: collapseProgress.get(),
   }));
 
   const smallTitleStyle = useAnimatedStyle(() => ({
-    opacity: collapseProgress.value,
+    opacity: collapseProgress.get(),
     transform: [
-      { translateY: (1 - collapseProgress.value) * SMALL_TITLE_RISE },
+      { translateY: (1 - collapseProgress.get()) * SMALL_TITLE_RISE },
     ],
   }));
 
   const smallTitleBlurStyle = useAnimatedStyle(() => ({
-    opacity: 1 - collapseProgress.value,
+    opacity: 1 - collapseProgress.get(),
   }));
 
   const barHeight = insets.top + BAR_HEIGHT;

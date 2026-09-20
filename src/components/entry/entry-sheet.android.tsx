@@ -183,7 +183,7 @@ function EntryForm({
   const { height: keyboardHeight } = useReanimatedKeyboardAnimation();
   const keyboardPad = useAnimatedStyle(() => ({
     // height runs 0 -> -keyboardHeight as the keyboard animates in
-    paddingBottom: Math.max(0, -keyboardHeight.value),
+    paddingBottom: Math.max(0, -keyboardHeight.get()),
   }));
 
   if (form.showPersonPicker && form.people.length === 0) {
