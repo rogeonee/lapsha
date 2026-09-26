@@ -179,6 +179,19 @@
       "evidencePaths": [
         "/Users/rogeonee/.codex/worktrees/improve-003-005/lapsha/.expo/qa/004-ios18-people-repeat-removed.png"
       ]
+    },
+    {
+      "case": "iOS27 photo reset and glass chrome",
+      "status": "passed",
+      "device": "iPhone 18 Pro simulator / iOS 27.0",
+      "commit": "22192414d8376798a79d29325c2785ea2a059ec1",
+      "result": "Expanded removal restored compact initials, readable glass header/menu and dark status icons. Re-add starts compact; pull expands and tap collapses. Picker cancellation and replacement preserve expanded state. Coordinator visually inspected removal screenshot. Software-keyboard pointer input used; CI Metro disabled automatic reloads. Servers stopped after verification.",
+      "evidencePaths": [
+        "/Users/rogeonee/.codex/worktrees/improve-003-005/lapsha/.expo/qa/004-ios27-expanded-glass.png",
+        "/Users/rogeonee/.codex/worktrees/improve-003-005/lapsha/.expo/qa/004-ios27-removed-glass.png",
+        "/Users/rogeonee/.codex/worktrees/improve-003-005/lapsha/.expo/qa/004-ios27-readd-compact.png",
+        "/Users/rogeonee/.codex/worktrees/improve-003-005/lapsha/.expo/qa/004-ios27-replaced-expanded.png"
+      ]
     }
   ],
   "remainingLimits": [
@@ -186,7 +199,7 @@
     "Missing-file fallback assessed after reopening, not filesystem watching",
     "Failed database removal reviewed, not injected on device",
     "Android Metro emitted shared-value-during-render Reanimated warnings without a visible regression or runtime failure",
-    "iOS27 DeviceHub had no functional window/keyboard bridge; interaction coverage uses available iOS18. No iOS26 runtime, no full OS/accessibility matrix."
+    "Additional iOS27 pass was focused: missing-file fallback and animation-timing repetitions were not repeated there; those checks remain covered by iOS18/Android. No iOS26 runtime was available."
   ],
   "combinedCommit": "7e2e113b7fdfc69a60378980efff8f1945dc0297"
 }

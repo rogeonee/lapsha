@@ -50,11 +50,21 @@
         "/Users/rogeonee/.codex/worktrees/improve-003-005/lapsha/.expo/qa/003-ios18-entry-saves-edits.png",
         "/Users/rogeonee/.codex/worktrees/improve-003-005/lapsha/.expo/qa/005-ios18-restart-persistence.png"
       ]
+    },
+    {
+      "case": "iOS27 startup, list refresh and persistence",
+      "status": "passed",
+      "device": "iPhone 18 Pro simulator / iOS 27.0",
+      "commit": "22192414d8376798a79d29325c2785ea2a059ec1",
+      "result": "Created synthetic person/fact/date, edited fact, observed Home/People list refresh and correct originating back stacks; cold restart preserved person, edited fact, date and photo. Coordinator reviewed persistence screenshot. Software-keyboard pointer input used; CI Metro disabled automatic reloads. Servers stopped after verification.",
+      "evidencePaths": [
+        "/Users/rogeonee/.codex/worktrees/improve-003-005/lapsha/.expo/qa/005-ios27-restart-persistence.png"
+      ]
     }
   ],
   "remainingLimits": [
     "Desktop SQLite tests exercise real migration/service SQL but do not prove a full Expo-native migration, OS restore or storage-failure matrix.",
-    "Native smoke covered iOS18 only. iOS27 interaction unavailable due DeviceHub bridge, and no iOS26 runtime installed."
+    "Additional iOS27 pass was focused: missing-file fallback and animation-timing repetitions were not repeated there; those checks remain covered by iOS18/Android. No iOS26 runtime was available."
   ],
   "combinedCommit": "7e2e113b7fdfc69a60378980efff8f1945dc0297"
 }

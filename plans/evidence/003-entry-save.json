@@ -56,11 +56,21 @@
       "evidencePaths": [
         "/Users/rogeonee/.codex/worktrees/improve-003-005/lapsha/.expo/qa/003-ios18-entry-saves-edits.png"
       ]
+    },
+    {
+      "case": "iOS27 save/edit and remembered quick-add",
+      "status": "passed",
+      "device": "iPhone 18 Pro simulator / iOS 27.0",
+      "commit": "22192414d8376798a79d29325c2785ea2a059ec1",
+      "result": "Synthetic Qa created; fact F and date D each saved once and dismissed; fact edited to Fe in place; global quick-add remembered Qa. Software-keyboard pointer input used; CI Metro disabled automatic reloads. Servers stopped after verification.",
+      "evidencePaths": [
+        "/Users/rogeonee/.codex/worktrees/improve-003-005/lapsha/.expo/qa/003-ios27-remembered-person.png"
+      ]
     }
   ],
   "remainingLimits": [
     "Injected storage/subscriber failures are process-isolated desktop tests, not native failure injection.",
-    "iOS27 interaction unavailable because DeviceHub window/keyboard bridge failed; no iOS26 runtime."
+    "Additional iOS27 pass was focused: missing-file fallback and animation-timing repetitions were not repeated there; those checks remain covered by iOS18/Android. No iOS26 runtime was available."
   ],
   "combinedCommit": "7e2e113b7fdfc69a60378980efff8f1945dc0297"
 }

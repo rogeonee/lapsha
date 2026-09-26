@@ -67,3 +67,7 @@ Write evidence/index updates in the primary plans/ directory without touching ex
 Report the combined branch/worktree and commit(s), changes per plan, tests, exact native coverage, and remaining limitations. Link the plan index and reviewable files. End only when the requested coordination outcome is complete or a genuine external blocker remains; do not stop after merely spawning agents.
 
 The originating advisor task is handling plan creation/dispatch only. Do not message another task solely because this document mentions it. Keep progress and user questions in the new coordinator task unless the user explicitly authorizes cross-task messaging.
+
+## Follow-up authorization
+
+The user subsequently requested iOS 27 verification and opening a PR when finished. That request authorizes pushing the combined branch and creating the PR, superseding the initial no-push restriction above. It does not authorize merging master. Focused iOS 27 verification passed with software-keyboard input; results are recorded in the evidence files.
