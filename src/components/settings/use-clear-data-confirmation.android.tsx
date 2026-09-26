@@ -6,8 +6,9 @@ import type {
   ClearDataConfirmation,
   ClearDataResult,
 } from '~/components/settings/clear-data-confirmation-types';
+import { incompleteCleanupMessage } from '~/components/settings/clear-data-confirmation-types';
 
-type ConfirmationPhase = 'confirm' | 'success' | 'error';
+type ConfirmationPhase = 'confirm' | 'success' | 'partial' | 'error';
 
 const confirmationMessage =
   'This will permanently remove all people, their photos, facts, and dates stored on this device. This action cannot be undone.';
@@ -38,6 +39,11 @@ export default function useClearDataConfirmation(
     if (result.error) {
       setErrorMessage(result.error);
       setPhase('error');
+      return;
+    }
+    if (result.incompleteCleanup.length > 0) {
+      setErrorMessage(incompleteCleanupMessage(result.incompleteCleanup));
+      setPhase('partial');
       return;
     }
     setPhase('success');
@@ -72,20 +78,31 @@ export default function useClearDataConfirmation(
           ) : (
             <>
               <Dialog.Title>
-                {phase === 'success' ? 'Data cleared' : 'Clear failed'}
+                {phase === 'success'
+                  ? 'Data cleared'
+                  : phase === 'partial'
+                    ? 'Cleanup incomplete'
+                    : 'Clear failed'}
               </Dialog.Title>
               <Dialog.Description>
                 {phase === 'success'
                   ? 'All data has been removed.'
                   : errorMessage}
               </Dialog.Description>
-              <Button
-                variant="secondary"
-                className="mt-5 rounded-2xl"
-                onPress={() => setIsOpen(false)}
-              >
-                Done
-              </Button>
+              <View className="mt-5 flex-row gap-3">
+                <Button
+                  variant="secondary"
+                  className="flex-1 rounded-2xl"
+                  onPress={() => setIsOpen(false)}
+                >
+                  Done
+                </Button>
+                {phase === 'partial' && (
+                  <Button className="flex-1 rounded-2xl" onPress={clearData}>
+                    Try again
+                  </Button>
+                )}
+              </View>
             </>
           )}
         </Dialog.Content>

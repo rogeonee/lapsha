@@ -14,19 +14,24 @@ import { ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 import { useCollapsingHeader } from '~/components/ui/use-collapsing-header';
 import { avatarUri } from '~/lib/avatars';
-import { nextDateOccurrence } from '~/lib/dates';
+import {
+  calendarDaysBetween,
+  formatCalendarDay,
+  nextCalendarDateOccurrence,
+} from '~/lib/dates';
 import { useObserveScreen } from '~/lib/use-observe-screen';
 import { palette, shadows } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
+import { useCurrentDay } from '~/lib/use-current-day';
 import { cn } from '~/lib/utils';
 import type { TimelineEntry } from '~/types/db';
+import type { CalendarDay } from '~/lib/current-day';
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const COUNTDOWN_WINDOW_DAYS = 30;
 
 interface UpcomingEntry {
   entry: TimelineEntry;
-  next: Date;
+  next: CalendarDay;
   daysUntil: number;
   years: number | null;
 }
@@ -36,7 +41,7 @@ interface RowGroup {
   personId: string;
   personName: string;
   personAvatar: string | null;
-  next: Date;
+  next: CalendarDay;
   daysUntil: number;
   entries: UpcomingEntry[];
 }
@@ -49,20 +54,16 @@ interface TimelineSection {
   items: RowGroup[];
 }
 
-function startOfToday(): Date {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-}
-
-function projectUpcoming(entries: TimelineEntry[]): UpcomingEntry[] {
-  const today = startOfToday();
-
+function projectUpcoming(
+  entries: TimelineEntry[],
+  today: CalendarDay,
+): UpcomingEntry[] {
   return entries
     .map((entry) => {
-      const next = nextDateOccurrence(entry.month, entry.day, today);
-      const daysUntil = Math.round((next.getTime() - today.getTime()) / DAY_MS);
+      const next = nextCalendarDateOccurrence(entry.month, entry.day, today);
+      const daysUntil = calendarDaysBetween(today, next);
       const originalYear = Number(entry.date.slice(0, 4));
-      const elapsed = next.getFullYear() - originalYear;
+      const elapsed = next.year - originalYear;
       const years = entry.year_known && elapsed > 0 ? elapsed : null;
 
       return { entry, next, daysUntil, years };
@@ -75,8 +76,11 @@ function projectUpcoming(entries: TimelineEntry[]): UpcomingEntry[] {
     );
 }
 
-function buildSections(upcoming: UpcomingEntry[]): TimelineSection[] {
-  const currentYear = new Date().getFullYear();
+function buildSections(
+  upcoming: UpcomingEntry[],
+  today: CalendarDay,
+): TimelineSection[] {
+  const currentYear = today.year;
   const sections: TimelineSection[] = [];
 
   for (const item of upcoming) {
@@ -88,16 +92,16 @@ function buildSections(upcoming: UpcomingEntry[]): TimelineSection[] {
     if (item.daysUntil <= 1) {
       key = item.daysUntil === 0 ? 'today' : 'tomorrow';
       title = item.daysUntil === 0 ? 'Today' : 'Tomorrow';
-      subtitle = item.next.toLocaleDateString(undefined, {
+      subtitle = formatCalendarDay(item.next, {
         month: 'long',
         day: 'numeric',
       });
       showDay = false;
     } else {
-      key = `${item.next.getFullYear()}-${item.next.getMonth()}`;
-      title = item.next.toLocaleDateString(undefined, {
+      key = `${item.next.year}-${item.next.month}`;
+      title = formatCalendarDay(item.next, {
         month: 'long',
-        ...(item.next.getFullYear() !== currentYear ? { year: 'numeric' } : {}),
+        ...(item.next.year !== currentYear ? { year: 'numeric' } : {}),
       });
     }
 
@@ -111,7 +115,9 @@ function buildSections(upcoming: UpcomingEntry[]): TimelineSection[] {
     if (
       lastRow &&
       lastRow.personId === item.entry.person_id &&
-      lastRow.next.getTime() === item.next.getTime()
+      lastRow.next.year === item.next.year &&
+      lastRow.next.month === item.next.month &&
+      lastRow.next.day === item.next.day
     ) {
       lastRow.entries.push(item);
     } else {
@@ -185,11 +191,9 @@ function UpcomingRow({
       <View className={cn(stacked && 'h-12 justify-center')}>
         {showDay ? (
           <View className="w-11 items-center">
-            <Text className="text-lg font-semibold">
-              {group.next.getDate()}
-            </Text>
+            <Text className="text-lg font-semibold">{group.next.day}</Text>
             <Text className="text-sm text-muted-foreground">
-              {group.next.toLocaleDateString(undefined, { weekday: 'short' })}
+              {formatCalendarDay(group.next, { weekday: 'short' })}
             </Text>
           </View>
         ) : (
@@ -320,6 +324,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const header = useCollapsingHeader({ title: 'Upcoming' });
   const datesVersion = useTableVersion(['dates', 'persons']);
+  const today = useCurrentDay();
   const [retryNonce, setRetryNonce] = useState(0);
 
   const timelineResponse = loadTimeline(datesVersion, retryNonce);
@@ -329,7 +334,10 @@ export default function HomeScreen() {
     ? timelineResponse.error.message || 'Failed to load upcoming dates'
     : null;
   const hasPeople = (peopleResponse.data?.length ?? 0) > 0;
-  const sections = buildSections(projectUpcoming(timelineResponse.data ?? []));
+  const sections = buildSections(
+    projectUpcoming(timelineResponse.data ?? [], today),
+    today,
+  );
 
   if (error) {
     return (

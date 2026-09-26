@@ -6,6 +6,7 @@ import FactSortMenu from '~/components/person/fact-sort-menu';
 import { Text } from '~/components/ui/text';
 import { shadows } from '~/lib/theme';
 import type { Date as PersonDate, EntrySort, Fact } from '~/types/db';
+import type { CalendarDay } from '~/lib/current-day';
 
 const cardStyle = {
   borderCurve: 'continuous',
@@ -37,6 +38,7 @@ function SectionCard({
 export function PersonDetailSections({
   personId,
   dates,
+  today,
   facts,
   factSort,
   isSortMenuOpen,
@@ -48,6 +50,7 @@ export function PersonDetailSections({
 }: {
   personId: string;
   dates: PersonDate[];
+  today: CalendarDay;
   facts: Fact[];
   factSort: EntrySort;
   isSortMenuOpen: boolean;
@@ -67,6 +70,7 @@ export function PersonDetailSections({
         {birthday ? (
           <DateRow
             date={birthday}
+            today={today}
             onPress={() =>
               onOpenSheet({ mode: 'edit', kind: 'date', date: birthday })
             }
@@ -90,6 +94,7 @@ export function PersonDetailSections({
             key={date.id}
             divider
             date={date}
+            today={today}
             onPress={() => onOpenSheet({ mode: 'edit', kind: 'date', date })}
             onDelete={() => onDeleteDate(date.id)}
           />

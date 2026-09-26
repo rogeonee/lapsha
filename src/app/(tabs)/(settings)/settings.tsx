@@ -33,12 +33,15 @@ async function openPrivacyPolicy() {
 
 function clearDeviceData() {
   try {
-    clearAllData();
-    return { error: null };
+    const result = clearAllData();
+    return { error: null, incompleteCleanup: result.incompleteCleanup };
   } catch (error) {
     Observe.reportError(new Error('Clearing device data failed'));
     console.warn(error);
-    return { error: mapDatabaseError(error).message };
+    return {
+      error: mapDatabaseError(error).message,
+      incompleteCleanup: [],
+    };
   }
 }
 
