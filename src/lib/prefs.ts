@@ -1,3 +1,4 @@
+import { Observe } from 'expo-observe';
 import Storage from 'expo-sqlite/kv-store';
 import { clearPreferenceKeys } from '~/lib/preference-cleanup';
 import type { EntrySort } from '~/types/db';
@@ -43,8 +44,12 @@ export function getLastPersonId(): string | null {
 }
 
 export function setLastPersonId(personId: string): void {
-  Storage.setItemSync(LAST_PERSON_KEY, personId);
-  notifyPreferenceChange();
+  try {
+    Storage.setItemSync(LAST_PERSON_KEY, personId);
+    notifyPreferenceChange();
+  } catch {
+    Observe.reportError(new Error('Saving last person preference failed'));
+  }
 }
 
 /** Remove preferences stored outside lapsha.db and refresh mounted consumers. */
