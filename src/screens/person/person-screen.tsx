@@ -6,6 +6,7 @@ import { useState, useSyncExternalStore } from 'react';
 import { Alert, Platform, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  cancelAnimation,
   Easing,
   ReduceMotion,
   useAnimatedReaction,
@@ -124,8 +125,6 @@ export function PersonScreen() {
   );
   const [sheetConfig, setSheetConfig] = useState<EntrySheetConfig | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isPhotoExpanded, setIsPhotoExpanded] = useState(false);
-  const [isPhotoChromeExpanded, setIsPhotoChromeExpanded] = useState(false);
   // Android HeroUI popovers need to be controlled so the photo/scroll
   // gesture underneath their overlay can dismiss them on a vertical swipe.
   // iOS ignores these props because its native menus dismiss themselves.
@@ -142,6 +141,39 @@ export function PersonScreen() {
   );
 
   const photo = avatarUri(person?.avatar);
+  const hasDisplayedPhoto = photo !== null;
+  const [photoState, setPhotoState] = useState({
+    available: hasDisplayedPhoto,
+    expanded: false,
+    chromeExpanded: false,
+  });
+  if (photoState.available !== hasDisplayedPhoto) {
+    setPhotoState({
+      available: hasDisplayedPhoto,
+      expanded: false,
+      chromeExpanded: false,
+    });
+  }
+  const isPhotoExpanded = hasDisplayedPhoto && photoState.expanded;
+  const showPhotoChrome = hasDisplayedPhoto && photoState.chromeExpanded;
+
+  useAnimatedReaction(
+    () => hasDisplayedPhoto,
+    (available) => {
+      if (available) return;
+      cancelAnimation(photoProgress);
+      photoProgress.set(0);
+      pullStart.set(0);
+      pullEligible.set(false);
+    },
+  );
+
+  const setPhotoChromeExpanded = (expanded: boolean) => {
+    setPhotoState((current) => ({
+      ...current,
+      chromeExpanded: current.available && expanded,
+    }));
+  };
   const photoTravel = Math.max(
     1,
     personPhotoExpandedHeight(screenWidth) -
@@ -152,13 +184,16 @@ export function PersonScreen() {
     () => photoProgress.value >= PHOTO_CHROME_THRESHOLD,
     (expanded, previous) => {
       if (expanded !== previous) {
-        scheduleOnRN(setIsPhotoChromeExpanded, expanded);
+        scheduleOnRN(setPhotoChromeExpanded, expanded);
       }
     },
   );
 
   const setPhotoExpanded = (expanded: boolean) => {
-    setIsPhotoExpanded(expanded);
+    setPhotoState((current) => ({
+      ...current,
+      expanded: current.available && expanded,
+    }));
   };
 
   const dismissMenus = () => {
@@ -167,7 +202,7 @@ export function PersonScreen() {
 
   const animatePhotoTo = (expanded: boolean) => {
     setPhotoExpanded(expanded);
-    photoProgress.value = withTiming(expanded ? 1 : 0, photoTiming);
+    photoProgress.set(withTiming(expanded ? 1 : 0, photoTiming));
   };
 
   const scrollHandler = useAnimatedScrollHandler((event) => {
@@ -178,7 +213,7 @@ export function PersonScreen() {
   // dissolve under it; it hands the top of the screen to the photo in
   // step with the expand gesture.
   const headerScrimStyle = useAnimatedStyle(() => ({
-    opacity: 1 - photoProgress.value,
+    opacity: hasDisplayedPhoto ? 1 - photoProgress.value : 1,
   }));
 
   const nativeScrollGesture = Gesture.Native();
@@ -188,15 +223,14 @@ export function PersonScreen() {
     .failOffsetX([-12, 12])
     .onBegin(() => {
       if (openMenu !== null) scheduleOnRN(dismissMenus);
-      pullEligible.value = photo !== null && scrollY.value <= 0.5;
-      pullStart.value = photoProgress.value;
+      pullEligible.set(photo !== null && scrollY.value <= 0.5);
+      pullStart.set(photoProgress.value);
     })
     .onUpdate((event) => {
       if (!pullEligible.value) return;
       if (pullStart.value <= 0.001 && event.translationY < 0) return;
-      photoProgress.value = Math.min(
-        1,
-        Math.max(0, pullStart.value + event.translationY / photoTravel),
+      photoProgress.set(
+        Math.min(1, Math.max(0, pullStart.value + event.translationY / photoTravel)),
       );
     })
     .onEnd((event) => {
@@ -205,12 +239,10 @@ export function PersonScreen() {
       const shouldExpand =
         event.velocityY > PHOTO_SNAP_VELOCITY ||
         (event.velocityY >= -PHOTO_SNAP_VELOCITY && photoProgress.value >= 0.5);
-      photoProgress.value = withTiming(
-        shouldExpand ? 1 : 0,
-        photoTiming,
-        (finished) => {
+      photoProgress.set(
+        withTiming(shouldExpand ? 1 : 0, photoTiming, (finished) => {
           if (finished) scheduleOnRN(setPhotoExpanded, shouldExpand);
-        },
+        }),
       );
     });
   const scrollAndPullGesture = Gesture.Simultaneous(
@@ -287,7 +319,7 @@ export function PersonScreen() {
 
   return (
     <>
-      <StatusBar style={isPhotoChromeExpanded ? 'light' : 'dark'} />
+      <StatusBar style={showPhotoChrome ? 'light' : 'dark'} />
       <Stack.Screen
         options={{
           title: person?.name ?? '',
@@ -295,11 +327,11 @@ export function PersonScreen() {
           headerShadowVisible: false,
           headerStyle: { backgroundColor: 'transparent' },
           headerTintColor:
-            isPhotoChromeExpanded && !isLiquidGlass ? 'white' : palette.broth,
+            showPhotoChrome && !isLiquidGlass ? 'white' : palette.broth,
           // The title sits over the scrim, not in a glass circle, so it
           // goes white on every version
           headerTitleStyle: {
-            color: isPhotoChromeExpanded ? 'white' : palette.broth,
+            color: showPhotoChrome ? 'white' : palette.broth,
           },
           ...(isIOS ? { headerBlurEffect: 'none' as const } : null),
         }}
@@ -307,7 +339,7 @@ export function PersonScreen() {
       <PersonMenu
         personName={person?.name ?? ''}
         hasPhoto={Boolean(person?.avatar)}
-        isPhotoChromeExpanded={isPhotoChromeExpanded}
+        isPhotoChromeExpanded={showPhotoChrome}
         isOpen={openMenu === 'person'}
         onOpenChange={(open) => setOpenMenu(open ? 'person' : null)}
         onEditName={handleEditName}
