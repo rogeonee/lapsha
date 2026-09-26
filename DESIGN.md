@@ -212,7 +212,7 @@ A Cream Swirl circle in four sizes: 40px on timeline rows, 48px on list cards, 7
 
 ### Navigation
 
-Native tabs use SF Symbols on iOS and MaterialCommunityIcons vector glyphs (`src` + `VectorIcon`) on Android; both platforms swap outlined icons to their filled variants when a tab is selected. iOS uses a Noodle Gold selected tint on the system blur bar; Android replaces Material You dynamic colors with the Lapsha palette — a Deep Paper bar with a Cream Swirl active-indicator pill and ripple, Broth selected icon and label, and Ink Muted idle items. Stack headers use native large titles with Broth tint and a transparent-on-Paper large style. Quick add lives in a platform-native affordance: a detached, disabled native-tab action on iOS 26+, and an M3 FAB with a Cream Swirl container and Broth icon on Android.
+Native tabs use SF Symbols on iOS and MaterialCommunityIcons vector glyphs (`src` + `VectorIcon`) on Android; both platforms swap outlined icons to their filled variants when a tab is selected. iOS uses a Noodle Gold selected tint on the system blur bar; Android replaces Material You dynamic colors with the Lapsha palette — a Deep Paper bar with a Cream Swirl active-indicator pill and ripple, Broth selected icon and label, and Ink Muted idle items. Stack headers use native large titles with Broth tint and a transparent-on-Paper large style. Quick add lives in a platform-native affordance: a detached, disabled native-tab action on iOS 26+ (the search-role item on iOS 26, an explicitly prominent tab on iOS 27+), and an M3 FAB with a Cream Swirl container and Broth icon on Android.
 
 ## 6. Do's and Don'ts
 

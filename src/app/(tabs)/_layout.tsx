@@ -8,11 +8,10 @@ import EntrySheet, {
 import QuickAddFab from '~/components/quick-add/quick-add-fab';
 import { palette } from '~/lib/theme';
 
-// iOS 26 renders a `role="search"` tab as a detached circular button on the
-// right of the tab bar (build with Xcode 26). We co-opt it as the quick-add
-// button there. On older iOS the same role would show as a plain inline tab,
-// so we hide it; Android keeps the FAB.
-const SEARCH_TAB_QUICK_ADD =
+// iOS 26 detaches the search-role item. On iOS 27+, our react-native-screens
+// patch maps the disabled search-role action to an explicitly prominent UITab
+// (build with Xcode 27). Older iOS hides the action; Android keeps the FAB.
+const DETACHED_QUICK_ADD =
   Platform.OS === 'ios' && Number.parseInt(String(Platform.Version), 10) >= 26;
 
 // Android's tab bar defaults every slot to Material You dynamic (wallpaper
@@ -118,18 +117,19 @@ export default function TabLayout() {
           />
         </NativeTabs.Trigger>
 
-        {/* Quick-add as a detached search-role button (iOS 26 only). `disabled`
+        {/* Quick-add as a detached native button (iOS 26+). `disabled`
             keeps the current tab active, while Expo Router re-emits the
             prevented native selection as `tabPress`. The route still needs a
             trigger so Expo Router does not surface it automatically. */}
         <NativeTabs.Trigger
           name="quick-add"
           accessibilityLabel="Quick add"
-          role={SEARCH_TAB_QUICK_ADD ? 'search' : undefined}
-          hidden={!SEARCH_TAB_QUICK_ADD}
-          disabled={SEARCH_TAB_QUICK_ADD}
+          role={DETACHED_QUICK_ADD ? 'search' : undefined}
+          hidden={!DETACHED_QUICK_ADD}
+          disabled={DETACHED_QUICK_ADD}
           listeners={{ tabPress: openQuickAdd }}
         >
+          <NativeTabs.Trigger.Label hidden>Quick add</NativeTabs.Trigger.Label>
           <NativeTabs.Trigger.Icon sf={'plus'} />
         </NativeTabs.Trigger>
       </NativeTabs>
