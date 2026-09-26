@@ -1,3 +1,4 @@
+import { Observe } from 'expo-observe';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ImagePickerAsset } from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -60,6 +61,7 @@ export function useAddPersonForm() {
       const picked = await pickAvatarImage();
       if (picked) setPhoto(picked);
     } catch {
+      Observe.reportError(new Error('Photo picker failed'));
       Alert.alert('Photo unavailable', "The photo picker couldn't be opened.");
     }
   };
@@ -113,6 +115,7 @@ export function useAddPersonForm() {
           );
         }
       } catch {
+        Observe.reportError(new Error('New person photo save failed'));
         Alert.alert(
           'Person saved',
           "The photo couldn't be added — you can add it from their screen.",

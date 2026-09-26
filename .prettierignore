@@ -7,5 +7,4 @@ build
 coverage
 .agents
 .claude
-.impeccable
 bun.lock

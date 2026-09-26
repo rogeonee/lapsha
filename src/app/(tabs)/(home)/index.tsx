@@ -19,6 +19,7 @@ import {
   formatCalendarDay,
   nextCalendarDateOccurrence,
 } from '~/lib/dates';
+import { useObserveScreen } from '~/lib/use-observe-screen';
 import { palette, shadows } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import { useCurrentDay } from '~/lib/use-current-day';
@@ -319,6 +320,7 @@ function loadPeople(_datesVersion: number, _retryNonce: number) {
 }
 
 export default function HomeScreen() {
+  useObserveScreen();
   const router = useRouter();
   const header = useCollapsingHeader({ title: 'Upcoming' });
   const datesVersion = useTableVersion(['dates', 'persons']);

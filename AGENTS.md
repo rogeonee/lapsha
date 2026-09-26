@@ -1,94 +1,48 @@
 # AGENTS.md
 
-See `CLAUDE.md` for commands, architecture, and technical patterns.
-See `notebook.md` for non-obvious decisions and device-tested gotchas.
-Read `PRODUCT.md` (strategic product context) and `DESIGN.md` (visual system) before any UI/design work.
-Use the repo-local `lapsha-native-ui` skill for UI/design implementation, shaping, critique, polish, and native-platform verification.
+Lapsha is a personal relationship manager: people have facts and recurring dates.
+It is a single-user, local-first Expo/React Native app with on-device SQLite, no authentication or backend, and no supported web target.
 
-## Project Handling
+## Task context
 
-### Device Verification
+- For UI/design work, use `.agents/skills/lapsha-native-ui/SKILL.md`. It owns the workflow and device-verification rules; read `PRODUCT.md` and `DESIGN.md` before changing the interface.
+- Consult relevant entries in `notebook.md` for non-obvious decisions and device-tested gotchas, especially before changing native behavior or dependencies.
+- Unlabeled/free-form details are facts with `label = NULL`, not a separate notes entity. The date label `birthday` is reserved case-insensitively and pinned first on a person screen.
 
-- **iOS:** Run `bunx serve-sim` to stream the active iOS Simulator to localhost for inspection and interaction. Codex agents should use the Chrome plugin against that stream; Claude agents should operate it manually.
-- **iOS versions:** For platform-sensitive UI or native behavior, verify on both iOS 18 and the current iOS 26 simulator when relevant. Report exactly which versions were tested; do not imply cross-version coverage from one simulator.
-- **Android:** Prefer the physical Android phone connected over USB in debug mode. Check for an authorized device and use it when present. If none is available, ask the user to connect the phone before attempting Android verification; do not silently substitute an emulator.
+## Commands
 
-### Reviews and Consistency
-
-- Keep code reviews scoped to the requested changes. Respect explicitly accepted tradeoffs and previously approved work; do not re-flag acknowledged dependency bumps or unrelated changes.
-- When changing a shared interaction or visual pattern, search for its other consumers. Update them together when they should stay consistent, or explicitly call out any intentional or remaining differences.
-
-### Pull Requests
-
-Before drafting a PR, inspect the 2–3 most recent PRs and match their writing style while keeping the new PR focused. The current house style is:
-
-- A short, sentence-case title.
-- One concise opening paragraph describing the outcome.
-- A small number of `###` headings grouped by feature area when the scope benefits from them.
-- Concise, past-tense bullets covering user-visible changes and material implementation details; omit routine file-by-file narration and boilerplate.
-- Keep the body proportional to the change. Add screenshots when they materially help explain visual work.
-
-## What is Lapsha?
-
-Lapsha is a personal relationship manager for remembering details about significant people: facts such as favorite coffee or allergies, important dates such as birthdays and anniversaries, and free-form details. “Lapsha” means “noodles” in Russian.
-
-It is a single-user, local-first app with no authentication or network backend. All user data is stored on-device in SQLite.
-
-## Domain Model
-
-```
-Person (someone you want to remember details about)
-  ├── Fact (value with an optional label)
-  └── Date (label plus recurring month/day and optional known year)
+```bash
+bun install
+bunx expo install <package-name>  # Add native/Expo packages
+bun run start                    # Metro
+bun run ios                      # Build/run iOS
+bun run android                  # Build/run Android
+bun run lint
 ```
 
-There is no separate notes table. The current UI treats unlabeled/free-form details as facts with `label = NULL` and displays them in the Facts section; it does not yet have a dedicated Notes section. The date label `birthday` is reserved case-insensitively and pinned first on a person screen.
+Use Bun and `bun.lock`. Run lint after code changes; follow the UI skill for relevant device verification.
 
-## Current State
+## Architecture and conventions
 
-**Implemented:**
+- Use Expo Router with native stacks/tabs; do not configure React Navigation directly. Both person routes share `src/screens/person/person-screen.tsx` to preserve the originating tab stack.
+- Keep shared form/save behavior in hooks and platform presentation in `.ios.tsx` / `.android.tsx` files. iOS entry/add-person surfaces use SwiftUI/native toolbars; Android uses HeroUI sheets and Jetpack Compose date controls.
+- Keep unsuffixed platform shims free of platform-specific runtime imports: TypeScript and Metro resolve platform files differently. `HeroUINativeProvider` stays Android-only.
+- Prefer Uniwind/Tailwind `className` utilities; use native styles for unsupported APIs. Keep tokens in `src/global.css` and `src/lib/theme.ts` synchronized. The app is intentionally light-only; styling traps are recorded in `notebook.md`.
+- React Compiler is enabled: avoid manual `useMemo`, `useCallback`, and `memo` unless profiling justifies them. Sheet state derived during render deliberately keeps native content mounted through dismissal; inspect that pattern before replacing it.
+- Use `~/` for imports from `src/`, kebab-case module names, default exports for routes, and named exports for reusable components.
 
-- Upcoming timeline/home screen: projects every saved date to its next occurrence, groups entries by today/tomorrow/month, combines same-person events on the same day, and shows age/anniversary details when the original year is known.
-- People list with native large-title navigation and add-person entry point.
-- Avatar photos: picked from the system photo library with the platform square-crop editor, downscaled to 1536px JPEG files under `<documents>/avatars/`, and shown by the shared `Avatar` component (photo → initial → person glyph) on the people list, person screen, add-person preview, and today/tomorrow timeline rows.
-- Platform-specific add-person flow with an optional birthday and a live avatar preview that doubles as the photo picker: native iOS modal with toolbar actions; HeroUI bottom sheet hosted by a transparent route on Android.
-- Person detail screen shared by the Home and People stacks: pinned Birthday slot, facts and dates, tap-to-edit, swipe-to-delete, and created/modified sorting for facts only (a small menu on the Facts section header). Other dates stay in date-added order. A toolbar menu manages the person: edit name, add/change/remove photo, and delete (soft) with confirmation; tapping the empty initials circle also opens the photo picker.
-- Platform-split EntrySheet for adding/editing facts and dates plus a single-field edit-name mode: SwiftUI via `@expo/ui` on iOS; HeroUI Native plus Jetpack Compose date controls on Android. Shared form/save behavior lives in `src/components/entry/use-entry-form.ts`.
-- Global quick add: detached disabled native-tab action on iOS 26+ and Material FAB on Android. The person picker defaults to the last-used person.
-- Local SQLite database with versioned migrations, soft deletes, synchronous services, and change-listener-driven UI refresh.
-- Settings screen with app version and destructive “Clear All Data.”
+## Data and state
 
-**Not implemented / current gaps:**
+- Services are synchronous and return `ServiceResponse<T>`: check `response.error` before using `response.data`; never `await` service calls. Validate inputs with Zod and wrap database operations with `runServiceOperation()`.
+- Screens use `useTableVersion(tables)` to invalidate synchronous service reads during render. Do not mirror database rows into state from an effect. Preferences use `expo-sqlite/kv-store`.
+- CRUD uses soft deletes; normal reads must filter `deleted_at IS NULL`.
+- Schema and migrations live in `src/api/database.ts`. Stamp `PRAGMA user_version` inside the same transaction as each migration's schema changes.
+- Use `src/lib/dates.ts` for date conversions. Unknown years are stored as `0001` (including the February 29 sentinel); the editor uses a leap year. Android picker values are UTC-midnight calendar dates and require UTC getters.
+- Generate IDs with `randomUUID()` from `expo-crypto`, not global `crypto`. Avatar columns store bare file names, not absolute container paths.
+- Keep personal details, IDs, photo paths, and database values out of telemetry; handled failures use fixed error messages.
 
-- Manual drag-and-drop ordering of facts/dates (`sort_order` is populated but not read by the UI).
-- Search/filter people.
-- A global quick-add entry point on iOS below 26 (entries can still be added from a person screen).
-- Dedicated notes presentation/behavior separate from ordinary facts.
+## Reviews and pull requests
 
-## Key Screens
-
-| Route                                     | Purpose                                       |
-| ----------------------------------------- | --------------------------------------------- |
-| `src/app/(tabs)/(home)/index.tsx`         | Upcoming timeline/home screen                 |
-| `src/app/(tabs)/(home)/person/[id].tsx`   | Person detail reached from Home               |
-| `src/app/(tabs)/(people)/people.tsx`      | People list                                   |
-| `src/app/(tabs)/(people)/person/[id].tsx` | Person detail reached from People             |
-| `src/app/add-person.tsx`                  | Platform-specific add-person modal/sheet host |
-| `src/app/(tabs)/(settings)/settings.tsx`  | App info and clear-data action                |
-| `src/app/(tabs)/_layout.tsx`              | Native tabs and global quick-add state        |
-
-Both person routes re-export the shared `src/screens/person/person-screen.tsx` implementation so navigation stays inside the originating tab stack.
-
-## Coding Conventions
-
-- React Compiler is on: skip manual `useMemo` / `useCallback` / `memo` unless profiling proves a need, and never mutate state.
-- Use Expo Router for routing and native tabs/stacks; do not configure React Navigation directly.
-- Use Uniwind/Tailwind v4 `className` styling first. Use native `style` props for APIs Uniwind cannot express (native header props, shadows, animation styles, and similar cases).
-- Use `bun install` and `bunx expo install <package>`; `bun.lock` is the lockfile.
-- All data services follow `ServiceResponse<T>`; check `response.error` before using `response.data`.
-- Database services are synchronous and use `expo-sqlite` sync APIs. Do not `await` them.
-- Validate service inputs with Zod. React Native forms may use React Hook Form plus Zod; platform-native EntrySheet controls deliberately share state through `use-entry-form.ts` instead.
-- Use `~/` for imports from the project root.
-- Expo Router screens default-export; reusable components use named exports.
-- Use kebab-case module names for components and hooks. Platform-specific modules use `.ios.tsx` / `.android.tsx` plus a type-only or no-op unsuffixed shim when TypeScript needs one.
-- Web is not a supported target; the app depends on native Expo, SwiftUI, and Jetpack Compose surfaces.
+- Keep reviews scoped to the requested changes and respect explicitly accepted tradeoffs; do not re-flag acknowledged dependency bumps or unrelated work.
+- When changing a shared pattern, check its other consumers and update them consistently or explain intentional differences.
+- Use short, sentence-case PR titles and concise, outcome-focused descriptions. Include material decisions and screenshots when helpful; omit routine file-by-file narration and boilerplate.

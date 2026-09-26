@@ -1,0 +1,157 @@
+diff --git a/ios/tabs/host/RNSTabBarController.mm b/ios/tabs/host/RNSTabBarController.mm
+--- a/ios/tabs/host/RNSTabBarController.mm
++++ b/ios/tabs/host/RNSTabBarController.mm
+@@ -10,8 +10,10 @@
+ #import "RNSScreenWindowTraits.h"
+ #import "RNSTabsHostComponentView.h"
+ #import "RNSTabsNavigationStateObserverRegistry.h"
++#import "RNSDefines.h"
+ 
+ #define RNS_MORE_NAVIGATION_CONTROLLER_AVAILABLE !TARGET_OS_TV && !TARGET_OS_VISION
++#define RNS_PROMINENT_TABS_AVAILABLE RNS_IPHONE_OS_VERSION_AVAILABLE(27_0) && !TARGET_OS_TV && !TARGET_OS_VISION
+ 
+ // https://developer.apple.com/documentation/uikit/uitabbarcontroller?language=objc#The-More-navigation-controller
+ static constexpr NSUInteger kMinCountOfVCsForMoreVCPresence = 6;
+@@ -204,11 +206,42 @@
+ 
+ - (void)setSelectedViewController:(__kindof UIViewController *)selectedViewController
+ {
++#if RNS_PROMINENT_TABS_AVAILABLE
++  if (@available(iOS 27.0, *)) {
++    if (self.tabs.count > 0) {
++      for (UITab *tab in self.tabs) {
++        if (tab.viewController == selectedViewController) {
++          self.selectedTab = tab;
++          break;
++        }
++      }
++      if (!_isHandlingExplicitSelectionUpdate) {
++        [self reconcileNavigationStateWithUIKitState];
++      }
++      return;
++    }
++  }
++#endif
+   [super setSelectedViewController:selectedViewController];
+   if (!_isHandlingExplicitSelectionUpdate) {
+     [self reconcileNavigationStateWithUIKitState];
+   }
+ }
++
++#if RNS_PROMINENT_TABS_AVAILABLE
++// UIKit's UITab API owns selection on iOS 27. Keep the existing screens state
++// machinery working through its selected-view-controller accessor.
++- (__kindof UIViewController *)selectedViewController
++{
++  if (@available(iOS 27.0, *)) {
++    if (self.tabs.count > 0) {
++      return self.selectedTab.viewController;
++    }
++  }
++  return [super selectedViewController];
++}
++
++#endif
+ 
+ - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
+ {
+@@ -462,6 +495,23 @@
+   _isHandlingExplicitSelectionUpdate = NO;
+ }
+ 
++#if RNS_PROMINENT_TABS_AVAILABLE
++// UITab uses different delegate callbacks. Forward them so disabled quick-add
++// still emits the prevented selection and repeated taps still pop to the root.
++- (BOOL)tabBarController:(UITabBarController *)tabBarController shouldSelectTab:(UITab *)tab
++    API_AVAILABLE(ios(18.0))
++{
++  return [self tabBarController:tabBarController shouldSelectViewController:tab.viewController];
++}
++
++- (void)tabBarController:(UITabBarController *)tabBarController
++           didSelectTab:(UITab *)selectedTab
++            previousTab:(nullable UITab *)previousTab API_AVAILABLE(ios(18.0))
++{
++  [self tabBarController:tabBarController didSelectViewController:selectedTab.viewController];
++}
++#endif
++
+ #pragma mark - UINavigationControllerDelegate
+ 
+ - (void)navigationController:(UINavigationController *)navigationController
+@@ -501,6 +551,34 @@
+     return;
+   }
+ 
++#if RNS_PROMINENT_TABS_AVAILABLE
++  if (@available(iOS 27.0, *)) {
++    NSMutableArray<UITab *> *tabs = [NSMutableArray new];
++    NSString *prominentIdentifier = nil;
++    for (RNSTabsScreenViewController *controller in _tabScreenControllers) {
++      NSString *identifier = [self screenKeyForViewController:controller];
++      UITab *tab = [self tabForIdentifier:identifier];
++      if (tab == nil || tab.viewController != controller) {
++        tab = [[UITab alloc] initWithTitle:controller.tabBarItem.title ?: @""
++                                    image:controller.tabBarItem.image
++                               identifier:identifier
++                   viewControllerProvider:^UIViewController *(UITab *providedTab) {
++                     return controller;
++                   }];
++      }
++      [tabs addObject:tab];
++      // Lapsha uses a disabled search-role tab as an action, with no search
++      // controller. iOS 27 requires explicit prominence for this button.
++      if (controller.isPreventNativeSelectionEnabled &&
++          controller.tabScreenComponentView.systemItem == RNSTabsScreenSystemItemSearch) {
++        prominentIdentifier = identifier;
++      }
++    }
++    [self setTabs:tabs animated:self.tabs.count != 0];
++    self.prominentTabIdentifier = prominentIdentifier;
++    return;
++  }
++#endif
+   [self setViewControllers:_tabScreenControllers animated:[[self viewControllers] count] != 0];
+ }
+ 
+@@ -610,11 +688,26 @@
+                                    withHostComponentView:self.tabsHostComponentView
+                                     tabScreenControllers:_tabScreenControllers
+                                              imageLoader:[self.tabsHostComponentView reactImageLoader]];
++#if RNS_PROMINENT_TABS_AVAILABLE
++  if (@available(iOS 27.0, *)) {
++    for (UITab *tab in self.tabs) {
++      UITabBarItem *item = tab.viewController.tabBarItem;
++      // Read both images before UITab setters update the backing item. Only
++      // synchronize after an appearance update, not from a selected-state image.
++      UIImage *image = item.image;
++      UIImage *selectedImage = item.selectedImage;
++      tab.title = item.title ?: @"";
++      tab.image = image;
++      tab.selectedImage = selectedImage;
++      tab.badgeValue = item.badgeValue;
++    }
++  }
++#endif
+ }
+ 
+ - (void)updateTabBarA11yIfNeeded
+ {
+-  for (UIViewController *tabViewController in self.viewControllers) {
++  for (RNSTabsScreenViewController *tabViewController in _tabScreenControllers) {
+     auto screenView = static_cast<RNSTabsScreenViewController *>(tabViewController).tabScreenComponentView;
+     if (!screenView.tabBarItemNeedsA11yUpdate) {
+       continue;
+@@ -623,6 +716,12 @@
+     screenView.tabBarItemNeedsA11yUpdate = NO;
+     tabViewController.tabBarItem.accessibilityIdentifier = screenView.tabItemTestID;
+     tabViewController.tabBarItem.accessibilityLabel = screenView.tabItemAccessibilityLabel;
++#if RNS_PROMINENT_TABS_AVAILABLE
++    if (@available(iOS 27.0, *)) {
++      tabViewController.tab.accessibilityIdentifier = screenView.tabItemTestID;
++      tabViewController.tab.accessibilityLabel = screenView.tabItemAccessibilityLabel;
++    }
++#endif
+   }
+ }
+ 

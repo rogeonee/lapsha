@@ -12,6 +12,7 @@ import { Button } from '~/components/ui/button';
 import { PlusIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 import { useCollapsingHeader } from '~/components/ui/use-collapsing-header';
+import { useObserveScreen } from '~/lib/use-observe-screen';
 import { palette } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import type { Person } from '~/types/db';
@@ -52,6 +53,7 @@ function renderPerson({ item }: ListRenderItemInfo<Person>) {
 }
 
 export default function PeopleScreen() {
+  useObserveScreen();
   const router = useRouter();
   const header = useCollapsingHeader({
     title: 'People',
