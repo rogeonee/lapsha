@@ -9,5 +9,7 @@ test('last-person preference failures do not interrupt completed entry saves', (
 
   expect(result.stderr.toString()).toBe('');
   expect(result.exitCode).toBe(0);
-  expect(result.stdout.toString()).toBe('Last-person preference checks passed\n');
+  expect(result.stdout.toString()).toBe(
+    'Last-person preference checks passed\n',
+  );
 });

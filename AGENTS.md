@@ -17,10 +17,12 @@ bunx expo install <package-name>  # Add native/Expo packages
 bun run start                    # Metro
 bun run ios                      # Build/run iOS
 bun run android                  # Build/run Android
-bun run lint
+bun run lint                     # Oxlint
+bun run check                    # Lint, format, Expo types, and TypeScript
+bun run format                   # Oxfmt
 ```
 
-Use Bun and `bun.lock`. Run lint after code changes; follow the UI skill for relevant device verification.
+Use Bun and `bun.lock`. Use `bun run check` before committing; do not run `expo lint`, which recreates the old ESLint setup. Run lint after code changes; follow the UI skill for relevant device verification.
 
 ## Architecture and conventions
 
@@ -28,6 +30,7 @@ Use Bun and `bun.lock`. Run lint after code changes; follow the UI skill for rel
 - Keep shared form/save behavior in hooks and platform presentation in `.ios.tsx` / `.android.tsx` files. iOS entry/add-person surfaces use SwiftUI/native toolbars; Android uses HeroUI sheets and Jetpack Compose date controls.
 - Keep unsuffixed platform shims free of platform-specific runtime imports: TypeScript and Metro resolve platform files differently. `HeroUINativeProvider` stays Android-only.
 - Prefer Uniwind/Tailwind `className` utilities; use native styles for unsupported APIs. Keep tokens in `src/global.css` and `src/lib/theme.ts` synchronized. The app is intentionally light-only; styling traps are recorded in `notebook.md`.
+- Access Reanimated shared values with `.get()` / `.set()` in callbacks and worklets.
 - React Compiler is enabled: avoid manual `useMemo`, `useCallback`, and `memo` unless profiling justifies them. Sheet state derived during render deliberately keeps native content mounted through dismissal; inspect that pattern before replacing it.
 - Use `~/` for imports from `src/`, kebab-case module names, default exports for routes, and named exports for reusable components.
 

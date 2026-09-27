@@ -235,7 +235,6 @@ describe(`current local day in ${process.env.TZ}`, () => {
       '2000 · turns 27',
     );
 
-    const after = localDate(2027, 3, 2);
     expect(formatDateDetail(birthday, { year: 2027, month: 3, day: 2 })).toBe(
       '2000 · turns 28',
     );

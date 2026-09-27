@@ -38,7 +38,7 @@ TypeScript checks source imports and types separately with Expo's TypeScript ver
 
 ## EAS checks
 
-`.eas/workflows/quality.yml` runs checks for pushes and pull requests to `main` when the repository is connected to EAS. It can also be run manually:
+`.eas/workflows/quality.yml` runs checks for pushes and pull requests to `master` when the repository is connected to EAS. It can also be run manually:
 
 ```bash
 eas workflow:run .eas/workflows/quality.yml
