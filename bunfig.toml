@@ -1,0 +1,3 @@
+[test]
+# Avoid scanning native build trees, which can exhaust macOS child-process file descriptors.
+root = "./tests"
