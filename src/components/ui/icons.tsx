@@ -228,3 +228,21 @@ export function ChevronRightIcon({ size = 13, color }: IconProps) {
     />
   );
 }
+
+export function CameraIcon({ size = 20, color }: IconProps) {
+  if (isIOS)
+    return (
+      <Image
+        source="sf:camera"
+        tintColor={String(color)}
+        style={{ width: size, height: size }}
+      />
+    );
+  return (
+    <MaterialIcon
+      size={size}
+      color={color}
+      d="M9 2 7.17 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3.17L15 2H9zm3 5a6 6 0 1 1 0 12 6 6 0 0 1 0-12zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"
+    />
+  );
+}

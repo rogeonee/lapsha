@@ -23,8 +23,9 @@ import {
   type EntryKind,
   type EntrySheetConfig,
 } from '~/components/entry/use-entry-form';
-import { CheckIcon, ChevronRightIcon } from '~/components/ui/icons';
+import { CameraIcon, CheckIcon, ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
+import { giftStatusLabels, type GiftStatus } from '~/api/gifts/gift-schema';
 import { getPeople } from '~/api/people/people-service';
 import { fromAndroidPickerDate, toAndroidPickerDate } from '~/lib/dates';
 import { palette, shadows } from '~/lib/theme';
@@ -69,7 +70,11 @@ export default function EntrySheet({
     setRendered({
       config,
       nonce: (rendered?.nonce ?? 0) + 1,
-      needsBoundedScroll: fontScale > 1 || height < 600 || peopleCount > 8,
+      needsBoundedScroll:
+        fontScale > 1 ||
+        height < 600 ||
+        peopleCount > 8 ||
+        config.kind === 'gift',
     });
   }
 
@@ -165,7 +170,9 @@ function EntryForm({
   // the single-field edit-name mode.
   const autoFocusRef = useRef<TextInput>(null);
   const focusedOnce = useRef(false);
-  const shouldAutoFocus = config.mode === 'create' || config.kind === 'person';
+  const shouldAutoFocus =
+    config.kind !== 'gift' &&
+    (config.mode === 'create' || config.kind === 'person');
   useEffect(() => {
     if (canFocus && !focusedOnce.current && shouldAutoFocus) {
       focusedOnce.current = true;
@@ -189,9 +196,28 @@ function EntryForm({
   if (form.showPersonPicker && form.people.length === 0) {
     return (
       <View className="gap-4 pb-2">
-        <BottomSheet.Title>Add a person first</BottomSheet.Title>
+        <BottomSheet.Title>Keep a little thought</BottomSheet.Title>
+        <Button
+          variant="secondary"
+          onPress={() => {
+            onClose();
+            router.push('/gift-capture');
+          }}
+        >
+          <CameraIcon color={palette.broth} />
+          <Button.Label>Snap gift</Button.Label>
+        </Button>
+        <Button
+          variant="ghost"
+          onPress={() => {
+            onClose();
+            router.push('/gift-editor');
+          }}
+        >
+          <Button.Label>Write a gift idea</Button.Label>
+        </Button>
         <BottomSheet.Description>
-          Add a person first — then save facts and dates about them.
+          Add someone for facts and dates, or snap a gift to sort later.
         </BottomSheet.Description>
         <Button
           className="rounded-2xl bg-primary"
@@ -208,21 +234,49 @@ function EntryForm({
     );
   }
 
+  const openGift = (capture: boolean) => {
+    onClose();
+    router.push({
+      pathname: capture ? '/gift-capture' : '/gift-editor',
+      params:
+        config.mode === 'create' && config.personId
+          ? { personId: config.personId }
+          : {},
+    });
+  };
+
   const selectedPerson = form.people.find((p) => p.id === form.personId);
   const title =
     form.kind === 'person'
       ? 'Edit name'
-      : form.kind === 'fact'
-        ? form.editFact
-          ? 'Edit fact'
-          : 'New fact'
-        : form.editDate
-          ? 'Edit date'
-          : 'New date';
+      : form.kind === 'gift'
+        ? form.editGift
+          ? 'Edit gift'
+          : 'New gift idea'
+        : form.kind === 'fact'
+          ? form.editFact
+            ? 'Edit fact'
+            : 'New fact'
+          : form.editDate
+            ? 'Edit date'
+            : 'New date';
 
   return (
     <Animated.View className="gap-5 pb-2" style={keyboardPad}>
-      <Text className="text-lg font-medium text-broth">{title}</Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-lg font-medium text-broth">{title}</Text>
+        {config.mode === 'create' && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Snap gift"
+            onPress={() => openGift(true)}
+            className="min-h-12 flex-row items-center gap-2 px-2"
+          >
+            <CameraIcon color={palette.broth} />
+            <Text className="text-base text-broth">Snap gift</Text>
+          </Pressable>
+        )}
+      </View>
 
       {form.showPersonPicker && (
         // Inline expanding picker. HeroUI Select's overlays all misbehave
@@ -269,7 +323,11 @@ function EntryForm({
       {config.mode === 'create' && (
         <Tabs
           value={form.kind}
-          onValueChange={(value) => form.setKind(value as EntryKind)}
+          onValueChange={(value) =>
+            value === 'gift'
+              ? openGift(false)
+              : form.setKind(value as EntryKind)
+          }
         >
           <Tabs.List>
             <Tabs.Indicator />
@@ -278,6 +336,9 @@ function EntryForm({
             </Tabs.Trigger>
             <Tabs.Trigger value="date">
               <Tabs.Label>Date</Tabs.Label>
+            </Tabs.Trigger>
+            <Tabs.Trigger value="gift">
+              <Tabs.Label>Gift</Tabs.Label>
             </Tabs.Trigger>
           </Tabs.List>
         </Tabs>
@@ -296,6 +357,65 @@ function EntryForm({
             onBlur={onBlur}
           />
         </TextField>
+      ) : form.kind === 'gift' ? (
+        <>
+          <TextField>
+            <Input
+              ref={autoFocusRef}
+              placeholder="Gift idea"
+              accessibilityLabel="Gift idea"
+              className="shadow-none"
+              style={cardStyle}
+              value={form.giftTitle}
+              onChangeText={form.setGiftTitle}
+              onFocus={onFocus}
+              onBlur={onBlur}
+              maxLength={200}
+            />
+          </TextField>
+          <TextField>
+            <Input
+              placeholder="Why they’d love it (optional)"
+              accessibilityLabel="Why they’d love it"
+              className="shadow-none"
+              style={cardStyle}
+              value={form.giftNote}
+              onChangeText={form.setGiftNote}
+              onFocus={onFocus}
+              onBlur={onBlur}
+              maxLength={1000}
+            />
+          </TextField>
+          <TextField>
+            <Input
+              placeholder="Link (optional)"
+              accessibilityLabel="Gift link"
+              className="shadow-none"
+              style={cardStyle}
+              value={form.giftUrl}
+              onChangeText={form.setGiftUrl}
+              onFocus={onFocus}
+              onBlur={onBlur}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              maxLength={2048}
+            />
+          </TextField>
+          <Tabs
+            value={form.giftStatus}
+            onValueChange={(value) => form.setGiftStatus(value as GiftStatus)}
+          >
+            <Tabs.List>
+              <Tabs.Indicator />
+              {Object.entries(giftStatusLabels).map(([value, label]) => (
+                <Tabs.Trigger key={value} value={value}>
+                  <Tabs.Label>{label}</Tabs.Label>
+                </Tabs.Trigger>
+              ))}
+            </Tabs.List>
+          </Tabs>
+        </>
       ) : form.kind === 'fact' ? (
         <>
           <TextField>

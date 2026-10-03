@@ -1,3 +1,4 @@
+import { GiftSection } from '~/components/gifts/gift-section';
 import { View } from 'react-native';
 import { BIRTHDAY_LABEL } from '~/api/dates/dates-service';
 import type { EntrySheetConfig } from '~/components/entry/use-entry-form';
@@ -148,6 +149,7 @@ export function PersonDetailSections({
           }
         />
       </SectionCard>
+      <GiftSection personId={personId} onOpenSheet={onOpenSheet} />
     </View>
   );
 }

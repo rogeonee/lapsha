@@ -23,13 +23,14 @@ test.each(legacyVersions)(
             };
       migrateDatabase(database);
       expect(database.getFirstSync('PRAGMA user_version')).toEqual({
-        user_version: 3,
+        user_version: 5,
       });
       expect(database.getFirstSync('PRAGMA foreign_keys')).toEqual({
         foreign_keys: 1,
       });
       expect(database.getAllSync('PRAGMA foreign_key_check')).toEqual([]);
       for (const [table, column] of [
+        ['gifts', 'status'],
         ['persons', 'avatar'],
         ['facts', 'sort_order'],
         ['dates', 'sort_order'],
@@ -104,7 +105,7 @@ test.each(legacyVersions)(
         database.getAllSync('SELECT * FROM sqlite_master ORDER BY name'),
       ]).toEqual(snapshot);
       expect(database.getFirstSync('PRAGMA user_version')).toEqual({
-        user_version: 3,
+        user_version: 5,
       });
     } finally {
       close();
@@ -156,7 +157,7 @@ test('v3 schema and version are visible inside its transaction and roll back tog
     ).toEqual(snapshot);
     migrateDatabase(database);
     expect(database.getFirstSync('PRAGMA user_version')).toEqual({
-      user_version: 3,
+      user_version: 5,
     });
     expect(database.getAllSync('PRAGMA foreign_key_check')).toEqual([]);
   } finally {

@@ -103,8 +103,9 @@ export default function SettingsScreen() {
             >
               <Text className="text-base leading-5">
                 Android can back up your people, facts, dates, and preferences,
-                depending on your device settings. Photos are not included in
-                backups or transfers to another device. You’ll need to add them
+                depending on your device settings. Person photos are not
+                included in backups or transfers to another device. Gift photos
+                are eligible for device backup. You’ll need to add person photos
                 again after restoring.
               </Text>
             </View>
@@ -131,8 +132,8 @@ export default function SettingsScreen() {
             </Pressable>
           </View>
           <Text className="mt-2 px-1 text-sm leading-5 text-muted-foreground">
-            Permanently deletes all people, photos, facts, and dates from this
-            device.
+            Permanently deletes all people, photos, gifts, facts, and dates from
+            this device.
           </Text>
         </View>
       </ScrollView>

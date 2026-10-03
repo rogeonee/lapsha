@@ -16,7 +16,7 @@ const SWIPE_OPEN_THRESHOLD = 32;
 const SWIPE_VELOCITY_THRESHOLD = 500;
 
 /** Swipe-left-to-delete wrapper shared by fact and date rows. */
-function SwipeableRow({
+export function SwipeableRow({
   accessibilityValue,
   editLabel,
   deleteLabel,

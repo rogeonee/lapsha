@@ -13,7 +13,7 @@ export interface MigrationDatabase {
  * for each new version. Each block must stamp its own version INSIDE
  * its transaction, so the stamp can never outrun the schema.
  */
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 5;
 
 function hasColumn(
   database: MigrationDatabase,
@@ -140,6 +140,54 @@ export function migrateDatabase(database: MigrationDatabase): void {
         ALTER TABLE persons ADD COLUMN avatar TEXT;
 
         PRAGMA user_version = 3;
+      `);
+    });
+  }
+
+  if (currentVersion < 4) {
+    database.withTransactionSync(() => {
+      database.execSync(`
+        CREATE TABLE gifts (
+          id TEXT PRIMARY KEY NOT NULL,
+          person_id TEXT NOT NULL REFERENCES persons(id),
+          title TEXT NOT NULL,
+          note TEXT,
+          url TEXT,
+          status TEXT NOT NULL DEFAULT 'idea' CHECK (status IN ('idea', 'bought', 'given')),
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          deleted_at TEXT
+        );
+        CREATE INDEX idx_gifts_person_id ON gifts(person_id);
+        PRAGMA user_version = 4;
+      `);
+    });
+  }
+  if (currentVersion < 5) {
+    database.withTransactionSync(() => {
+      database.execSync(`
+        CREATE TABLE gifts_new (
+          id TEXT PRIMARY KEY NOT NULL,
+          person_id TEXT REFERENCES persons(id),
+          title TEXT,
+          note TEXT,
+          url TEXT,
+          photo TEXT,
+          status TEXT NOT NULL DEFAULT 'idea' CHECK (status IN ('idea', 'bought', 'given')),
+          given_on TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          deleted_at TEXT,
+          CHECK (NULLIF(TRIM(title), '') IS NOT NULL OR NULLIF(TRIM(note), '') IS NOT NULL OR url IS NOT NULL OR photo IS NOT NULL)
+        );
+        INSERT INTO gifts_new (id, person_id, title, note, url, status, given_on, created_at, updated_at, deleted_at)
+          SELECT id, person_id, title, note, url, status,
+            CASE WHEN status = 'given' THEN substr(updated_at, 1, 10) ELSE NULL END,
+            created_at, updated_at, deleted_at FROM gifts;
+        DROP TABLE gifts;
+        ALTER TABLE gifts_new RENAME TO gifts;
+        CREATE INDEX idx_gifts_person_id ON gifts(person_id);
+        PRAGMA user_version = 5;
       `);
     });
   }

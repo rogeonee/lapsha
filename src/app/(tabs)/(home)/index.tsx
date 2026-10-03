@@ -11,6 +11,7 @@ import { getTimeline } from '~/api/timeline/timeline-service';
 import EntrySheet, {
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
+import { UnsortedGiftsRow } from '~/components/gifts/unsorted-gifts-row';
 import { Avatar } from '~/components/person/avatar';
 import { Button } from '~/components/ui/button';
 import { EmptyState } from '~/components/ui/empty-state';
@@ -396,7 +397,12 @@ export default function HomeScreen() {
           />
         }
         renderItem={renderTimelineSection}
-        ListHeaderComponent={header.largeTitle}
+        ListHeaderComponent={
+          <View>
+            {header.largeTitle}
+            <UnsortedGiftsRow />
+          </View>
+        }
         onScroll={header.onScroll}
         scrollEventThrottle={16}
       />
