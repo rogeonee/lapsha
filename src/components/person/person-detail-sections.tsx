@@ -4,6 +4,7 @@ import type { EntrySheetConfig } from '~/components/entry/use-entry-form';
 import { AddRow, DateRow, EntryRow } from '~/components/person/entry-row';
 import FactSortMenu from '~/components/person/fact-sort-menu';
 import { Text } from '~/components/ui/text';
+import { Abby } from '~/components/ui/abby';
 import { shadows } from '~/lib/theme';
 import type { Date as PersonDate, EntrySort, Fact } from '~/types/db';
 import type { CalendarDay } from '~/lib/current-day';
@@ -120,9 +121,11 @@ export function PersonDetailSections({
         }
       >
         {facts.length === 0 ? (
-          <View className="px-4 py-3">
-            <Text className="text-base text-muted-foreground">
-              Nothing here yet — save the little things worth remembering.
+          <View className="flex-row items-center gap-4 px-4 py-4">
+            <Abby pose="note" size={84} />
+            <Text className="flex-1 text-base leading-6 text-muted-foreground">
+              Their coffee order, a favorite flower. Start with one little
+              thing.
             </Text>
           </View>
         ) : (

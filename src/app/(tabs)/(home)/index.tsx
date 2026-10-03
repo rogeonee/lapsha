@@ -8,8 +8,12 @@ import {
 } from 'react-native';
 import { getPeople } from '~/api/people/people-service';
 import { getTimeline } from '~/api/timeline/timeline-service';
+import EntrySheet, {
+  type EntrySheetConfig,
+} from '~/components/entry/entry-sheet';
 import { Avatar } from '~/components/person/avatar';
 import { Button } from '~/components/ui/button';
+import { EmptyState } from '~/components/ui/empty-state';
 import { ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 import { useCollapsingHeader } from '~/components/ui/use-collapsing-header';
@@ -326,6 +330,7 @@ export default function HomeScreen() {
   const datesVersion = useTableVersion(['dates', 'persons']);
   const today = useCurrentDay();
   const [retryNonce, setRetryNonce] = useState(0);
+  const [sheetConfig, setSheetConfig] = useState<EntrySheetConfig | null>(null);
 
   const timelineResponse = loadTimeline(datesVersion, retryNonce);
   const peopleResponse = loadPeople(datesVersion, retryNonce);
@@ -364,48 +369,39 @@ export default function HomeScreen() {
     );
   }
 
-  if (sections.length === 0) {
-    return (
-      <View className="flex-1">
-        {header.largeTitle ? (
-          <View className="px-4">{header.largeTitle}</View>
-        ) : null}
-        <View className="flex-1 items-center justify-center px-8">
-          <Text className="mb-6 text-center text-lg text-muted-foreground">
-            {hasPeople ? 'No dates yet.' : 'No people added yet.'}
-          </Text>
-          <Text className="mb-8 text-center text-sm text-muted-foreground">
-            {hasPeople
-              ? 'Add a birthday or an anniversary to someone, and it will show up here — whoever’s day comes next, first.'
-              : 'Add people and their important dates, and this screen will keep track of whose day is coming up.'}
-          </Text>
-          <Button
-            onPress={() => router.push(hasPeople ? '/people' : '/add-person')}
-            variant="outline"
-          >
-            <Text className="font-medium">
-              {hasPeople ? 'Open People' : 'Add Your First Person'}
-            </Text>
-          </Button>
-        </View>
-        {header.bar}
-      </View>
-    );
-  }
-
   return (
     <>
       <FlatList
         data={sections}
         keyExtractor={(section) => section.key}
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerClassName="gap-5 p-4"
+        contentContainerClassName={
+          sections.length === 0
+            ? process.env.EXPO_OS === 'ios'
+              ? 'px-4'
+              : 'grow p-4'
+            : 'gap-5 p-4'
+        }
+        alwaysBounceVertical={sections.length > 0}
+        ListEmptyComponent={
+          <EmptyState
+            kind={hasPeople ? 'dates' : 'welcome'}
+            onPress={() => {
+              if (hasPeople) {
+                setSheetConfig({ mode: 'create', kind: 'date' });
+              } else {
+                router.push('/add-person');
+              }
+            }}
+          />
+        }
         renderItem={renderTimelineSection}
         ListHeaderComponent={header.largeTitle}
         onScroll={header.onScroll}
         scrollEventThrottle={16}
       />
       {header.bar}
+      <EntrySheet config={sheetConfig} onClose={() => setSheetConfig(null)} />
     </>
   );
 }

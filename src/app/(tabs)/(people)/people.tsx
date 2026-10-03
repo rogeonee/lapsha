@@ -9,6 +9,7 @@ import {
 import { getPeople } from '~/api/people/people-service';
 import { PersonCard } from '~/components/person/person-card';
 import { Button } from '~/components/ui/button';
+import { EmptyState } from '~/components/ui/empty-state';
 import { PlusIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 import { useCollapsingHeader } from '~/components/ui/use-collapsing-header';
@@ -113,43 +114,33 @@ export default function PeopleScreen() {
             </Button>
           </View>
         </View>
-      ) : people.length > 0 ? (
+      ) : (
         <FlatList
           data={people}
           keyExtractor={(person) => person.id}
           contentInsetAdjustmentBehavior="automatic"
-          contentContainerClassName="p-4"
+          contentContainerClassName={
+            people.length === 0 ? (isIOS ? 'px-4' : 'grow p-4') : 'p-4'
+          }
+          alwaysBounceVertical={people.length > 0}
+          ListEmptyComponent={
+            <EmptyState
+              kind="people"
+              onPress={() => router.push('/add-person')}
+            />
+          }
           ItemSeparatorComponent={PersonSeparator}
           renderItem={renderPerson}
           ListHeaderComponent={
             header.largeTitle ? (
-              <View className="pb-5">{header.largeTitle}</View>
+              <View className={people.length > 0 ? 'pb-5' : undefined}>
+                {header.largeTitle}
+              </View>
             ) : null
           }
           onScroll={header.onScroll}
           scrollEventThrottle={16}
         />
-      ) : (
-        <View className="flex-1">
-          {header.largeTitle ? (
-            <View className="px-4">{header.largeTitle}</View>
-          ) : null}
-          <View className="flex-1 items-center justify-center px-8">
-            <Text className="mb-6 text-center text-lg text-muted-foreground">
-              No people added yet.
-            </Text>
-            <Text className="mb-8 text-center text-sm text-muted-foreground">
-              Add people to start keeping track of important facts and dates
-              about them.
-            </Text>
-            <Button
-              onPress={() => router.push('/add-person')}
-              variant="outline"
-            >
-              <Text className="font-medium">Add Your First Person</Text>
-            </Button>
-          </View>
-        </View>
       )}
       {header.bar}
     </>
