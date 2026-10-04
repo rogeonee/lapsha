@@ -1,6 +1,6 @@
 import { DatePickerDialog, Host } from '@expo/ui/jetpack-compose';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { BottomSheet } from 'heroui-native/bottom-sheet';
 import { Button } from 'heroui-native/button';
 import { useBottomSheetAwareHandlers } from 'heroui-native/hooks';
@@ -50,6 +50,10 @@ export default function EntrySheet({
   onClose: () => void;
 }) {
   const { fontScale, height } = useWindowDimensions();
+  const router = useRouter();
+  const pendingRoute = useRef<Href | null>(null);
+  const pendingContentGeneration = useRef<number | null>(null);
+  const [contentGeneration, setContentGeneration] = useState(0);
 
   // Keep the last config (+ a nonce to reset form state per open) so the
   // sheet content stays rendered during the dismiss animation
@@ -84,6 +88,12 @@ export default function EntrySheet({
     onClose();
   };
 
+  const closeAndNavigate = (route: Href) => {
+    if (pendingRoute.current) return;
+    pendingRoute.current = route;
+    handleClose();
+  };
+
   // Autofocus fires at animation start (onAnimate), not on settle: the
   // per-frame keyboard padding lets the sheet and keyboard animate
   // together, and waiting for the sheet to settle first serialized the
@@ -106,6 +116,7 @@ export default function EntrySheet({
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
         <BottomSheet.Content
+          key={contentGeneration}
           backgroundClassName="bg-paper"
           snapPoints={needsBoundedScroll ? ['85%'] : undefined}
           enableDynamicSizing={!needsBoundedScroll}
@@ -117,6 +128,32 @@ export default function EntrySheet({
           // it can't fight the KeyboardEvents padding in EntryForm
           android_keyboardInputMode="adjustResize"
           onAnimate={(_fromIndex, toIndex) => setOpening(toIndex >= 0)}
+          onChange={(index) => {
+            if (index !== -1) return;
+            // Retain the form through dismissal, then replace the native sheet
+            // while closed so activity resume cannot restore its old content.
+            if (pendingRoute.current) {
+              pendingContentGeneration.current = contentGeneration + 1;
+            }
+            setRendered(null);
+            setContentGeneration((generation) => generation + 1);
+          }}
+          contentContainerProps={{
+            onLayout: () => {
+              // Navigate only after the replacement closed sheet is mounted.
+              if (
+                rendered ||
+                config ||
+                !pendingRoute.current ||
+                pendingContentGeneration.current !== contentGeneration
+              )
+                return;
+              const route = pendingRoute.current;
+              pendingRoute.current = null;
+              pendingContentGeneration.current = null;
+              router.push(route);
+            },
+          }}
         >
           {needsBoundedScroll ? (
             <BottomSheetScrollView
@@ -128,6 +165,7 @@ export default function EntrySheet({
                   key={rendered.nonce}
                   config={rendered.config}
                   onClose={handleClose}
+                  onNavigate={closeAndNavigate}
                   canFocus={opening}
                 />
               )}
@@ -138,6 +176,7 @@ export default function EntrySheet({
                 key={rendered.nonce}
                 config={rendered.config}
                 onClose={handleClose}
+                onNavigate={closeAndNavigate}
                 canFocus={opening}
               />
             )
@@ -151,13 +190,14 @@ export default function EntrySheet({
 function EntryForm({
   config,
   onClose,
+  onNavigate,
   canFocus,
 }: {
   config: EntrySheetConfig;
   onClose: () => void;
+  onNavigate: (route: Href) => void;
   canFocus: boolean;
 }) {
-  const router = useRouter();
   const form = useEntryForm(config, onClose);
   const { onFocus, onBlur } = useBottomSheetAwareHandlers();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -197,23 +237,11 @@ function EntryForm({
     return (
       <View className="gap-4 pb-2">
         <BottomSheet.Title>Keep a little thought</BottomSheet.Title>
-        <Button
-          variant="secondary"
-          onPress={() => {
-            onClose();
-            router.push('/gift-capture');
-          }}
-        >
+        <Button variant="secondary" onPress={() => onNavigate('/gift-capture')}>
           <CameraIcon color={palette.broth} />
           <Button.Label>Snap gift</Button.Label>
         </Button>
-        <Button
-          variant="ghost"
-          onPress={() => {
-            onClose();
-            router.push('/gift-editor');
-          }}
-        >
+        <Button variant="ghost" onPress={() => onNavigate('/gift-editor')}>
           <Button.Label>Write a gift idea</Button.Label>
         </Button>
         <BottomSheet.Description>
@@ -221,10 +249,7 @@ function EntryForm({
         </BottomSheet.Description>
         <Button
           className="rounded-2xl bg-primary"
-          onPress={() => {
-            onClose();
-            router.push('/add-person');
-          }}
+          onPress={() => onNavigate('/add-person')}
         >
           <Button.Label className="text-primary-foreground">
             Add a person
@@ -235,8 +260,7 @@ function EntryForm({
   }
 
   const openGift = (capture: boolean) => {
-    onClose();
-    router.push({
+    onNavigate({
       pathname: capture ? '/gift-capture' : '/gift-editor',
       params:
         config.mode === 'create' && config.personId

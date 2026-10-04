@@ -27,7 +27,7 @@ export default function PersonMenu({
   const confirmDelete = () => {
     Alert.alert(
       `Delete ${personName}?`,
-      'Their dates and facts will be removed too.',
+      'Their dates, facts, and gift ideas will be removed too.',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Delete', style: 'destructive', onPress: onDeletePerson },

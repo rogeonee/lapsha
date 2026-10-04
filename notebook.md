@@ -45,6 +45,8 @@ Record only non-obvious decisions, device-tested traps, and context that cannot 
 
 ## Gotchas
 
+- **2026-10-04 — Close and replace Android entry-sheet content before gift navigation.** On Pixel 6 / Android 17, waiting for Gorhom's settled `onChange(-1)` alone still let the retained native sheet resurface over the gift editor or permission recovery after an external camera activity. Keep the form through dismissal, then clear it and remount the closed content; navigate only after that replacement's layout, guarded by its generation. Keep the sheet root mounted so HeroUI still receives its required false-to-true open transition. Verified capture success, denial, cancellation, fact save/reopen, and camera/text handoff with 150% text and animations disabled in a release APK.
+
 - **2026-10-03 — Keyboard-controller's Android status-bar override misses Modal windows.** Version 1.21.9 updates only the activity while enabled, leaving dark icons on the photo viewer's black background even after `onShow` sets light style. The viewer temporarily disables it through `useKeyboardController`, waits before showing the Modal, reapplies light style in `onShow`, and restores the prior enabled state on unmount. Pixel verification confirmed white viewer icons and restored editor icons, keyboard scrolling, and sticky Done.
 
 - **2026-10-03 — Reanimated style mappers need direct shared-value captures.** Hiding every `.get()` inside a captured helper left the photo viewer's `useAnimatedStyle` without subscriptions: gestures updated state but neither pinch nor double-tap visibly zoomed. Read shared values inside the mapper and pass their values into geometry helpers. Pixel verification confirmed zoom, reset, and bounded pan after this change.
