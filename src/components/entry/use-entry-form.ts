@@ -98,10 +98,7 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
       : personId !== null &&
         (kind === 'gift'
           ? Boolean(
-              giftTitle.trim() ||
-              giftNote.trim() ||
-              giftUrl.trim() ||
-              editGift?.photo,
+              giftTitle.trim() || giftNote.trim() || giftUrl.trim() || editGift,
             )
           : kind === 'fact'
             ? factValue.trim().length > 0

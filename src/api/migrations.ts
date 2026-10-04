@@ -13,7 +13,7 @@ export interface MigrationDatabase {
  * for each new version. Each block must stamp its own version INSIDE
  * its transaction, so the stamp can never outrun the schema.
  */
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 
 function hasColumn(
   database: MigrationDatabase,
@@ -188,6 +188,31 @@ export function migrateDatabase(database: MigrationDatabase): void {
         ALTER TABLE gifts_new RENAME TO gifts;
         CREATE INDEX idx_gifts_person_id ON gifts(person_id);
         PRAGMA user_version = 5;
+      `);
+    });
+  }
+  if (currentVersion < 6) {
+    database.withTransactionSync(() => {
+      database.execSync(`
+        CREATE TABLE gifts_new (
+          id TEXT PRIMARY KEY NOT NULL,
+          person_id TEXT REFERENCES persons(id),
+          title TEXT,
+          note TEXT,
+          url TEXT,
+          photo TEXT,
+          status TEXT NOT NULL DEFAULT 'idea' CHECK (status IN ('idea', 'bought', 'given')),
+          given_on TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          deleted_at TEXT
+        );
+        INSERT INTO gifts_new (id, person_id, title, note, url, photo, status, given_on, created_at, updated_at, deleted_at)
+          SELECT id, person_id, title, note, url, photo, status, given_on, created_at, updated_at, deleted_at FROM gifts;
+        DROP TABLE gifts;
+        ALTER TABLE gifts_new RENAME TO gifts;
+        CREATE INDEX idx_gifts_person_id ON gifts(person_id);
+        PRAGMA user_version = 6;
       `);
     });
   }

@@ -9,21 +9,25 @@ const optionalText = (limit: number) =>
     .nullable()
     .transform((text) => text || null);
 
-export const giftFieldsSchema = z
-  .object({
-    title: optionalText(200),
-    note: optionalText(1000),
-    url: z
-      .url({ protocol: /^https?$/, error: 'Use a valid http or https link' })
-      .max(2048)
-      .nullable(),
-    photo: z
-      .string()
-      .regex(/^[\w-]+\.jpg$/, 'Invalid photo file')
-      .nullable()
-      .default(null),
-    status: giftStatusSchema,
-    given_on: z.iso.date().nullable().default(null),
+export const giftFieldsSchema = z.object({
+  title: optionalText(200),
+  note: optionalText(1000),
+  url: z
+    .url({ protocol: /^https?$/, error: 'Use a valid http or https link' })
+    .max(2048)
+    .nullable(),
+  photo: z
+    .string()
+    .regex(/^[\w-]+\.jpg$/, 'Invalid photo file')
+    .nullable()
+    .default(null),
+  status: giftStatusSchema,
+  given_on: z.iso.date().nullable().default(null),
+});
+export const createGiftSchema = giftFieldsSchema
+  .extend({
+    person_id: z.uuid().nullable(),
+    id: z.uuid().optional(),
   })
   .refine(
     (gift) => Boolean(gift.title || gift.note || gift.url || gift.photo),
@@ -32,10 +36,6 @@ export const giftFieldsSchema = z
       path: ['title'],
     },
   );
-export const createGiftSchema = giftFieldsSchema.safeExtend({
-  person_id: z.uuid().nullable(),
-  id: z.uuid().optional(),
-});
 export type GiftFields = z.infer<typeof giftFieldsSchema>;
 export type GiftInput = z.input<typeof giftFieldsSchema>;
 export type GiftStatus = z.infer<typeof giftStatusSchema>;
@@ -71,6 +71,8 @@ export function giftDomain(url: string): string {
 
 export function giftLabel(gift: Gift): string {
   return (
-    gift.title || gift.note || (gift.url ? giftDomain(gift.url) : 'Photo idea')
+    gift.title ||
+    gift.note ||
+    (gift.url ? giftDomain(gift.url) : gift.photo ? 'Photo idea' : 'Gift idea')
   );
 }

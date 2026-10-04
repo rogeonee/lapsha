@@ -8,6 +8,8 @@ Record only non-obvious decisions, device-tested traps, and context that cannot 
 
 ## Decisions
 
+- **2026-10-03 — Existing gift ideas may become blank.** Removing the last photo or clearing saved details keeps the idea for later editing. Schema v6 removes the old nonempty-row constraint; update validation accepts blank content, while creation still requires a photo, thought, title, or link. Keep that distinction in both editor hooks.
+
 - **2026-10-03 — Gifts Lab has its own Android identity.** `APP_VARIANT=gifts-lab` selects the `com.rogeonee.lapsha.giftslab` package, `lapsha-gifts-lab` scheme, "Lapsha Gifts Lab" name, and purple flask icon. Local prebuild output retains the selected variant until regenerated; use a clean Android prebuild without the variable to return to the normal app. Release APKs run without Metro.
 
 - **2026-10-03 — Gift photo recovery is distinct from avatar picking.** Photos save before optional details. A durable file journal allows idempotent startup recovery; gift gallery requests have their own marker so ImagePicker's shared pending-result API cannot turn an interrupted avatar selection into a gift. Gift photos remain eligible for Android OS backup/transfer, while avatars remain excluded. Actual restore/transfer is unverified.

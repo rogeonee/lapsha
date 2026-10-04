@@ -297,6 +297,52 @@ try {
   const assigned = ok(gifts.assignGift(photoIdea.id, person.id));
   assert.equal(assigned.person_id, person.id);
   assert.equal(ok(gifts.getGiftsByPerson(null)).length, 0);
+  const { giftLabel } = await import('../../src/api/gifts/gift-schema');
+  assert.equal(giftLabel(assigned), 'Photo idea');
+  const blank = ok(
+    gifts.updateGift(assigned.id, {
+      ...assigned,
+      title: ' ',
+      note: '',
+      photo: null,
+    }),
+  );
+  assert.equal(blank.title, null);
+  assert.equal(blank.note, null);
+  assert.equal(blank.url, null);
+  assert.equal(blank.photo, null);
+  assert.equal(blank.person_id, person.id);
+  assert.equal(blank.created_at, assigned.created_at);
+  assert.equal(blank.deleted_at, null);
+  assert.equal(giftLabel(blank), 'Gift idea');
+  assert.deepEqual(ok(gifts.getGift(blank.id)), blank);
+  assert.deepEqual(ok(gifts.getGiftsByPerson(person.id)), [blank]);
+  const blankBought = ok(
+    gifts.updateGift(blank.id, { ...blank, status: 'bought' }),
+  );
+  assert.equal(blankBought.status, 'bought');
+  for (const invalidFields of [
+    { title: 'a'.repeat(201) },
+    { url: 'javascript:alert(1)' },
+    { photo: '../capture.jpg' },
+    { given_on: 'not-a-date' },
+  ]) {
+    failure(
+      gifts.updateGift(blank.id, { ...blankBought, ...invalidFields }),
+      ErrorCode.VALIDATION_ERROR,
+    );
+    assert.deepEqual(ok(gifts.getGift(blank.id)), blankBought);
+  }
+  const refilled = ok(
+    gifts.updateGift(blank.id, {
+      ...ok(gifts.getGift(blank.id)),
+      note: '  Another thought  ',
+    }),
+  );
+  assert.equal(refilled.note, 'Another thought');
+  assert.equal(refilled.photo, null);
+  assert.equal(refilled.id, assigned.id);
+  assert.equal(giftLabel(refilled), 'Another thought');
   const given = ok(
     gifts.updateGift(photoIdea.id, { ...assigned, status: 'given' }),
   );

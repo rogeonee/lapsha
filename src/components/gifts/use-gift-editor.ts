@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import { Alert } from 'react-native';
 import {
   giftFieldsSchema,
   normalizeGiftUrl,
@@ -48,7 +47,9 @@ export function useGiftEditor(initial: Gift | null, personId: string | null) {
     status,
     given_on: givenOn,
   };
-  const valid = Boolean(title.trim() || note.trim() || url.trim() || photo);
+  const valid = Boolean(
+    savedGift || title.trim() || note.trim() || url.trim() || photo,
+  );
 
   const save = () => {
     const parsed = giftFieldsSchema.safeParse(fields);
@@ -101,13 +102,6 @@ export function useGiftEditor(initial: Gift | null, personId: string | null) {
 
   const removePhoto = () => {
     if (!savedGift) return;
-    if (!savedGift.title && !savedGift.note && !savedGift.url) {
-      Alert.alert(
-        'Keep something to remember',
-        'Add and save a thought or a link before removing the photo, or delete this idea.',
-      );
-      return;
-    }
     const result = updateGift(savedGift.id, { ...savedGift, photo: null });
     if (result.error || !result.data) {
       setError('Couldn’t remove the photo. Please try again.');
@@ -115,6 +109,7 @@ export function useGiftEditor(initial: Gift | null, personId: string | null) {
     }
     deleteGiftPhoto(savedGift.photo);
     setSavedGift(result.data);
+    setError(null);
   };
 
   const remove = () => {
