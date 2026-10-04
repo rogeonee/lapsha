@@ -40,8 +40,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Lapsha uses your photo library so you can pick a photo for a person.",
-          "cameraPermission": false,
+          "photosPermission": "Lapsha uses your photo library for people and gift ideas.",
+          "cameraPermission": "Lapsha uses the camera to save gift ideas.",
           "microphonePermission": false
         }
       ],
@@ -54,6 +54,14 @@
         "expo-dev-client",
         {
           "addGeneratedScheme": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Lapsha uses the camera to save gift ideas.",
+          "recordAudioAndroid": false,
+          "microphonePermission": false
         }
       ],
       [

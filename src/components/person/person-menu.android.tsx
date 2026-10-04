@@ -134,7 +134,7 @@ function HeaderMenu({
           <Dialog.Content>
             <Dialog.Title>Delete {personName}?</Dialog.Title>
             <Dialog.Description>
-              Their dates and facts will be removed too.
+              Their dates, facts, and gift ideas will be removed too.
             </Dialog.Description>
             <View className="mt-5 flex-row gap-3">
               <Button

@@ -12,6 +12,7 @@ export interface ClearDataOutcome {
 /** Relational data is all-or-nothing so facts and dates cannot be orphaned. */
 export function clearRelationalData(database: TransactionDatabase): void {
   database.withTransactionSync(() => {
+    database.execSync('DELETE FROM gifts;');
     database.execSync('DELETE FROM facts;');
     database.execSync('DELETE FROM dates;');
     database.execSync('DELETE FROM persons;');

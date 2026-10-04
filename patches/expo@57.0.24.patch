@@ -1,0 +1,37 @@
+diff --git a/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt b/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt
+--- a/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt
++++ b/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt
+@@ -30,6 +30,7 @@
+ import kotlinx.coroutines.CoroutineStart
+ import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.launch
++import kotlinx.coroutines.runInterruptible
+ import kotlinx.coroutines.sync.Mutex
+ import kotlinx.coroutines.sync.withLock
+ import java.lang.reflect.Field
+@@ -253,9 +254,22 @@
+      *
+      * TODO (@bbarthec): fix it upstream?
+      */
+-    launchLifecycleScopeWithLock {
+-      loadAppReady.await()
+-      delegate.onActivityResult(requestCode, resultCode, data)
++    activity.lifecycleScope.launch {
++      loadAppReady.await()
++      val host = reactHost
++      if (host != null) {
++        // A published ReactContext can still be initializing its native modules.
++        // Leave the lifecycle mutex/UI thread free while the host finishes startup.
++        val initialized = runInterruptible(Dispatchers.IO) {
++          val startup = host.start()
++          startup.waitForCompletion()
++          !startup.isCancelled() && !startup.isFaulted()
++        }
++        if (!initialized) return@launch
++      }
++      mutex.withLock {
++        delegate.onActivityResult(requestCode, resultCode, data)
++      }
+     }
+   }
+ 

@@ -1,6 +1,6 @@
 import { DatePickerDialog, Host } from '@expo/ui/jetpack-compose';
 import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { BottomSheet } from 'heroui-native/bottom-sheet';
 import { Button } from 'heroui-native/button';
 import { useBottomSheetAwareHandlers } from 'heroui-native/hooks';
@@ -23,8 +23,9 @@ import {
   type EntryKind,
   type EntrySheetConfig,
 } from '~/components/entry/use-entry-form';
-import { CheckIcon, ChevronRightIcon } from '~/components/ui/icons';
+import { CameraIcon, CheckIcon, ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
+import { giftStatusLabels, type GiftStatus } from '~/api/gifts/gift-schema';
 import { getPeople } from '~/api/people/people-service';
 import { fromAndroidPickerDate, toAndroidPickerDate } from '~/lib/dates';
 import { palette, shadows } from '~/lib/theme';
@@ -49,6 +50,10 @@ export default function EntrySheet({
   onClose: () => void;
 }) {
   const { fontScale, height } = useWindowDimensions();
+  const router = useRouter();
+  const pendingRoute = useRef<Href | null>(null);
+  const pendingContentGeneration = useRef<number | null>(null);
+  const [contentGeneration, setContentGeneration] = useState(0);
 
   // Keep the last config (+ a nonce to reset form state per open) so the
   // sheet content stays rendered during the dismiss animation
@@ -69,7 +74,11 @@ export default function EntrySheet({
     setRendered({
       config,
       nonce: (rendered?.nonce ?? 0) + 1,
-      needsBoundedScroll: fontScale > 1 || height < 600 || peopleCount > 8,
+      needsBoundedScroll:
+        fontScale > 1 ||
+        height < 600 ||
+        peopleCount > 8 ||
+        config.kind === 'gift',
     });
   }
 
@@ -77,6 +86,12 @@ export default function EntrySheet({
   const handleClose = () => {
     Keyboard.dismiss();
     onClose();
+  };
+
+  const closeAndNavigate = (route: Href) => {
+    if (pendingRoute.current) return;
+    pendingRoute.current = route;
+    handleClose();
   };
 
   // Autofocus fires at animation start (onAnimate), not on settle: the
@@ -101,6 +116,7 @@ export default function EntrySheet({
       <BottomSheet.Portal>
         <BottomSheet.Overlay />
         <BottomSheet.Content
+          key={contentGeneration}
           backgroundClassName="bg-paper"
           snapPoints={needsBoundedScroll ? ['85%'] : undefined}
           enableDynamicSizing={!needsBoundedScroll}
@@ -112,6 +128,32 @@ export default function EntrySheet({
           // it can't fight the KeyboardEvents padding in EntryForm
           android_keyboardInputMode="adjustResize"
           onAnimate={(_fromIndex, toIndex) => setOpening(toIndex >= 0)}
+          onChange={(index) => {
+            if (index !== -1) return;
+            // Retain the form through dismissal, then replace the native sheet
+            // while closed so activity resume cannot restore its old content.
+            if (pendingRoute.current) {
+              pendingContentGeneration.current = contentGeneration + 1;
+            }
+            setRendered(null);
+            setContentGeneration((generation) => generation + 1);
+          }}
+          contentContainerProps={{
+            onLayout: () => {
+              // Navigate only after the replacement closed sheet is mounted.
+              if (
+                rendered ||
+                config ||
+                !pendingRoute.current ||
+                pendingContentGeneration.current !== contentGeneration
+              )
+                return;
+              const route = pendingRoute.current;
+              pendingRoute.current = null;
+              pendingContentGeneration.current = null;
+              router.push(route);
+            },
+          }}
         >
           {needsBoundedScroll ? (
             <BottomSheetScrollView
@@ -123,6 +165,7 @@ export default function EntrySheet({
                   key={rendered.nonce}
                   config={rendered.config}
                   onClose={handleClose}
+                  onNavigate={closeAndNavigate}
                   canFocus={opening}
                 />
               )}
@@ -133,6 +176,7 @@ export default function EntrySheet({
                 key={rendered.nonce}
                 config={rendered.config}
                 onClose={handleClose}
+                onNavigate={closeAndNavigate}
                 canFocus={opening}
               />
             )
@@ -146,13 +190,14 @@ export default function EntrySheet({
 function EntryForm({
   config,
   onClose,
+  onNavigate,
   canFocus,
 }: {
   config: EntrySheetConfig;
   onClose: () => void;
+  onNavigate: (route: Href) => void;
   canFocus: boolean;
 }) {
-  const router = useRouter();
   const form = useEntryForm(config, onClose);
   const { onFocus, onBlur } = useBottomSheetAwareHandlers();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -165,7 +210,9 @@ function EntryForm({
   // the single-field edit-name mode.
   const autoFocusRef = useRef<TextInput>(null);
   const focusedOnce = useRef(false);
-  const shouldAutoFocus = config.mode === 'create' || config.kind === 'person';
+  const shouldAutoFocus =
+    config.kind !== 'gift' &&
+    (config.mode === 'create' || config.kind === 'person');
   useEffect(() => {
     if (canFocus && !focusedOnce.current && shouldAutoFocus) {
       focusedOnce.current = true;
@@ -189,16 +236,20 @@ function EntryForm({
   if (form.showPersonPicker && form.people.length === 0) {
     return (
       <View className="gap-4 pb-2">
-        <BottomSheet.Title>Add a person first</BottomSheet.Title>
+        <BottomSheet.Title>Keep a little thought</BottomSheet.Title>
+        <Button variant="secondary" onPress={() => onNavigate('/gift-capture')}>
+          <CameraIcon color={palette.broth} />
+          <Button.Label>Snap gift</Button.Label>
+        </Button>
+        <Button variant="ghost" onPress={() => onNavigate('/gift-editor')}>
+          <Button.Label>Write a gift idea</Button.Label>
+        </Button>
         <BottomSheet.Description>
-          Add a person first — then save facts and dates about them.
+          Add someone for facts and dates, or snap a gift to sort later.
         </BottomSheet.Description>
         <Button
           className="rounded-2xl bg-primary"
-          onPress={() => {
-            onClose();
-            router.push('/add-person');
-          }}
+          onPress={() => onNavigate('/add-person')}
         >
           <Button.Label className="text-primary-foreground">
             Add a person
@@ -208,21 +259,48 @@ function EntryForm({
     );
   }
 
+  const openGift = (capture: boolean) => {
+    onNavigate({
+      pathname: capture ? '/gift-capture' : '/gift-editor',
+      params:
+        config.mode === 'create' && config.personId
+          ? { personId: config.personId }
+          : {},
+    });
+  };
+
   const selectedPerson = form.people.find((p) => p.id === form.personId);
   const title =
     form.kind === 'person'
       ? 'Edit name'
-      : form.kind === 'fact'
-        ? form.editFact
-          ? 'Edit fact'
-          : 'New fact'
-        : form.editDate
-          ? 'Edit date'
-          : 'New date';
+      : form.kind === 'gift'
+        ? form.editGift
+          ? 'Edit gift'
+          : 'New gift idea'
+        : form.kind === 'fact'
+          ? form.editFact
+            ? 'Edit fact'
+            : 'New fact'
+          : form.editDate
+            ? 'Edit date'
+            : 'New date';
 
   return (
     <Animated.View className="gap-5 pb-2" style={keyboardPad}>
-      <Text className="text-lg font-medium text-broth">{title}</Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-lg font-medium text-broth">{title}</Text>
+        {config.mode === 'create' && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Snap gift"
+            onPress={() => openGift(true)}
+            className="min-h-12 flex-row items-center gap-2 px-2"
+          >
+            <CameraIcon color={palette.broth} />
+            <Text className="text-base text-broth">Snap gift</Text>
+          </Pressable>
+        )}
+      </View>
 
       {form.showPersonPicker && (
         // Inline expanding picker. HeroUI Select's overlays all misbehave
@@ -269,7 +347,11 @@ function EntryForm({
       {config.mode === 'create' && (
         <Tabs
           value={form.kind}
-          onValueChange={(value) => form.setKind(value as EntryKind)}
+          onValueChange={(value) =>
+            value === 'gift'
+              ? openGift(false)
+              : form.setKind(value as EntryKind)
+          }
         >
           <Tabs.List>
             <Tabs.Indicator />
@@ -278,6 +360,9 @@ function EntryForm({
             </Tabs.Trigger>
             <Tabs.Trigger value="date">
               <Tabs.Label>Date</Tabs.Label>
+            </Tabs.Trigger>
+            <Tabs.Trigger value="gift">
+              <Tabs.Label>Gift</Tabs.Label>
             </Tabs.Trigger>
           </Tabs.List>
         </Tabs>
@@ -296,6 +381,65 @@ function EntryForm({
             onBlur={onBlur}
           />
         </TextField>
+      ) : form.kind === 'gift' ? (
+        <>
+          <TextField>
+            <Input
+              ref={autoFocusRef}
+              placeholder="Gift idea"
+              accessibilityLabel="Gift idea"
+              className="shadow-none"
+              style={cardStyle}
+              value={form.giftTitle}
+              onChangeText={form.setGiftTitle}
+              onFocus={onFocus}
+              onBlur={onBlur}
+              maxLength={200}
+            />
+          </TextField>
+          <TextField>
+            <Input
+              placeholder="Why they’d love it (optional)"
+              accessibilityLabel="Why they’d love it"
+              className="shadow-none"
+              style={cardStyle}
+              value={form.giftNote}
+              onChangeText={form.setGiftNote}
+              onFocus={onFocus}
+              onBlur={onBlur}
+              maxLength={1000}
+            />
+          </TextField>
+          <TextField>
+            <Input
+              placeholder="Link (optional)"
+              accessibilityLabel="Gift link"
+              className="shadow-none"
+              style={cardStyle}
+              value={form.giftUrl}
+              onChangeText={form.setGiftUrl}
+              onFocus={onFocus}
+              onBlur={onBlur}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              maxLength={2048}
+            />
+          </TextField>
+          <Tabs
+            value={form.giftStatus}
+            onValueChange={(value) => form.setGiftStatus(value as GiftStatus)}
+          >
+            <Tabs.List>
+              <Tabs.Indicator />
+              {Object.entries(giftStatusLabels).map(([value, label]) => (
+                <Tabs.Trigger key={value} value={value}>
+                  <Tabs.Label>{label}</Tabs.Label>
+                </Tabs.Trigger>
+              ))}
+            </Tabs.List>
+          </Tabs>
+        </>
       ) : form.kind === 'fact' ? (
         <>
           <TextField>

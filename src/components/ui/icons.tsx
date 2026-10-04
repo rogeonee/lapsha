@@ -228,3 +228,39 @@ export function ChevronRightIcon({ size = 13, color }: IconProps) {
     />
   );
 }
+
+export function CameraIcon({ size = 20, color }: IconProps) {
+  if (isIOS)
+    return (
+      <Image
+        source="sf:camera"
+        tintColor={String(color)}
+        style={{ width: size, height: size }}
+      />
+    );
+  return (
+    <MaterialIcon
+      size={size}
+      color={color}
+      d="M9 2 7.17 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3.17L15 2H9zm3 5a6 6 0 1 1 0 12 6 6 0 0 1 0-12zm0 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"
+    />
+  );
+}
+
+export function CloseIcon({ size = 24, color }: IconProps) {
+  if (isIOS)
+    return (
+      <Image
+        source="sf:xmark"
+        tintColor={String(color)}
+        style={{ width: size, height: size }}
+      />
+    );
+  return (
+    <MaterialIcon
+      size={size}
+      color={color}
+      d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+    />
+  );
+}

@@ -25,13 +25,15 @@ import { palette } from '~/lib/theme';
 import { useColorScheme } from '~/lib/useColorScheme';
 import { CurrentDayProvider } from '~/lib/use-current-day';
 import { StartupReadyContext } from '~/lib/use-observe-screen';
+import { recoverGiftLibrarySelection } from '~/lib/recover-gift-library-selection';
+import { recoverGiftCaptures } from '~/api/gifts/capture-service';
 import '../global.css';
 
 const isIOS = process.env.EXPO_OS === 'ios';
 const splashFadeDuration = isIOS ? 150 : 0;
 
 Observe.configure({
-  integrations: { 'expo-router': { filteredParams: ['id'] } },
+  integrations: { 'expo-router': { filteredParams: ['id', 'personId'] } },
 });
 
 const LIGHT_THEME: Theme = {
@@ -88,10 +90,20 @@ function Root() {
   const [startupReady, setStartupReady] = useState(false);
 
   useEffect(() => {
-    SplashScreen.hide();
-    // Native hide returns before the iOS fade finishes.
-    const timeout = setTimeout(() => setStartupReady(true), splashFadeDuration);
-    return () => clearTimeout(timeout);
+    let active = true;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    void (async () => {
+      recoverGiftCaptures();
+      if (!isIOS) await recoverGiftLibrarySelection();
+      if (!active) return;
+      SplashScreen.hide();
+      // Native hide returns before the iOS fade finishes.
+      timeout = setTimeout(() => setStartupReady(true), splashFadeDuration);
+    })();
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+    };
   }, []);
 
   return (
@@ -108,6 +120,29 @@ function Root() {
                   <Stack.Screen
                     name="(tabs)"
                     options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="gift-capture"
+                    options={{ headerShown: false, animation: 'fade' }}
+                  />
+                  <Stack.Screen
+                    name="gift-inbox"
+                    options={{
+                      title: 'Unsorted gift ideas',
+                      headerTintColor: palette.broth,
+                      headerStyle: { backgroundColor: palette.paper },
+                      headerShadowVisible: false,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="gift-editor"
+                    options={{
+                      title: 'Gift idea',
+                      headerTintColor: palette.broth,
+                      headerStyle: { backgroundColor: palette.paper },
+                      headerShadowVisible: false,
+                      contentStyle: { backgroundColor: palette.paper },
+                    }}
                   />
                   <Stack.Screen
                     name="add-person"

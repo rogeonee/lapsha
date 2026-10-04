@@ -1,0 +1,63 @@
+diff --git a/android/src/main/java/expo/modules/kotlin/activityresult/AppContextActivityResultRegistry.kt b/android/src/main/java/expo/modules/kotlin/activityresult/AppContextActivityResultRegistry.kt
+index a5b971ef8fdc06d064d68349a6ac7230b517a783..22f80eb9c20fc65fad42be9d7e38f4d261cb6ccf 100644
+--- a/android/src/main/java/expo/modules/kotlin/activityresult/AppContextActivityResultRegistry.kt
++++ b/android/src/main/java/expo/modules/kotlin/activityresult/AppContextActivityResultRegistry.kt
+@@ -66,6 +66,7 @@ class AppContextActivityResultRegistry(
+   private val currentActivityProvider: CurrentActivityProvider
+ ) {
+   private var random: Random = Random()
++  private var restoredInstanceState = false
+ 
+   private val requestCodeToKey: MutableMap<Int, String> = HashMap()
+   private val keyToRequestCode: MutableMap<String, Int> = HashMap()
+@@ -166,6 +167,7 @@ class AppContextActivityResultRegistry(
+     contract: AppContextActivityResultContract<I, O>,
+     fallbackCallback: AppContextActivityResultFallbackCallback<I, O>
+   ): AppContextActivityResultLauncher<I, O> {
++    restoreInstanceState(activity)
+     val lifecycle = lifecycleOwner.lifecycle
+ 
+     keyToCallbacksAndContract[key] = CallbacksAndContract(fallbackCallback, null, contract)
+@@ -204,6 +206,8 @@ class AppContextActivityResultRegistry(
+               // 2.2 launching Activity killed during the process, proceed with fallback callback
+               callbacksAndContract.fallbackCallback.onActivityResult(input, result)
+             }
++            launchedKeys.remove(key)
++            persistInstanceState(activity)
+           }
+         }
+ 
+@@ -229,9 +233,12 @@ class AppContextActivityResultRegistry(
+         launchedKeys.add(key)
+ 
+         try {
++          // Process termination does not call onHostDestroy. Save before leaving the app.
++          persistInstanceState(activity)
+           onLaunch(requestCode, contract, input)
+         } catch (e: Exception) {
+           launchedKeys.remove(key)
++          persistInstanceState(activity)
+           throw e
+         }
+       }
+@@ -257,6 +264,8 @@ class AppContextActivityResultRegistry(
+    * Possibly restore saved results from before the registry was destroyed.
+    */
+   fun restoreInstanceState(context: Context) {
++    if (restoredInstanceState) return
++    restoredInstanceState = true
+     val dataPersistor = DataPersistor(context)
+ 
+     dataPersistor.retrieveStringArrayList("launchedKeys")?.let { launchedKeys = it }
+@@ -298,9 +307,11 @@ class AppContextActivityResultRegistry(
+    */
+   @MainThread
+   fun dispatchResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
++    restoreInstanceState(activity)
+     val key = requestCodeToKey[requestCode] ?: return false
+     val callbacksAndContract = keyToCallbacksAndContract[key]
+     doDispatch(key, resultCode, data, callbacksAndContract)
++    persistInstanceState(activity)
+     return true
+   }
+ 

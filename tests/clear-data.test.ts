@@ -22,9 +22,14 @@ function databaseFixture(): {
       id TEXT PRIMARY KEY,
       person_id TEXT NOT NULL REFERENCES persons(id)
     );
+    CREATE TABLE gifts (
+      id TEXT PRIMARY KEY,
+      person_id TEXT NOT NULL REFERENCES persons(id)
+    );
     INSERT INTO persons VALUES ('person');
     INSERT INTO facts VALUES ('fact', 'person');
     INSERT INTO dates VALUES ('date', 'person');
+    INSERT INTO gifts VALUES ('gift', 'person');
   `);
   return {
     sqlite,
@@ -60,6 +65,7 @@ describe('clear all data', () => {
     expect(rowCount(sqlite, 'persons')).toBe(0);
     expect(rowCount(sqlite, 'facts')).toBe(0);
     expect(rowCount(sqlite, 'dates')).toBe(0);
+    expect(rowCount(sqlite, 'gifts')).toBe(0);
     expect(preferencesCleared).toBe(true);
     expect(photosCleared).toBe(true);
     expect(result.incompleteCleanup).toEqual([]);
@@ -89,6 +95,7 @@ describe('clear all data', () => {
     expect(rowCount(sqlite, 'persons')).toBe(1);
     expect(rowCount(sqlite, 'facts')).toBe(1);
     expect(rowCount(sqlite, 'dates')).toBe(1);
+    expect(rowCount(sqlite, 'gifts')).toBe(1);
     expect(preferencesAttempted).toBe(false);
     expect(photosAttempted).toBe(false);
   });

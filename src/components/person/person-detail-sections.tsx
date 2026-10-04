@@ -1,8 +1,10 @@
+import { GiftSection } from '~/components/gifts/gift-section';
 import { View } from 'react-native';
 import { BIRTHDAY_LABEL } from '~/api/dates/dates-service';
 import type { EntrySheetConfig } from '~/components/entry/use-entry-form';
 import { AddRow, DateRow, EntryRow } from '~/components/person/entry-row';
 import FactSortMenu from '~/components/person/fact-sort-menu';
+import { PersonSectionHeader } from '~/components/person/person-section-header';
 import { Text } from '~/components/ui/text';
 import { Abby } from '~/components/ui/abby';
 import { shadows } from '~/lib/theme';
@@ -24,11 +26,8 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <View className="gap-2">
-      <View className="flex-row items-center justify-between px-1">
-        <Text className="text-base font-medium">{title}</Text>
-        {accessory}
-      </View>
+    <View className="gap-1">
+      <PersonSectionHeader title={title} accessory={accessory} />
       <View className="overflow-hidden rounded-2xl bg-white" style={cardStyle}>
         {children}
       </View>
@@ -148,6 +147,7 @@ export function PersonDetailSections({
           }
         />
       </SectionCard>
+      <GiftSection personId={personId} onOpenSheet={onOpenSheet} />
     </View>
   );
 }

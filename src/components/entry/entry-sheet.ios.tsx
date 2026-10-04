@@ -18,6 +18,9 @@ import {
   VStack,
 } from '@expo/ui/swift-ui';
 import {
+  autocorrectionDisabled,
+  textInputAutocapitalization,
+  keyboardType,
   background,
   cornerRadius,
   disabled,
@@ -45,6 +48,7 @@ import {
   type EntryKind,
   type EntrySheetConfig,
 } from '~/components/entry/use-entry-form';
+import { giftStatusLabels, type GiftStatus } from '~/api/gifts/gift-schema';
 import { palette } from '~/lib/theme';
 
 // SwiftUI has no .infinity over the bridge; a huge maxWidth
@@ -185,6 +189,9 @@ function EntryForm({
 
   // Observable state prefills the native TextFields; the hook's plain
   // state mirrors them for validation and saving
+  const giftTitleState = useNativeState(form.initialGiftTitle);
+  const giftNoteState = useNativeState(form.initialGiftNote);
+  const giftUrlState = useNativeState(form.initialGiftUrl);
   const factValueState = useNativeState(form.initialFactValue);
   const factLabelState = useNativeState(form.initialFactLabel);
   const dateLabelState = useNativeState(form.initialDateLabel);
@@ -232,13 +239,17 @@ function EntryForm({
   return (
     <VStack alignment="leading" spacing={16} modifiers={sheetStackModifiers}>
       <Text modifiers={sheetTitleModifiers}>
-        {form.kind === 'fact'
-          ? form.editFact
-            ? 'Edit fact'
-            : 'New fact'
-          : form.editDate
-            ? 'Edit date'
-            : 'New date'}
+        {form.kind === 'gift'
+          ? form.editGift
+            ? 'Edit gift'
+            : 'New gift idea'
+          : form.kind === 'fact'
+            ? form.editFact
+              ? 'Edit fact'
+              : 'New fact'
+            : form.editDate
+              ? 'Edit date'
+              : 'New date'}
       </Text>
 
       {form.showPersonPicker && (
@@ -260,10 +271,56 @@ function EntryForm({
         >
           <Text modifiers={[tag('fact')]}>Fact</Text>
           <Text modifiers={[tag('date')]}>Date</Text>
+          <Text modifiers={[tag('gift')]}>Gift</Text>
         </Picker>
       )}
 
-      {form.kind === 'fact' ? (
+      {form.kind === 'gift' ? (
+        <>
+          <VStack spacing={0} modifiers={cardModifiers}>
+            <TextField
+              placeholder="Title (optional)"
+              text={giftTitleState}
+              onTextChange={form.setGiftTitle}
+              autoFocus={config.mode === 'create'}
+              modifiers={fieldRowModifiers}
+            />
+            <Divider />
+            <TextField
+              placeholder="Why they’d love it (optional)"
+              text={giftNoteState}
+              onTextChange={form.setGiftNote}
+              axis="vertical"
+              modifiers={[...fieldRowModifiers, lineLimit({ min: 1, max: 3 })]}
+            />
+            <Divider />
+            <TextField
+              placeholder="Link (optional)"
+              text={giftUrlState}
+              onTextChange={form.setGiftUrl}
+              modifiers={[
+                ...fieldRowModifiers,
+                keyboardType('url'),
+                textInputAutocapitalization('never'),
+                autocorrectionDisabled(),
+              ]}
+            />
+          </VStack>
+          <Picker
+            selection={form.giftStatus}
+            onSelectionChange={(value) =>
+              form.setGiftStatus(value as GiftStatus)
+            }
+            modifiers={[pickerStyle('segmented')]}
+          >
+            {Object.entries(giftStatusLabels).map(([value, label]) => (
+              <Text key={value} modifiers={[tag(value)]}>
+                {label}
+              </Text>
+            ))}
+          </Picker>
+        </>
+      ) : form.kind === 'fact' ? (
         <VStack spacing={0} modifiers={cardModifiers}>
           <TextField
             placeholder="The fact itself"

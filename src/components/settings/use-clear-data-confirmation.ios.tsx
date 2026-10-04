@@ -6,7 +6,7 @@ import type {
 import { incompleteCleanupMessage } from '~/components/settings/clear-data-confirmation-types';
 
 const confirmationMessage =
-  'This will permanently remove all people, their photos, facts, and dates stored on this device. This action cannot be undone.';
+  'This will permanently remove all people, photos, gift ideas, facts, and dates stored on this device. This action cannot be undone.';
 
 export default function useClearDataConfirmation(
   onClearData: () => ClearDataResult,

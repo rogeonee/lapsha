@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useReducedMotion } from 'react-native-reanimated';
 import { BIRTHDAY_LABEL } from '~/api/dates/dates-service';
@@ -16,13 +16,15 @@ const SWIPE_OPEN_THRESHOLD = 32;
 const SWIPE_VELOCITY_THRESHOLD = 500;
 
 /** Swipe-left-to-delete wrapper shared by fact and date rows. */
-function SwipeableRow({
+export function SwipeableRow({
   accessibilityValue,
   editLabel,
   deleteLabel,
   divider,
   onPress,
   onDelete,
+  accessory,
+  accessoryPosition = 'right',
   children,
 }: {
   accessibilityValue: string;
@@ -31,9 +33,17 @@ function SwipeableRow({
   divider?: boolean;
   onPress: () => void;
   onDelete: () => void;
+  accessory?: {
+    content: React.ReactNode;
+    accessibilityLabel: string;
+    onPress: () => void;
+    style?: StyleProp<ViewStyle>;
+  };
+  accessoryPosition?: 'right' | 'bottom';
   children: React.ReactNode;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
   const [revealWidth, setRevealWidth] = useState(0);
   const reduceMotion = useReducedMotion();
   const animateTo = (width: number) => {
@@ -56,6 +66,10 @@ function SwipeableRow({
     animateTo(0);
     setIsOpen(false);
   };
+  const press = (action: () => void) => {
+    if (isOpen) close();
+    else action();
+  };
   const pan = Gesture.Pan()
     .activeOffsetX([-8, 8])
     .failOffsetY([-10, 10])
@@ -76,31 +90,59 @@ function SwipeableRow({
   return (
     <GestureDetector gesture={pan}>
       <View
-        className={cn('overflow-hidden', divider && 'border-t border-black/5')}
+        className={cn(
+          'overflow-hidden bg-white',
+          divider && 'border-t border-black/5',
+        )}
       >
-        <Pressable
-          onPress={() => {
-            if (isOpen) close();
-            else onPress();
-          }}
-          unstable_pressDelay={80}
-          className="bg-white active:bg-black/5"
-          style={{ zIndex: 1 }}
-          accessibilityRole="button"
-          accessibilityLabel={`Edit ${editLabel}`}
-          accessibilityValue={{ text: accessibilityValue }}
-          accessibilityHint="Double tap to edit. Swipe left to reveal delete"
-          accessibilityActions={[
-            { name: 'delete', label: `Delete ${deleteLabel}` },
-          ]}
-          onAccessibilityAction={(event) => {
-            if (event.nativeEvent.actionName === 'delete') onDelete();
+        <View
+          style={{
+            flexDirection: accessoryPosition === 'bottom' ? 'column' : 'row',
           }}
         >
-          <View pointerEvents="none" aria-hidden>
-            {children}
-          </View>
-        </Pressable>
+          <Pressable
+            onPress={() => press(onPress)}
+            onPressIn={() => setIsPressed(true)}
+            onPressOut={() => setIsPressed(false)}
+            unstable_pressDelay={80}
+            style={accessoryPosition === 'bottom' ? undefined : { flex: 1 }}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit ${editLabel}`}
+            accessibilityValue={{ text: accessibilityValue }}
+            accessibilityHint="Double tap to edit. Swipe left to reveal delete"
+            accessibilityActions={[
+              { name: 'delete', label: `Delete ${deleteLabel}` },
+            ]}
+            onAccessibilityAction={(event) => {
+              if (event.nativeEvent.actionName === 'delete') onDelete();
+            }}
+          >
+            <View pointerEvents="none" aria-hidden>
+              {children}
+            </View>
+          </Pressable>
+          {accessory && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={accessory.accessibilityLabel}
+              onPress={() => press(accessory.onPress)}
+              onPressIn={() => setIsPressed(true)}
+              onPressOut={() => setIsPressed(false)}
+              unstable_pressDelay={80}
+              style={accessory.style}
+            >
+              {accessory.content}
+            </Pressable>
+          )}
+        </View>
+        {isPressed && (
+          <View
+            pointerEvents="none"
+            aria-hidden
+            className="absolute inset-0 bg-black/5"
+            style={{ zIndex: 1 }}
+          />
+        )}
         <View
           className="absolute top-0 right-0 bottom-0 overflow-hidden"
           style={{ width: revealWidth, zIndex: 2 }}

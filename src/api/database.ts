@@ -1,6 +1,7 @@
 import { openDatabaseSync } from 'expo-sqlite';
 import { clearDeviceData, type ClearDataOutcome } from '~/api/clear-data';
 import { migrateDatabase } from '~/api/migrations';
+import { clearGiftPhotos } from '~/lib/gift-photos';
 import { clearAvatarFiles } from '~/lib/avatars';
 import { clearPreferences } from '~/lib/prefs';
 
@@ -15,5 +16,9 @@ migrateDatabase(db);
  * action in settings.
  */
 export function clearAllData(): ClearDataOutcome {
-  return clearDeviceData(db, clearPreferences, clearAvatarFiles);
+  return clearDeviceData(db, clearPreferences, () => {
+    const avatarsCleared = clearAvatarFiles();
+    const giftsCleared = clearGiftPhotos();
+    return avatarsCleared && giftsCleared;
+  });
 }

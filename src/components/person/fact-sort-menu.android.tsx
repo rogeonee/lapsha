@@ -16,7 +16,11 @@ export default function FactSortMenu({
 }) {
   return (
     <Menu isOpen={isOpen} onOpenChange={onOpenChange}>
-      <Menu.Trigger hitSlop={12} accessibilityLabel="Sort facts">
+      <Menu.Trigger
+        accessibilityLabel="Sort facts"
+        className="items-center justify-center rounded-full active:bg-black/5"
+        style={{ width: 48, height: 48 }}
+      >
         <SwapVertIcon size={24} color={palette.broth} />
       </Menu.Trigger>
       <Menu.Portal>

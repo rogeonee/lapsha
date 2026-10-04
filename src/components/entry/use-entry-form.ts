@@ -2,12 +2,18 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { createDate, updateDate } from '~/api/dates/dates-service';
 import { createFact, updateFact } from '~/api/facts/facts-service';
+import { createGift, updateGift } from '~/api/gifts/gifts-service';
+import {
+  giftFieldsSchema,
+  type Gift,
+  type GiftStatus,
+} from '~/api/gifts/gift-schema';
 import { getPeople, updatePerson } from '~/api/people/people-service';
 import { fromStorageDate, toStorageDate } from '~/lib/dates';
 import { getLastPersonId, setLastPersonId } from '~/lib/prefs';
 import type { Fact, Person, Date as PersonDate } from '~/types/db';
 
-export type EntryKind = 'fact' | 'date';
+export type EntryKind = 'fact' | 'date' | 'gift';
 
 export type EntrySheetConfig =
   | {
@@ -20,6 +26,7 @@ export type EntrySheetConfig =
     }
   | { mode: 'edit'; kind: 'fact'; fact: Fact }
   | { mode: 'edit'; kind: 'date'; date: PersonDate }
+  | { mode: 'edit'; kind: 'gift'; gift: Gift }
   | { mode: 'edit'; kind: 'person'; person: Person };
 
 /**
@@ -28,6 +35,8 @@ export type EntrySheetConfig =
  * controls on top of this.
  */
 export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
+  const editGift =
+    config.mode === 'edit' && config.kind === 'gift' ? config.gift : null;
   const editFact =
     config.mode === 'edit' && config.kind === 'fact' ? config.fact : null;
   const editDate =
@@ -36,11 +45,14 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
     config.mode === 'edit' && config.kind === 'person' ? config.person : null;
   const showPersonPicker = config.mode === 'create' && !config.personId;
 
-  const [people] = useState(() =>
-    showPersonPicker ? (getPeople().data ?? []) : [],
-  );
+  const [people] = useState(() => {
+    if (!showPersonPicker) return [];
+    const response = getPeople();
+    return response.error ? [] : (response.data ?? []);
+  });
 
   const [personId, setPersonId] = useState<string | null>(() => {
+    if (editGift) return editGift.person_id;
     if (editFact) return editFact.person_id;
     if (editDate) return editDate.person_id;
     if (config.mode === 'create' && config.personId) return config.personId;
@@ -50,6 +62,16 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
   });
 
   const [kind, setKind] = useState<EntryKind | 'person'>(config.kind);
+
+  const initialGiftTitle = editGift?.title ?? '';
+  const initialGiftNote = editGift?.note ?? '';
+  const initialGiftUrl = editGift?.url ?? '';
+  const [giftTitle, setGiftTitle] = useState(initialGiftTitle);
+  const [giftNote, setGiftNote] = useState(initialGiftNote);
+  const [giftUrl, setGiftUrl] = useState(initialGiftUrl);
+  const [giftStatus, setGiftStatus] = useState<GiftStatus>(
+    editGift?.status ?? 'idea',
+  );
 
   const initialPersonName = editPerson?.name ?? '';
   const [personName, setPersonName] = useState(initialPersonName);
@@ -74,9 +96,13 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
     kind === 'person'
       ? personName.trim().length > 0
       : personId !== null &&
-        (kind === 'fact'
-          ? factValue.trim().length > 0
-          : dateLabel.trim().length > 0);
+        (kind === 'gift'
+          ? Boolean(
+              giftTitle.trim() || giftNote.trim() || giftUrl.trim() || editGift,
+            )
+          : kind === 'fact'
+            ? factValue.trim().length > 0
+            : dateLabel.trim().length > 0);
 
   const handleSave = () => {
     if (editPerson) {
@@ -92,6 +118,36 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
     }
 
     if (!personId) return;
+
+    if (kind === 'gift') {
+      const url = giftUrl.trim();
+      const parsed = giftFieldsSchema.safeParse({
+        title: giftTitle,
+        note: giftNote.trim() || null,
+        url: url
+          ? /^[a-z][a-z\d+.-]*:/i.test(url)
+            ? url
+            : `https://${url}`
+          : null,
+        status: giftStatus,
+        photo: editGift?.photo ?? null,
+        given_on: editGift?.given_on ?? null,
+      });
+      if (!parsed.success) {
+        Alert.alert('Check your gift idea', parsed.error.issues[0].message);
+        return;
+      }
+      const response = editGift
+        ? updateGift(editGift.id, parsed.data)
+        : createGift({ ...parsed.data, person_id: personId });
+      if (response.error) {
+        Alert.alert('Couldn’t save gift', 'Please try again.');
+        return;
+      }
+      if (config.mode === 'create') setLastPersonId(personId);
+      onClose();
+      return;
+    }
 
     const response =
       kind === 'fact'
@@ -122,6 +178,18 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
   };
 
   return {
+    editGift,
+    initialGiftTitle,
+    initialGiftNote,
+    initialGiftUrl,
+    giftTitle,
+    setGiftTitle,
+    giftNote,
+    setGiftNote,
+    giftUrl,
+    setGiftUrl,
+    giftStatus,
+    setGiftStatus,
     editFact,
     editDate,
     editPerson,

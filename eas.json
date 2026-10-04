@@ -23,6 +23,15 @@
       "autoIncrement": true,
       "uploadSourceMaps": true,
       "bun": "1.3.6"
+    },
+    "gifts-lab": {
+      "extends": "preview",
+      "env": {
+        "APP_VARIANT": "gifts-lab"
+      },
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {

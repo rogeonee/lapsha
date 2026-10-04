@@ -354,7 +354,7 @@ export function PersonScreen() {
       <GestureDetector gesture={scrollAndPullGesture}>
         <Animated.ScrollView
           contentInsetAdjustmentBehavior="never"
-          contentContainerClassName="pb-4"
+          contentContainerClassName={isIOS ? 'pb-4' : 'pb-24'}
           style={isIOS ? { marginTop: -headerHeight } : undefined}
           bounces={false}
           overScrollMode="never"
