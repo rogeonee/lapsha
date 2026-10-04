@@ -21,6 +21,9 @@ import { giftPhotoUri } from '~/lib/gift-photos';
 import { fromStorageDate } from '~/lib/dates';
 import { shadows } from '~/lib/theme';
 
+const THUMBNAIL_SIZE = 80;
+const PHOTO_INSET = 14;
+
 export function GiftCard({ gift, onEdit }: { gift: Gift; onEdit: () => void }) {
   const { fontScale, width } = useWindowDimensions();
   const [viewing, setViewing] = useState(false);
@@ -36,64 +39,75 @@ export function GiftCard({ gift, onEdit }: { gift: Gift; onEdit: () => void }) {
       className="overflow-hidden rounded-2xl bg-white"
       style={{ borderCurve: 'continuous', boxShadow: shadows.whisper }}
     >
-      <View style={{ flexDirection: stacked ? 'column' : 'row' }}>
-        <View style={stacked ? undefined : { flex: 1 }}>
-          <SwipeableRow
-            accessibilityValue={giftLabel(gift)}
-            editLabel={`gift: ${giftLabel(gift)}`}
-            deleteLabel={`gift: ${giftLabel(gift)}`}
-            onPress={onEdit}
-            onDelete={() => {
-              const response = deleteGift(gift.id);
-              if (response.error)
-                Alert.alert('Couldn’t delete gift', 'Please try again.');
-            }}
-          >
-            <View className="gap-1 px-4 py-4">
-              <Text className="text-sm text-muted-foreground">{caption}</Text>
-              {gift.title && (
-                <Text className="text-lg font-medium">{gift.title}</Text>
-              )}
-              {gift.note && (
-                <Text className="text-base leading-6">{gift.note}</Text>
-              )}
-              {!hasText && (
-                <Text className="text-base text-muted-foreground">
-                  Saved {new Date(gift.created_at).toLocaleDateString()} · Edit
-                  details
-                </Text>
-              )}
-              {gift.photo && !uri && (
-                <Text className="text-sm text-muted-foreground">
-                  Photo unavailable · Tap to replace
-                </Text>
-              )}
-            </View>
-          </SwipeableRow>
+      <SwipeableRow
+        accessibilityValue={giftLabel(gift)}
+        editLabel={`gift: ${giftLabel(gift)}`}
+        deleteLabel={`gift: ${giftLabel(gift)}`}
+        onPress={onEdit}
+        onDelete={() => {
+          const response = deleteGift(gift.id);
+          if (response.error)
+            Alert.alert('Couldn’t delete gift', 'Please try again.');
+        }}
+        accessoryPosition={stacked ? 'bottom' : 'right'}
+        accessory={
+          uri
+            ? {
+                accessibilityLabel: 'View gift photo',
+                onPress: () => setViewing(true),
+                style: stacked
+                  ? {
+                      paddingHorizontal: PHOTO_INSET,
+                      paddingBottom: PHOTO_INSET,
+                    }
+                  : {
+                      width: THUMBNAIL_SIZE + PHOTO_INSET,
+                      paddingRight: PHOTO_INSET,
+                      paddingVertical: PHOTO_INSET,
+                    },
+                content: (
+                  <Image
+                    source={{ uri }}
+                    style={{
+                      width: '100%',
+                      height: stacked ? 210 : THUMBNAIL_SIZE,
+                      borderRadius: 12,
+                    }}
+                    contentFit="cover"
+                  />
+                ),
+              }
+            : undefined
+        }
+      >
+        <View
+          className="gap-1 px-4 py-4"
+          style={
+            uri && !stacked
+              ? { minHeight: THUMBNAIL_SIZE + PHOTO_INSET * 2 }
+              : undefined
+          }
+        >
+          <Text className="text-sm text-muted-foreground">{caption}</Text>
+          {gift.title && (
+            <Text className="text-lg font-medium">{gift.title}</Text>
+          )}
+          {gift.note && (
+            <Text className="text-base leading-6">{gift.note}</Text>
+          )}
+          {!hasText && (
+            <Text className="text-base text-muted-foreground">
+              Saved {new Date(gift.created_at).toLocaleDateString()} · Edit
+              details
+            </Text>
+          )}
+          {gift.photo && !uri && (
+            <Text className="text-sm text-muted-foreground">
+              Photo unavailable · Tap to replace
+            </Text>
+          )}
         </View>
-        {uri && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="View gift photo"
-            onPress={() => setViewing(true)}
-            style={
-              stacked
-                ? { marginHorizontal: 14, marginBottom: 14 }
-                : { width: 108, marginRight: 14, marginVertical: 14 }
-            }
-          >
-            <Image
-              source={{ uri }}
-              style={{
-                width: '100%',
-                height: stacked ? 210 : 116,
-                borderRadius: 12,
-              }}
-              contentFit="cover"
-            />
-          </Pressable>
-        )}
-      </View>
+      </SwipeableRow>
       {gift.url && (
         <Pressable
           accessibilityRole="link"

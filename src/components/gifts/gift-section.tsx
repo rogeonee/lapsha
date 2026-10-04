@@ -5,9 +5,10 @@ import { deleteGift, getGiftsByPerson } from '~/api/gifts/gifts-service';
 import type { Gift } from '~/api/gifts/gift-schema';
 import type { EntrySheetConfig } from '~/components/entry/use-entry-form';
 import { AddRow } from '~/components/person/entry-row';
+import { PersonSectionHeader } from '~/components/person/person-section-header';
 import { useCaptureFeedback } from '~/components/gifts/capture-feedback';
 import { GiftCard } from '~/components/gifts/gift-card';
-import { CameraIcon } from '~/components/ui/icons';
+import { CameraIcon, ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 import { palette } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
@@ -48,101 +49,117 @@ export function GiftSection({
       );
   };
   return (
-    <View className="gap-3">
-      <View className="flex-row items-center justify-between px-1">
-        <Text className="text-base font-medium">Gifts</Text>
-        {process.env.EXPO_OS === 'android' && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Snap a gift for this person"
-            className="min-h-12 min-w-12 items-center justify-center"
-            onPress={() =>
-              router.push({ pathname: '/gift-capture', params: { personId } })
-            }
-          >
-            <CameraIcon color={palette.broth} size={22} />
-          </Pressable>
-        )}
-      </View>
-      {justSaved && (
-        <View className="gap-2 rounded-2xl bg-white px-4 py-2">
-          <Text accessibilityLiveRegion="polite" className="pt-2 text-base">
-            Photo saved
-          </Text>
-          <View className="flex-row flex-wrap gap-5">
+    <View className="gap-1">
+      <PersonSectionHeader
+        title="Gifts"
+        accessory={
+          process.env.EXPO_OS === 'android' && (
             <Pressable
               accessibilityRole="button"
-              className="min-h-12 justify-center"
-              onPress={() => {
-                openGift(justSaved);
-                feedback.show(null);
-              }}
+              accessibilityLabel="Snap a gift for this person"
+              className="items-center justify-center rounded-full active:bg-black/5"
+              style={{ width: 48, height: 48 }}
+              onPress={() =>
+                router.push({ pathname: '/gift-capture', params: { personId } })
+              }
             >
-              <Text className="text-base text-broth">Add details</Text>
+              <CameraIcon color={palette.broth} size={22} />
             </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              className="min-h-12 justify-center"
-              onPress={() => {
-                const result = deleteGift(justSaved.id);
-                if (result.error)
-                  Alert.alert('Couldn’t undo capture', 'Please try again.');
-                else feedback.show(null);
-              }}
-            >
-              <Text className="text-base text-broth">Undo</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              className="min-h-12 justify-center"
-              onPress={() => feedback.show(null)}
-            >
-              <Text className="text-base text-muted-foreground">Dismiss</Text>
-            </Pressable>
-          </View>
-        </View>
-      )}
-      {response.error ? (
-        <Text className="text-base text-muted-foreground">
-          Couldn’t load gifts. Reopen this person to try again.
-        </Text>
-      ) : (
-        <>
-          {active.map((gift) => (
-            <GiftCard key={gift.id} gift={gift} onEdit={() => openGift(gift)} />
-          ))}
-          <View className="overflow-hidden rounded-2xl bg-white">
-            {active.length === 0 && (
-              <Text className="px-4 pt-4 text-base leading-6 text-muted-foreground">
-                Saw something they’d love? Keep a photo, a thought, or a link.
-              </Text>
-            )}
-            <AddRow title="Add gift idea" onPress={() => openGift()} />
-          </View>
-          {history.length > 0 && (
-            <>
+          )
+        }
+      />
+      <View className="gap-3">
+        {justSaved && (
+          <View className="gap-2 rounded-2xl bg-white px-4 py-2">
+            <Text accessibilityLiveRegion="polite" className="pt-2 text-base">
+              Photo saved
+            </Text>
+            <View className="flex-row flex-wrap gap-5">
               <Pressable
                 accessibilityRole="button"
-                accessibilityState={{ expanded: historyOpen }}
-                className="min-h-12 justify-center px-1"
-                onPress={() => setHistoryOpen(!historyOpen)}
+                className="min-h-12 justify-center"
+                onPress={() => {
+                  openGift(justSaved);
+                  feedback.show(null);
+                }}
               >
-                <Text className="text-base text-broth">
-                  Previously given ({history.length}) {historyOpen ? '⌃' : '⌄'}
-                </Text>
+                <Text className="text-base text-broth">Add details</Text>
               </Pressable>
-              {historyOpen &&
-                history.map((gift) => (
-                  <GiftCard
-                    key={gift.id}
-                    gift={gift}
-                    onEdit={() => openGift(gift)}
-                  />
-                ))}
-            </>
-          )}
-        </>
-      )}
+              <Pressable
+                accessibilityRole="button"
+                className="min-h-12 justify-center"
+                onPress={() => {
+                  const result = deleteGift(justSaved.id);
+                  if (result.error)
+                    Alert.alert('Couldn’t undo capture', 'Please try again.');
+                  else feedback.show(null);
+                }}
+              >
+                <Text className="text-base text-broth">Undo</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                className="min-h-12 justify-center"
+                onPress={() => feedback.show(null)}
+              >
+                <Text className="text-base text-muted-foreground">Dismiss</Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
+        {response.error ? (
+          <Text className="text-base text-muted-foreground">
+            Couldn’t load gifts. Reopen this person to try again.
+          </Text>
+        ) : (
+          <>
+            {active.map((gift) => (
+              <GiftCard
+                key={gift.id}
+                gift={gift}
+                onEdit={() => openGift(gift)}
+              />
+            ))}
+            <View className="overflow-hidden rounded-2xl bg-white">
+              {active.length === 0 && (
+                <Text className="px-4 pt-4 text-base leading-6 text-muted-foreground">
+                  Saw something they’d love? Keep a photo, a thought, or a link.
+                </Text>
+              )}
+              <AddRow title="Add gift idea" onPress={() => openGift()} />
+            </View>
+            {history.length > 0 && (
+              <>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: historyOpen }}
+                  className="min-h-12 flex-row items-center gap-3 rounded-xl px-1 active:bg-black/5"
+                  onPress={() => setHistoryOpen(!historyOpen)}
+                >
+                  <Text className="flex-1 text-base text-broth">
+                    Previously given
+                  </Text>
+                  <View
+                    style={{
+                      transform: [{ rotate: historyOpen ? '270deg' : '90deg' }],
+                    }}
+                  >
+                    <ChevronRightIcon color={palette.warmGrayDeep} size={18} />
+                  </View>
+                </Pressable>
+                {historyOpen &&
+                  history.map((gift) => (
+                    <GiftCard
+                      key={gift.id}
+                      gift={gift}
+                      onEdit={() => openGift(gift)}
+                    />
+                  ))}
+              </>
+            )}
+          </>
+        )}
+      </View>
     </View>
   );
 }
