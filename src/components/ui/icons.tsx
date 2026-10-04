@@ -246,3 +246,21 @@ export function CameraIcon({ size = 20, color }: IconProps) {
     />
   );
 }
+
+export function CloseIcon({ size = 24, color }: IconProps) {
+  if (isIOS)
+    return (
+      <Image
+        source="sf:xmark"
+        tintColor={String(color)}
+        style={{ width: size, height: size }}
+      />
+    );
+  return (
+    <MaterialIcon
+      size={size}
+      color={color}
+      d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+    />
+  );
+}

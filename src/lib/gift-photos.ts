@@ -62,13 +62,33 @@ export function pendingGiftPhotos(): PendingGiftPhoto[] {
 }
 
 export async function pickGiftPhoto(): Promise<string | null> {
+  return selectGiftPhoto('library');
+}
+
+export async function takeGiftPhoto(): Promise<string | null> {
+  return selectGiftPhoto('camera');
+}
+
+async function selectGiftPhoto(
+  source: 'library' | 'camera',
+): Promise<string | null> {
   photos.create({ idempotent: true, intermediates: true });
   librarySelection.write('null');
-  const result = await ImagePicker.launchImageLibraryAsync({
+  const options: ImagePicker.ImagePickerOptions = {
     mediaTypes: ['images'],
     allowsEditing: false,
     quality: 1,
-  });
+  };
+  let result: ImagePicker.ImagePickerResult;
+  try {
+    result =
+      source === 'camera'
+        ? await ImagePicker.launchCameraAsync(options)
+        : await ImagePicker.launchImageLibraryAsync(options);
+  } catch (error) {
+    librarySelection.delete();
+    throw error;
+  }
   if (result.canceled) {
     librarySelection.delete();
     return null;
@@ -114,6 +134,10 @@ export function clearGiftPhotos(): boolean {
     Observe.reportError(new Error('Gift photo cleanup failed'));
     return false;
   }
+}
+
+export function hasPendingGiftLibrarySelection(): boolean {
+  return librarySelection.exists;
 }
 
 export async function pendingGiftLibraryPhoto(): Promise<string | null> {

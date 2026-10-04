@@ -91,12 +91,20 @@ function Root() {
   const [startupReady, setStartupReady] = useState(false);
 
   useEffect(() => {
-    recoverGiftCaptures();
-    if (!isIOS) void recoverGiftLibrarySelection();
-    SplashScreen.hide();
-    // Native hide returns before the iOS fade finishes.
-    const timeout = setTimeout(() => setStartupReady(true), splashFadeDuration);
-    return () => clearTimeout(timeout);
+    let active = true;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    void (async () => {
+      recoverGiftCaptures();
+      if (!isIOS) await recoverGiftLibrarySelection();
+      if (!active) return;
+      SplashScreen.hide();
+      // Native hide returns before the iOS fade finishes.
+      timeout = setTimeout(() => setStartupReady(true), splashFadeDuration);
+    })();
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+    };
   }, []);
 
   return (
