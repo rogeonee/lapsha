@@ -15,7 +15,7 @@ Use this checklist for reviews and after UI implementation. Apply only relevant 
 - Does iOS use familiar stack, toolbar, sheet, menu, picker, and swipe conventions?
 - Does Android use appropriate Material/HeroUI patterns rather than copied iOS chrome?
 - Is shared behavior separated cleanly from platform presentation?
-- Are version gates intentional and supported by observed iOS 18/26 behavior?
+- Are version gates intentional and supported by observed behavior on both sides of each relevant OS boundary?
 - Are invented controls justified by a real native limitation recorded in the project?
 
 ## 3. Interaction
@@ -50,6 +50,8 @@ Use this checklist for reviews and after UI implementation. Apply only relevant 
 
 ## 6. Accessibility and resilience
 
+Apply the text-size and display-zoom scope in `SKILL.md`; these questions do not expand an iteration into a full scale matrix.
+
 - Do custom controls expose useful roles, labels, values, hints, and disabled state?
 - Is information conveyed by more than color alone?
 - Do text growth and larger accessibility sizes avoid clipping, overlap, or unreachable actions?
@@ -73,7 +75,7 @@ Use this checklist for reviews and after UI implementation. Apply only relevant 
 - Run the repository's static checks after implementation.
 - In a quick pass, verify the primary path and highest-risk regression on one directly affected available platform when practical.
 - In a full pass, verify complete interaction paths and relevant state, accessibility, and platform matrices.
-- For full platform-sensitive work, compare iOS 18 and iOS 26 rather than generalizing from one.
+- For full platform-sensitive work, discover installed runtimes and cover relevant OS boundaries as directed in `SKILL.md`.
 - For full Android work, use the physical Android device when Android is in scope.
 - Record exactly what was tested, along with anything that remains unverified.
 

@@ -59,6 +59,8 @@ For build, redesign, polish, or hardening requests:
 
 State the selected depth before verification. Use **quick** unless the user asks for full verification or the work meets the full criteria below.
 
+Text-size and display-zoom coverage is separate from functional verification depth. During feature iterations, check at the default scale, even when platform risk warrants broader interaction testing. Reserve the full scale matrix for full end-to-end runs. Outside those runs, exercise an additional scale only when the user requests it or it is needed to reproduce and verify a scaling-specific bug. Restore the device's original settings after changing them.
+
 ### Quick
 
 Use during active implementation, early reviews, and routine polish:
@@ -77,8 +79,8 @@ Use when the user requests it, the feature or surface is nearly finished, the wo
 
 - Run all relevant checklist sections and static checks.
 - Exercise complete success, cancellation, dismissal, failure, interruption, and recovery paths.
-- Check accessibility semantics, large text, reduced motion, safe areas, and keyboard behavior when relevant.
-- Test both iOS 18 and the current iOS 26 simulator for version-sensitive behavior.
+- Check accessibility semantics, reduced motion, safe areas, and keyboard behavior when relevant; apply the scale coverage rule above for text size and display zoom.
+- Discover installed iOS runtimes with `xcrun simctl list runtimes`. For version-sensitive behavior, test both sides of relevant OS gates and the newest installed runtime: iOS 18/26 for a gate at 26, and iOS 26/27 for a gate at 27, as applicable. Report unavailable coverage.
 - Use the authorized physical Android device when Android is in scope.
 - Rebuild, cold-start, or force-stop where `notebook.md` says Fast Refresh is insufficient.
 
@@ -104,7 +106,7 @@ Preserve these architectural boundaries:
 
 ## Device rules
 
-- Run `bunx serve-sim` to stream the active iOS Simulator. Codex uses the Chrome plugin to inspect and interact with the stream; Claude operates it manually.
+- Use available, authorized simulator controls or a `bunx serve-sim` stream in an available browser to inspect and interact with iOS. Native screenshots or recordings can supply visual evidence; interaction claims require exercising the flow. Chrome is optional, and its absence alone does not require new permission to use an authorized alternative.
 - Prefer the authorized physical Android device. If none is connected and Android verification is required, ask the user to connect it; do not silently substitute an emulator.
 - Report exactly which platforms and OS versions were exercised.
 - Distinguish static inspection from device verification and state any unverified scope.

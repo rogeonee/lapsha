@@ -1,6 +1,6 @@
 # Notebook
 
-A shared scratchpad for agents. It is not a spec: `AGENTS.md` owns product/state, `CLAUDE.md` owns technical guidance, and `PRODUCT.md` / `DESIGN.md` own product and visual direction.
+A shared scratchpad for agents. It is not a spec: `AGENTS.md` owns engineering and data conventions (`CLAUDE.md` forwards to it), and `PRODUCT.md` / `DESIGN.md` own product and visual direction.
 
 Record only non-obvious decisions, device-tested traps, and context that cannot be recovered quickly from the code. Keep entries short, date them, and prune them when the implementation changes. Git already records routine work.
 

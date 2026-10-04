@@ -3,9 +3,15 @@
 Lapsha is a personal relationship manager: people have facts and recurring dates.
 It is a single-user, local-first Expo/React Native app with on-device SQLite, no authentication or backend, and no supported web target.
 
+## Checkout and baseline
+
+- Before loading task-specific docs or editing, inspect the current branch, worktrees, and working-tree status. Continue existing work in its checkout; preserve uncommitted changes and any explicitly requested branch.
+- For new implementation, compare the checkout with `master`; when remote access is available, refresh `origin/master` before comparing it with `master`. Use a checkout based on up-to-date `master` unless the user specifies another baseline; a clean unrelated branch is not a suitable baseline. Do not switch or rebase an ongoing task automatically.
+
 ## Task context
 
 - For UI/design work, use `.agents/skills/lapsha-native-ui/SKILL.md`. It owns the workflow and device-verification rules; read `PRODUCT.md` and `DESIGN.md` before changing the interface.
+- For person screens, forms, gifts, storage cleanup, or Abby artwork, use the task-to-code map in `README.md` to find the related implementations.
 - Consult relevant entries in `notebook.md` for non-obvious decisions and device-tested gotchas, especially before changing native behavior or dependencies.
 - Unlabeled/free-form details are facts with `label = NULL`, not a separate notes entity. The date label `birthday` is reserved case-insensitively and pinned first on a person screen.
 
@@ -39,7 +45,7 @@ Use Bun and `bun.lock`. Use `bun run check` before committing; do not run `expo 
 - Services are synchronous and return `ServiceResponse<T>`: check `response.error` before using `response.data`; never `await` service calls. Validate inputs with Zod and wrap database operations with `runServiceOperation()`.
 - Screens use `useTableVersion(tables)` to invalidate synchronous service reads during render. Do not mirror database rows into state from an effect. Preferences use `expo-sqlite/kv-store`.
 - CRUD uses soft deletes; normal reads must filter `deleted_at IS NULL`.
-- Schema and migrations live in `src/api/database.ts`. Stamp `PRAGMA user_version` inside the same transaction as each migration's schema changes.
+- Schema and migrations live in `src/api/migrations.ts`; `src/api/database.ts` opens the database and runs them. Stamp `PRAGMA user_version` inside the same transaction as each migration's schema changes.
 - Use `src/lib/dates.ts` for date conversions. Unknown years are stored as `0001` (including the February 29 sentinel); the editor uses a leap year. Android picker values are UTC-midnight calendar dates and require UTC getters.
 - Generate IDs with `randomUUID()` from `expo-crypto`, not global `crypto`. Avatar columns store bare file names, not absolute container paths.
 - Keep personal details, IDs, photo paths, and database values out of telemetry; handled failures use fixed error messages.
