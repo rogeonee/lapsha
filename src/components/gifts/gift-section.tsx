@@ -1,12 +1,11 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
-import { deleteGift, getGiftsByPerson } from '~/api/gifts/gifts-service';
+import { Pressable, View } from 'react-native';
+import { getGiftsByPerson } from '~/api/gifts/gifts-service';
 import type { Gift } from '~/api/gifts/gift-schema';
 import type { EntrySheetConfig } from '~/components/entry/use-entry-form';
 import { AddRow } from '~/components/person/entry-row';
 import { PersonSectionHeader } from '~/components/person/person-section-header';
-import { useCaptureFeedback } from '~/components/gifts/capture-feedback';
 import { GiftCard } from '~/components/gifts/gift-card';
 import { CameraIcon, ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
@@ -25,11 +24,9 @@ export function GiftSection({
   onOpenSheet: (config: EntrySheetConfig) => void;
 }) {
   const router = useRouter();
-  const feedback = useCaptureFeedback();
   const version = useTableVersion(['gifts', 'persons']);
   const response = loadGifts(personId, version);
   const gifts = response.error ? [] : (response.data ?? []);
-  const justSaved = gifts.find((gift) => gift.id === feedback.gift?.id);
   const active = gifts.filter((gift) => gift.status !== 'given');
   const history = gifts
     .filter((gift) => gift.status === 'given')
@@ -69,44 +66,6 @@ export function GiftSection({
         }
       />
       <View className="gap-3">
-        {justSaved && (
-          <View className="gap-2 rounded-2xl bg-white px-4 py-2">
-            <Text accessibilityLiveRegion="polite" className="pt-2 text-base">
-              Photo saved
-            </Text>
-            <View className="flex-row flex-wrap gap-5">
-              <Pressable
-                accessibilityRole="button"
-                className="min-h-12 justify-center"
-                onPress={() => {
-                  openGift(justSaved);
-                  feedback.show(null);
-                }}
-              >
-                <Text className="text-base text-broth">Add details</Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                className="min-h-12 justify-center"
-                onPress={() => {
-                  const result = deleteGift(justSaved.id);
-                  if (result.error)
-                    Alert.alert('Couldn’t undo capture', 'Please try again.');
-                  else feedback.show(null);
-                }}
-              >
-                <Text className="text-base text-broth">Undo</Text>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                className="min-h-12 justify-center"
-                onPress={() => feedback.show(null)}
-              >
-                <Text className="text-base text-muted-foreground">Dismiss</Text>
-              </Pressable>
-            </View>
-          </View>
-        )}
         {response.error ? (
           <Text className="text-base text-muted-foreground">
             Couldn’t load gifts. Reopen this person to try again.

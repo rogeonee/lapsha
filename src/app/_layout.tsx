@@ -19,7 +19,6 @@ import { Appearance } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { Uniwind } from 'uniwind';
-import { CaptureFeedbackProvider } from '~/components/gifts/capture-feedback';
 import UIProviders from '~/components/ui-providers';
 import { NAV_THEME } from '~/lib/constants';
 import { palette } from '~/lib/theme';
@@ -112,68 +111,66 @@ function Root() {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardProvider>
           <UIProviders>
-            <CaptureFeedbackProvider>
-              <CurrentDayProvider>
-                <ThemeProvider
-                  value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}
-                >
-                  <StatusBar style={!isDarkColorScheme ? 'dark' : 'light'} />
-                  <Stack>
-                    <Stack.Screen
-                      name="(tabs)"
-                      options={{ headerShown: false }}
-                    />
-                    <Stack.Screen
-                      name="gift-capture"
-                      options={{ headerShown: false, animation: 'fade' }}
-                    />
-                    <Stack.Screen
-                      name="gift-inbox"
-                      options={{
-                        title: 'Unsorted gift ideas',
-                        headerTintColor: palette.broth,
-                        headerStyle: { backgroundColor: palette.paper },
-                        headerShadowVisible: false,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="gift-editor"
-                      options={{
-                        title: 'Gift idea',
-                        headerTintColor: palette.broth,
-                        headerStyle: { backgroundColor: palette.paper },
-                        headerShadowVisible: false,
-                        contentStyle: { backgroundColor: palette.paper },
-                      }}
-                    />
-                    <Stack.Screen
-                      name="add-person"
-                      options={{
-                        title: 'New Person',
-                        ...(isIOS
-                          ? {
-                              presentation: 'modal' as const,
-                              headerTintColor: palette.broth,
-                              contentStyle: { backgroundColor: palette.paper },
-                              headerTransparent: true,
-                              headerShadowVisible: false,
-                              headerBlurEffect: 'none' as const,
-                            }
-                          : {
-                              // Android: the route is an invisible host for the
-                              // HeroUI bottom sheet (AddPersonSheet), which
-                              // renders its own scrim and pops the route on close
-                              presentation: 'transparentModal' as const,
-                              animation: 'none' as const,
-                              headerShown: false,
-                              contentStyle: { backgroundColor: 'transparent' },
-                            }),
-                      }}
-                    />
-                  </Stack>
-                </ThemeProvider>
-              </CurrentDayProvider>
-            </CaptureFeedbackProvider>
+            <CurrentDayProvider>
+              <ThemeProvider
+                value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}
+              >
+                <StatusBar style={!isDarkColorScheme ? 'dark' : 'light'} />
+                <Stack>
+                  <Stack.Screen
+                    name="(tabs)"
+                    options={{ headerShown: false }}
+                  />
+                  <Stack.Screen
+                    name="gift-capture"
+                    options={{ headerShown: false, animation: 'fade' }}
+                  />
+                  <Stack.Screen
+                    name="gift-inbox"
+                    options={{
+                      title: 'Unsorted gift ideas',
+                      headerTintColor: palette.broth,
+                      headerStyle: { backgroundColor: palette.paper },
+                      headerShadowVisible: false,
+                    }}
+                  />
+                  <Stack.Screen
+                    name="gift-editor"
+                    options={{
+                      title: 'Gift idea',
+                      headerTintColor: palette.broth,
+                      headerStyle: { backgroundColor: palette.paper },
+                      headerShadowVisible: false,
+                      contentStyle: { backgroundColor: palette.paper },
+                    }}
+                  />
+                  <Stack.Screen
+                    name="add-person"
+                    options={{
+                      title: 'New Person',
+                      ...(isIOS
+                        ? {
+                            presentation: 'modal' as const,
+                            headerTintColor: palette.broth,
+                            contentStyle: { backgroundColor: palette.paper },
+                            headerTransparent: true,
+                            headerShadowVisible: false,
+                            headerBlurEffect: 'none' as const,
+                          }
+                        : {
+                            // Android: the route is an invisible host for the
+                            // HeroUI bottom sheet (AddPersonSheet), which
+                            // renders its own scrim and pops the route on close
+                            presentation: 'transparentModal' as const,
+                            animation: 'none' as const,
+                            headerShown: false,
+                            contentStyle: { backgroundColor: 'transparent' },
+                          }),
+                    }}
+                  />
+                </Stack>
+              </ThemeProvider>
+            </CurrentDayProvider>
           </UIProviders>
         </KeyboardProvider>
       </GestureHandlerRootView>

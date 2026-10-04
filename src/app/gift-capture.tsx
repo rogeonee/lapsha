@@ -1,7 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { saveGiftCapture } from '~/api/gifts/capture-service';
-import { useCaptureFeedback } from '~/components/gifts/capture-feedback';
 import GiftCamera from '~/components/gifts/gift-camera';
 import { stageGiftPhoto, type PendingGiftPhoto } from '~/lib/gift-photos';
 import { consumeRecoveredGiftSelection } from '~/lib/recover-gift-library-selection';
@@ -9,7 +8,6 @@ import { StartupReadyContext } from '~/lib/use-observe-screen';
 
 export default function GiftCaptureScreen() {
   const router = useRouter();
-  const feedback = useCaptureFeedback();
   const { personId } = useLocalSearchParams<{ personId?: string }>();
   const startupReady = useContext(StartupReadyContext);
   const resumeStartupCapture = useRef(!startupReady);
@@ -57,7 +55,6 @@ export default function GiftCaptureScreen() {
           if (result.error || !result.data)
             throw new Error('Gift capture failed');
           if (result.data.person_id && router.canGoBack()) {
-            feedback.show(result.data);
             router.back();
           } else {
             router.replace({
