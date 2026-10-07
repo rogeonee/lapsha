@@ -286,7 +286,7 @@ export default function HomeScreen() {
         keyExtractor={(group) => group.key}
         stickySectionHeadersEnabled={false}
         renderSectionHeader={renderSectionHeader}
-        renderSectionFooter={SectionFooter}
+        renderSectionFooter={() => <SectionFooter />}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName={
           sections.length === 0
