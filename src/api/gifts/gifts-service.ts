@@ -48,6 +48,15 @@ export function getGiftsByPerson(personId: string | null) {
   });
 }
 
+export function getUnsortedGiftCount() {
+  return runServiceOperation(
+    () =>
+      db.getFirstSync<{ count: number }>(
+        'SELECT COUNT(*) AS count FROM gifts WHERE person_id IS NULL AND deleted_at IS NULL',
+      )!.count,
+  );
+}
+
 export function createGift(
   input: GiftInput & { person_id: string | null; id?: string },
 ) {

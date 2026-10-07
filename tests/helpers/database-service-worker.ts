@@ -4,15 +4,28 @@ import { fileURLToPath } from 'node:url';
 import { migrateDatabase } from '../../src/api/migrations';
 import type { ServiceResponse } from '../../src/api/error-handling';
 import { sqliteFixture } from './sqlite-fixture';
+import type { SQLQueryBindings } from 'bun:sqlite';
 
 const { database, close } = sqliteFixture();
 const reports: Error[] = [];
+const reads: { sql: string; params: SQLQueryBindings[] }[] = [];
+const serviceDatabase = {
+  ...database,
+  getFirstSync<T>(sql: string, ...params: SQLQueryBindings[]) {
+    reads.push({ sql, params });
+    return database.getFirstSync<T>(sql, ...params);
+  },
+  getAllSync<T>(sql: string, ...params: SQLQueryBindings[]) {
+    reads.push({ sql, params });
+    return database.getAllSync<T>(sql, ...params);
+  },
+};
 let sequence = 0;
 const uuid = () =>
   `00000000-0000-4000-8000-${String(++sequence).padStart(12, '0')}`;
 mock.module(
   fileURLToPath(new URL('../../src/api/database.ts', import.meta.url)),
-  () => ({ db: database }),
+  () => ({ db: serviceDatabase }),
 );
 mock.module('expo-crypto', () => ({ randomUUID: uuid }));
 mock.module('expo-observe', () => ({
@@ -49,6 +62,7 @@ try {
   const dates = await import('../../src/api/dates/dates-service');
   const timeline = await import('../../src/api/timeline/timeline-service');
   const { ErrorCode } = await import('../../src/api/error-handling');
+  assert.equal(ok(people.hasPeople()), false);
   const person = ok(
     people.createPerson({
       name: '  Synthetic Person  ',
@@ -56,6 +70,17 @@ try {
     }),
   );
   assert.equal(person.name, 'Synthetic Person');
+  assert.equal(ok(people.hasPeople()), true);
+  const peopleSummary = reads.at(-1)!;
+  assert.ok(!peopleSummary.sql.includes('SELECT *'));
+  assert.ok(
+    database
+      .getAllSync<{ detail: string }>(
+        `EXPLAIN QUERY PLAN ${peopleSummary.sql}`,
+        ...peopleSummary.params,
+      )
+      .some((step) => step.detail.includes('idx_persons_active_created_at')),
+  );
   assert.deepEqual(row('persons', person.id), person);
   assert.deepEqual(ok(people.getPerson(person.id)), person);
   assert.equal(
@@ -273,6 +298,26 @@ try {
     ErrorCode.PERSON_NOT_FOUND,
   );
   const entries = ok(timeline.getTimeline());
+  const upcoming = ok(timeline.getUpcomingDates());
+  const upcomingQuery = reads.at(-1)!;
+  assert.deepEqual(
+    upcoming.toSorted((a, b) => a.id.localeCompare(b.id)),
+    entries.toSorted((a, b) => a.id.localeCompare(b.id)),
+  );
+  assert.ok(
+    !database
+      .getAllSync<{ detail: string }>(
+        `EXPLAIN QUERY PLAN ${upcomingQuery.sql}`,
+        ...upcomingQuery.params,
+      )
+      .some((step) => step.detail.includes('TEMP B-TREE')),
+  );
+  assert.equal(
+    ok(timeline.getTimeline({ includeUnknownYears: false })).length,
+    0,
+  );
+  assert.equal(ok(timeline.getTimeline({ limit: 1 })).length, 1);
+  assert.equal(ok(timeline.getTimeline({ startDate: '2020-01-01' })).length, 0);
   assert.deepEqual(
     entries.map((value) => value.id).sort(),
     [birthday.id, date.id].sort(),
@@ -282,6 +327,7 @@ try {
   assert.equal(entries[0].year_known, false);
   assert.equal(reports.length, 0);
   const gifts = await import('../../src/api/gifts/gifts-service');
+  assert.equal(ok(gifts.getUnsortedGiftCount()), 0);
   const photoIdea = ok(
     gifts.createGift({
       person_id: null,
@@ -293,10 +339,22 @@ try {
     }),
   );
   assert.equal(photoIdea.title, null);
+  assert.equal(ok(gifts.getUnsortedGiftCount()), 1);
+  const giftSummary = reads.at(-1)!;
+  assert.ok(!giftSummary.sql.includes('SELECT *'));
+  assert.ok(
+    database
+      .getAllSync<{ detail: string }>(
+        `EXPLAIN QUERY PLAN ${giftSummary.sql}`,
+        ...giftSummary.params,
+      )
+      .some((step) => step.detail.includes('idx_gifts_active_person_id')),
+  );
   assert.equal(ok(gifts.getGiftsByPerson(null))[0].id, photoIdea.id);
   const assigned = ok(gifts.assignGift(photoIdea.id, person.id));
   assert.equal(assigned.person_id, person.id);
   assert.equal(ok(gifts.getGiftsByPerson(null)).length, 0);
+  assert.equal(ok(gifts.getUnsortedGiftCount()), 0);
   const { giftLabel } = await import('../../src/api/gifts/gift-schema');
   assert.equal(giftLabel(assigned), 'Photo idea');
   const blank = ok(
@@ -444,6 +502,31 @@ try {
   assert.equal(reports[0].message, 'Database operation failed');
   assert.equal(reports[0].cause, undefined);
   assert.deepEqual(Object.keys(reports[0]), []);
+  const deletedUnsorted = ok(
+    gifts.createGift({
+      person_id: null,
+      title: null,
+      note: 'Temporary idea',
+      url: null,
+      status: 'idea',
+    }),
+  );
+  const remainingUnsorted = ok(
+    gifts.createGift({
+      person_id: null,
+      title: null,
+      note: 'Keep this idea',
+      url: null,
+      status: 'given',
+    }),
+  );
+  ok(gifts.deleteGift(deletedUnsorted.id));
+  assert.equal(ok(gifts.getUnsortedGiftCount()), 1);
+  ok(gifts.assignGift(remainingUnsorted.id, person.id));
+  assert.equal(ok(gifts.getUnsortedGiftCount()), 0);
+  ok(people.deletePerson(person.id));
+  assert.equal(ok(people.hasPeople()), false);
+  assert.deepEqual(ok(timeline.getUpcomingDates()), []);
   console.log('Service SQL checks passed');
 } finally {
   close();
