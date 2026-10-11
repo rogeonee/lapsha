@@ -3,6 +3,7 @@ import { useState } from 'react';
 import {
   SectionList,
   Pressable,
+  useWindowDimensions,
   View,
   type SectionListRenderItemInfo,
 } from 'react-native';
@@ -52,13 +53,15 @@ function formatDetail(item: UpcomingEntry): string {
   return suffix ? `${label} · ${suffix}` : label;
 }
 
-function Countdown({ daysUntil }: { daysUntil: number }) {
+function formatCountdown(daysUntil: number): string | null {
   if (daysUntil < 2 || daysUntil > COUNTDOWN_WINDOW_DAYS) return null;
-  return (
-    <Text className="text-sm text-muted-foreground">
-      {`In ${daysUntil} days`}
-    </Text>
-  );
+  return `In ${daysUntil} days`;
+}
+
+function Countdown({ daysUntil }: { daysUntil: number }) {
+  const countdown = formatCountdown(daysUntil);
+  if (!countdown) return null;
+  return <Text className="text-sm text-muted-foreground">{countdown}</Text>;
 }
 
 function UpcomingRow({
@@ -72,7 +75,16 @@ function UpcomingRow({
   divider: boolean;
   onPress: () => void;
 }) {
+  const { fontScale } = useWindowDimensions();
+  const enlargedText = fontScale > 1.2;
   const stacked = group.entries.length > 1;
+  const accessibleDate = formatCalendarDay(group.next, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const countdown = formatCountdown(group.daysUntil);
 
   return (
     <Pressable
@@ -81,15 +93,21 @@ function UpcomingRow({
       accessibilityLabel={`${group.personName}, ${group.entries
         .map(formatDetail)
         .join(', ')}`}
+      accessibilityValue={{
+        text: countdown ? `${accessibleDate}, ${countdown}` : accessibleDate,
+      }}
       className={cn(
         'flex-row gap-3 px-4 py-3 active:bg-black/5',
         stacked ? 'items-start' : 'items-center',
         divider && 'border-t border-black/5',
       )}
     >
-      <View className={cn(stacked && 'h-12 justify-center')}>
+      <View className={cn(stacked && 'min-h-12 justify-center')}>
         {showDay ? (
-          <View className="w-11 items-center">
+          <View
+            className="items-center"
+            style={{ minWidth: 38.5 * Math.max(1, fontScale) }}
+          >
             <Text className="text-lg font-semibold">{group.next.day}</Text>
             <Text className="text-sm text-muted-foreground">
               {formatCalendarDay(group.next, { weekday: 'short' })}
@@ -104,13 +122,19 @@ function UpcomingRow({
         )}
       </View>
       <View className="flex-1">
-        <Text className="text-lg font-medium" numberOfLines={1}>
+        <Text
+          className="text-lg font-medium"
+          numberOfLines={enlargedText ? undefined : 1}
+        >
           {group.personName}
         </Text>
         {group.entries.map((item, index) => {
           const suffix = formatSuffix(item);
           const detail = (
-            <Text className="text-base leading-5" numberOfLines={1}>
+            <Text
+              className="text-base leading-5"
+              numberOfLines={enlargedText ? undefined : 1}
+            >
               {formatLabel(item.entry)}
               {suffix ? (
                 <Text className="text-base leading-5 text-muted-foreground">
@@ -141,9 +165,10 @@ function UpcomingRow({
             </View>
           );
         })}
+        {enlargedText && <Countdown daysUntil={group.daysUntil} />}
       </View>
       <View className={cn('flex-row items-center gap-3', stacked && 'h-12')}>
-        <Countdown daysUntil={group.daysUntil} />
+        {!enlargedText && <Countdown daysUntil={group.daysUntil} />}
         <ChevronRightIcon color={palette.warmGrayDeep} />
       </View>
     </Pressable>

@@ -94,7 +94,10 @@ export function useCollapsingHeader({
 
   const largeTitle = (
     <View style={{ paddingTop: barHeight }}>
-      <Animated.View style={largeTitleStyle}>
+      <Animated.View
+        style={largeTitleStyle}
+        importantForAccessibility={collapsed ? 'no-hide-descendants' : 'auto'}
+      >
         <Text
           accessibilityRole="header"
           style={styles.largeTitle}
@@ -104,6 +107,7 @@ export function useCollapsingHeader({
         </Text>
         <Animated.View
           pointerEvents="none"
+          importantForAccessibility="no-hide-descendants"
           style={[
             StyleSheet.absoluteFill,
             styles.largeTitleBlurTwin,
@@ -135,12 +139,18 @@ export function useCollapsingHeader({
       >
         <Animated.View
           pointerEvents="none"
+          importantForAccessibility={collapsed ? 'auto' : 'no-hide-descendants'}
           style={[styles.barTitleWrap, smallTitleStyle]}
         >
-          <Text numberOfLines={1} style={styles.barTitle}>
+          <Text
+            accessibilityRole="header"
+            numberOfLines={1}
+            style={styles.barTitle}
+          >
             {title}
           </Text>
           <Animated.View
+            importantForAccessibility="no-hide-descendants"
             style={[
               StyleSheet.absoluteFill,
               styles.smallTitleBlurTwin,

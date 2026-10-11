@@ -13,7 +13,9 @@ export function PersonSectionHeader({
       className="flex-row items-center justify-between gap-3 px-1"
       style={{ minHeight: process.env.EXPO_OS === 'android' ? 48 : 24 }}
     >
-      <Text className="flex-1 text-lg font-medium">{title}</Text>
+      <Text accessibilityRole="header" className="flex-1 text-lg font-medium">
+        {title}
+      </Text>
       {accessory}
     </View>
   );

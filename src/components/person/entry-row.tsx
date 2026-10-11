@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  Pressable,
+  useWindowDimensions,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useReducedMotion } from 'react-native-reanimated';
 import { BIRTHDAY_LABEL } from '~/api/dates/dates-service';
@@ -110,9 +116,7 @@ export function SwipeableRow({
             accessibilityLabel={`Edit ${editLabel}`}
             accessibilityValue={{ text: accessibilityValue }}
             accessibilityHint="Double tap to edit. Swipe left to reveal delete"
-            accessibilityActions={[
-              { name: 'delete', label: `Delete ${deleteLabel}` },
-            ]}
+            accessibilityActions={[{ name: 'delete', label: 'Delete' }]}
             onAccessibilityAction={(event) => {
               if (event.nativeEvent.actionName === 'delete') onDelete();
             }}
@@ -144,10 +148,12 @@ export function SwipeableRow({
           />
         )}
         <View
+          aria-hidden={!isOpen}
           className="absolute top-0 right-0 bottom-0 overflow-hidden"
           style={{ width: revealWidth, zIndex: 2 }}
         >
           <Pressable
+            focusable={isOpen}
             onPress={() => {
               close();
               onDelete();
@@ -225,6 +231,7 @@ export function DateRow({
   onPress: () => void;
   onDelete: () => void;
 }) {
+  const { fontScale } = useWindowDimensions();
   // Only the reserved lowercase 'birthday' label gets normalized;
   // user-authored labels display exactly as typed
   const label =
@@ -249,7 +256,10 @@ export function DateRow({
       onDelete={onDelete}
     >
       <View className="flex-row items-center gap-3 px-4 py-3">
-        <View className="w-11 items-center">
+        <View
+          className="items-center"
+          style={{ minWidth: 38.5 * Math.max(1, fontScale) }}
+        >
           <Text selectable={false} className="text-lg font-semibold">
             {date.day}
           </Text>
@@ -287,6 +297,8 @@ export function AddRow({
 }) {
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={title}
       onPress={onPress}
       className={cn(
         'flex-row items-center gap-2 px-4 py-3 active:bg-black/5',
