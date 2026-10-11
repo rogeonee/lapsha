@@ -69,9 +69,23 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
   const [giftTitle, setGiftTitle] = useState(initialGiftTitle);
   const [giftNote, setGiftNote] = useState(initialGiftNote);
   const [giftUrl, setGiftUrl] = useState(initialGiftUrl);
-  const [giftStatus, setGiftStatus] = useState<GiftStatus>(
+  const [giftStatus, setGiftStatusDraft] = useState<GiftStatus>(
     editGift?.status ?? 'idea',
   );
+  const [giftGivenOn, setGiftGivenOn] = useState<Date | null>(() =>
+    editGift?.given_on
+      ? fromStorageDate(editGift.given_on).date
+      : editGift?.status === 'given'
+        ? new Date()
+        : null,
+  );
+
+  const setGiftStatus = (status: GiftStatus) => {
+    setGiftStatusDraft(status);
+    if (status === 'given') {
+      setGiftGivenOn((date) => date ?? new Date());
+    }
+  };
 
   const initialPersonName = editPerson?.name ?? '';
   const [personName, setPersonName] = useState(initialPersonName);
@@ -131,7 +145,10 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
           : null,
         status: giftStatus,
         photo: editGift?.photo ?? null,
-        given_on: editGift?.given_on ?? null,
+        given_on:
+          giftStatus === 'given'
+            ? toStorageDate(giftGivenOn ?? new Date(), true)
+            : null,
       });
       if (!parsed.success) {
         Alert.alert('Check your gift idea', parsed.error.issues[0].message);
@@ -190,6 +207,8 @@ export function useEntryForm(config: EntrySheetConfig, onClose: () => void) {
     setGiftUrl,
     giftStatus,
     setGiftStatus,
+    giftGivenOn,
+    setGiftGivenOn,
     editFact,
     editDate,
     editPerson,
