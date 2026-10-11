@@ -61,7 +61,7 @@ const PHOTO_CHROME_THRESHOLD = 0.22;
 const photoTiming = {
   duration: 220,
   easing: Easing.out(Easing.cubic),
-  reduceMotion: ReduceMotion.Never,
+  reduceMotion: ReduceMotion.System,
 } as const;
 
 function loadPersonData(

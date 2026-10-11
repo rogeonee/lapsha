@@ -1,5 +1,10 @@
 import { Host, Image, Menu, Picker, Text } from '@expo/ui/swift-ui';
-import { pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
+import {
+  accessibilityLabel,
+  accessibilityValue,
+  pickerStyle,
+  tag,
+} from '@expo/ui/swift-ui/modifiers';
 import { palette } from '~/lib/theme';
 import type { EntrySort } from '~/types/db';
 
@@ -17,6 +22,12 @@ export default function FactSortMenu({
   return (
     <Host style={{ width: 44, height: 24 }}>
       <Menu
+        modifiers={[
+          accessibilityLabel('Sort facts'),
+          accessibilityValue(
+            sort === 'created' ? 'Date added' : 'Last modified',
+          ),
+        ]}
         label={
           <Image
             systemName="arrow.up.arrow.down"

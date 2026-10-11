@@ -35,7 +35,10 @@ export default function GiftInboxScreen() {
         }
         ListEmptyComponent={
           response.error ? (
-            <Pressable onPress={() => setRetry(retry + 1)}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setRetry(retry + 1)}
+            >
               <Text>Couldn’t load ideas. Tap to retry.</Text>
             </Pressable>
           ) : (

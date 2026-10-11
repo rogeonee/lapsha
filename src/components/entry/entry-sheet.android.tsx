@@ -314,7 +314,12 @@ function EntryForm({
               setPersonListOpen((open) => !open);
             }}
             className="flex-row items-center justify-between px-4 py-3"
+            accessibilityRole="button"
             accessibilityLabel="Choose person"
+            accessibilityValue={{
+              text: selectedPerson?.name ?? 'No person selected',
+            }}
+            accessibilityState={{ expanded: personListOpen }}
           >
             <Text className="text-base">
               {selectedPerson?.name ?? 'Person'}
@@ -331,6 +336,8 @@ function EntryForm({
             form.people.map((p) => (
               <Pressable
                 key={p.id}
+                accessibilityRole="button"
+                accessibilityState={{ selected: p.id === form.personId }}
                 onPress={() => {
                   form.setPersonId(p.id);
                   setPersonListOpen(false);
@@ -483,6 +490,7 @@ function EntryForm({
           <View className="rounded-2xl bg-white" style={cardStyle}>
             <Pressable
               onPress={() => setDatePickerOpen(true)}
+              accessibilityRole="button"
               className="flex-row items-center justify-between px-4 py-3"
             >
               <Text className="text-base">Date</Text>

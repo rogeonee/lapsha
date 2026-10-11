@@ -22,22 +22,23 @@ export default function BirthdayDateRow({
   onChange,
 }: BirthdayDateRowProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const formattedDate = date.toLocaleDateString(undefined, {
+    month: 'long',
+    day: 'numeric',
+    ...(includeYear ? { year: 'numeric' } : {}),
+  });
 
   return (
     <>
       <Pressable
         onPress={() => setPickerOpen(true)}
         className="flex-row items-center justify-between rounded-xl bg-secondary px-4 py-3"
+        accessibilityRole="button"
         accessibilityLabel="Pick birthday date"
+        accessibilityValue={{ text: formattedDate }}
       >
         <Text className="text-sm text-muted-foreground">Date</Text>
-        <Text className="text-base">
-          {date.toLocaleDateString(undefined, {
-            month: 'long',
-            day: 'numeric',
-            ...(includeYear ? { year: 'numeric' } : {}),
-          })}
-        </Text>
+        <Text className="text-base">{formattedDate}</Text>
       </Pressable>
       {pickerOpen && (
         // The dialog renders in its own window; the Host is zero-size

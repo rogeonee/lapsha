@@ -18,6 +18,7 @@ import {
   VStack,
 } from '@expo/ui/swift-ui';
 import {
+  accessibilityLabel,
   autocorrectionDisabled,
   textInputAutocapitalization,
   keyboardType,
@@ -68,6 +69,11 @@ const fieldCardModifiers = [
 ];
 const cardModifiers = [background(palette.cardWhite), cornerRadius(14)];
 const fieldRowModifiers = [padding({ horizontal: 16, vertical: 14 })];
+const giftNoteModifiers = [
+  ...fieldRowModifiers,
+  lineLimit({ min: 1, max: 3 }),
+  accessibilityLabel('Note'),
+];
 const controlRowModifiers = [
   padding({ horizontal: 16, vertical: 8 }),
   tint(palette.noodleGold),
@@ -291,7 +297,7 @@ function EntryForm({
               text={giftNoteState}
               onTextChange={form.setGiftNote}
               axis="vertical"
-              modifiers={[...fieldRowModifiers, lineLimit({ min: 1, max: 3 })]}
+              modifiers={giftNoteModifiers}
             />
             <Divider />
             <TextField

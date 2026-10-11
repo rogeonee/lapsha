@@ -34,13 +34,23 @@ export function GiftCard({ gift, onEdit }: { gift: Gift; onEdit: () => void }) {
     gift.status === 'given' && gift.given_on
       ? `Given · ${fromStorageDate(gift.given_on).date.toLocaleDateString()}`
       : giftStatusLabels[gift.status];
+  const savedCaption = `Saved ${new Date(gift.created_at).toLocaleDateString()}`;
+  const accessibilityValue = [
+    caption,
+    gift.title,
+    gift.note,
+    !hasText && savedCaption,
+    gift.photo && !uri && 'Photo unavailable. Tap to replace',
+  ]
+    .filter(Boolean)
+    .join('. ');
   return (
     <View
       className="overflow-hidden rounded-2xl bg-white"
       style={{ borderCurve: 'continuous', boxShadow: shadows.whisper }}
     >
       <SwipeableRow
-        accessibilityValue={giftLabel(gift)}
+        accessibilityValue={accessibilityValue}
         editLabel={`gift: ${giftLabel(gift)}`}
         deleteLabel={`gift: ${giftLabel(gift)}`}
         onPress={onEdit}
@@ -97,8 +107,7 @@ export function GiftCard({ gift, onEdit }: { gift: Gift; onEdit: () => void }) {
           )}
           {!hasText && (
             <Text className="text-base text-muted-foreground">
-              Saved {new Date(gift.created_at).toLocaleDateString()} · Edit
-              details
+              {savedCaption} · Edit details
             </Text>
           )}
           {gift.photo && !uri && (
