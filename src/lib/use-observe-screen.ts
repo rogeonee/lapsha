@@ -3,13 +3,13 @@ import { createContext, useContext, useEffect } from 'react';
 
 export const StartupReadyContext = createContext(false);
 
-export function useObserveScreen() {
+export function useObserveScreen(ready = true) {
   const startupReady = useContext(StartupReadyContext);
   const { markInteractive } = useObserve();
 
   useEffect(() => {
-    if (startupReady) {
+    if (startupReady && ready) {
       markInteractive();
     }
-  }, [startupReady, markInteractive]);
+  }, [startupReady, ready, markInteractive]);
 }

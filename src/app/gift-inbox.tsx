@@ -5,11 +5,13 @@ import { getGiftsByPerson } from '~/api/gifts/gifts-service';
 import { GiftCard } from '~/components/gifts/gift-card';
 import { Text } from '~/components/ui/text';
 import { useTableVersion } from '~/lib/use-table-version';
+import { useObserveScreen } from '~/lib/use-observe-screen';
 
 function loadUnsorted(_version: number, _retry: number) {
   return getGiftsByPerson(null);
 }
 export default function GiftInboxScreen() {
+  useObserveScreen();
   const router = useRouter();
   const version = useTableVersion(['gifts', 'persons']);
   const [retry, setRetry] = useState(0);

@@ -40,7 +40,7 @@
     "expo-image-picker": "~57.0.16",
     "expo-linear-gradient": "~57.0.1",
     "expo-linking": "~57.0.9",
-    "expo-observe": "~57.0.23",
+    "expo-observe": "~57.0.25",
     "expo-router": "~57.0.20",
     "expo-splash-screen": "~57.0.8",
     "expo-sqlite": "~57.0.2",
