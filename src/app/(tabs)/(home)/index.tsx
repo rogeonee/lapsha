@@ -1,13 +1,13 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
-  FlatList,
+  SectionList,
   Pressable,
   View,
-  type ListRenderItemInfo,
+  type SectionListRenderItemInfo,
 } from 'react-native';
-import { getPeople } from '~/api/people/people-service';
-import { getTimeline } from '~/api/timeline/timeline-service';
+import { hasPeople } from '~/api/people/people-service';
+import { getUpcomingDates } from '~/api/timeline/timeline-service';
 import EntrySheet, {
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
@@ -19,127 +19,21 @@ import { ChevronRightIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 import { useCollapsingHeader } from '~/components/ui/use-collapsing-header';
 import { avatarUri } from '~/lib/avatars';
+import { formatCalendarDay } from '~/lib/dates';
 import {
-  calendarDaysBetween,
-  formatCalendarDay,
-  nextCalendarDateOccurrence,
-} from '~/lib/dates';
+  buildUpcomingSections,
+  type UpcomingEntry,
+  type UpcomingRowGroup,
+  type UpcomingSection,
+} from '~/lib/upcoming';
 import { useObserveScreen } from '~/lib/use-observe-screen';
 import { palette, shadows } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import { useCurrentDay } from '~/lib/use-current-day';
 import { cn } from '~/lib/utils';
 import type { TimelineEntry } from '~/types/db';
-import type { CalendarDay } from '~/lib/current-day';
 
 const COUNTDOWN_WINDOW_DAYS = 30;
-
-interface UpcomingEntry {
-  entry: TimelineEntry;
-  next: CalendarDay;
-  daysUntil: number;
-  years: number | null;
-}
-
-interface RowGroup {
-  key: string;
-  personId: string;
-  personName: string;
-  personAvatar: string | null;
-  next: CalendarDay;
-  daysUntil: number;
-  entries: UpcomingEntry[];
-}
-
-interface TimelineSection {
-  key: string;
-  title: string;
-  subtitle?: string;
-  showDay: boolean;
-  items: RowGroup[];
-}
-
-function projectUpcoming(
-  entries: TimelineEntry[],
-  today: CalendarDay,
-): UpcomingEntry[] {
-  return entries
-    .map((entry) => {
-      const next = nextCalendarDateOccurrence(entry.month, entry.day, today);
-      const daysUntil = calendarDaysBetween(today, next);
-      const originalYear = Number(entry.date.slice(0, 4));
-      const elapsed = next.year - originalYear;
-      const years = entry.year_known && elapsed > 0 ? elapsed : null;
-
-      return { entry, next, daysUntil, years };
-    })
-    .sort(
-      (a, b) =>
-        a.daysUntil - b.daysUntil ||
-        a.entry.person.name.localeCompare(b.entry.person.name) ||
-        a.entry.person_id.localeCompare(b.entry.person_id),
-    );
-}
-
-function buildSections(
-  upcoming: UpcomingEntry[],
-  today: CalendarDay,
-): TimelineSection[] {
-  const currentYear = today.year;
-  const sections: TimelineSection[] = [];
-
-  for (const item of upcoming) {
-    let key: string;
-    let title: string;
-    let subtitle: string | undefined;
-    let showDay = true;
-
-    if (item.daysUntil <= 1) {
-      key = item.daysUntil === 0 ? 'today' : 'tomorrow';
-      title = item.daysUntil === 0 ? 'Today' : 'Tomorrow';
-      subtitle = formatCalendarDay(item.next, {
-        month: 'long',
-        day: 'numeric',
-      });
-      showDay = false;
-    } else {
-      key = `${item.next.year}-${item.next.month}`;
-      title = formatCalendarDay(item.next, {
-        month: 'long',
-        ...(item.next.year !== currentYear ? { year: 'numeric' } : {}),
-      });
-    }
-
-    let section = sections[sections.length - 1];
-    if (!section || section.key !== key) {
-      section = { key, title, subtitle, showDay, items: [] };
-      sections.push(section);
-    }
-
-    const lastRow = section.items[section.items.length - 1];
-    if (
-      lastRow &&
-      lastRow.personId === item.entry.person_id &&
-      lastRow.next.year === item.next.year &&
-      lastRow.next.month === item.next.month &&
-      lastRow.next.day === item.next.day
-    ) {
-      lastRow.entries.push(item);
-    } else {
-      section.items.push({
-        key: item.entry.id,
-        personId: item.entry.person_id,
-        personName: item.entry.person.name,
-        personAvatar: item.entry.person.avatar,
-        next: item.next,
-        daysUntil: item.daysUntil,
-        entries: [item],
-      });
-    }
-  }
-
-  return sections;
-}
 
 function formatLabel(entry: TimelineEntry): string {
   return entry.label.charAt(0).toUpperCase() + entry.label.slice(1);
@@ -173,7 +67,7 @@ function UpcomingRow({
   divider,
   onPress,
 }: {
-  group: RowGroup;
+  group: UpcomingRowGroup;
   showDay: boolean;
   divider: boolean;
   onPress: () => void;
@@ -256,72 +150,86 @@ function UpcomingRow({
   );
 }
 
-function TimelineSectionCard({
-  section,
-  onPersonPress,
-}: {
-  section: TimelineSection;
-  onPersonPress: (personId: string) => void;
-}) {
+function renderSectionHeader({ section }: { section: UpcomingSection }) {
   return (
-    <View>
-      <Text
-        className={cn(
-          'mb-2 px-1 text-base font-medium',
-          section.key === 'today' && 'text-broth',
-        )}
-      >
-        {section.title}
-        {section.subtitle ? (
-          <Text className="text-base font-normal text-muted-foreground">
-            {` · ${section.subtitle}`}
-          </Text>
-        ) : null}
-      </Text>
-      <View
-        className="overflow-hidden rounded-2xl bg-white"
-        style={{ borderCurve: 'continuous', boxShadow: shadows.whisper }}
-      >
-        {section.items.map((group, index) => (
-          <UpcomingRow
-            key={group.key}
-            group={group}
-            showDay={section.showDay}
-            divider={index > 0}
-            onPress={() => onPersonPress(group.personId)}
-          />
-        ))}
-      </View>
+    <Text
+      accessibilityRole="header"
+      className={cn(
+        'mb-2 px-1 text-base font-medium',
+        section.key === 'today' && 'text-broth',
+      )}
+    >
+      {section.title}
+      {section.subtitle ? (
+        <Text className="text-base font-normal text-muted-foreground">
+          {` · ${section.subtitle}`}
+        </Text>
+      ) : null}
+    </Text>
+  );
+}
+
+function SectionFooter() {
+  return <View className="h-5" />;
+}
+
+function TimelineListItem({
+  group,
+  showDay,
+  first,
+  last,
+}: {
+  group: UpcomingRowGroup;
+  showDay: boolean;
+  first: boolean;
+  last: boolean;
+}) {
+  const router = useRouter();
+  return (
+    <View
+      className={cn(
+        'overflow-hidden bg-white',
+        first && 'rounded-t-2xl',
+        last && 'rounded-b-2xl',
+      )}
+      style={{ borderCurve: 'continuous', boxShadow: shadows.whisper }}
+    >
+      <UpcomingRow
+        group={group}
+        showDay={showDay}
+        divider={!first}
+        onPress={() =>
+          router.push({
+            pathname: '/(tabs)/(home)/person/[id]',
+            params: { id: group.personId },
+          })
+        }
+      />
     </View>
   );
 }
 
-function TimelineSectionListItem({ section }: { section: TimelineSection }) {
-  const router = useRouter();
-
+function renderUpcomingRow({
+  item,
+  index,
+  section,
+}: SectionListRenderItemInfo<UpcomingRowGroup, UpcomingSection>) {
   return (
-    <TimelineSectionCard
-      section={section}
-      onPersonPress={(personId) =>
-        router.push({
-          pathname: '/(tabs)/(home)/person/[id]',
-          params: { id: personId },
-        })
-      }
+    <TimelineListItem
+      group={item}
+      showDay={section.showDay}
+      first={index === 0}
+      last={index === section.data.length - 1}
     />
   );
 }
 
-function renderTimelineSection({ item }: ListRenderItemInfo<TimelineSection>) {
-  return <TimelineSectionListItem section={item} />;
-}
-
 function loadTimeline(_datesVersion: number, _retryNonce: number) {
-  return getTimeline();
+  return getUpcomingDates();
 }
 
-function loadPeople(_datesVersion: number, _retryNonce: number) {
-  return getPeople();
+function loadHasPeople(_personsVersion: number, _retryNonce: number) {
+  return hasPeople();
 }
 
 export default function HomeScreen() {
@@ -329,19 +237,20 @@ export default function HomeScreen() {
   const router = useRouter();
   const header = useCollapsingHeader({ title: 'Upcoming' });
   const datesVersion = useTableVersion(['dates', 'persons']);
+  const personsVersion = useTableVersion(['persons']);
   const today = useCurrentDay();
   const [retryNonce, setRetryNonce] = useState(0);
   const [sheetConfig, setSheetConfig] = useState<EntrySheetConfig | null>(null);
 
   const timelineResponse = loadTimeline(datesVersion, retryNonce);
-  const peopleResponse = loadPeople(datesVersion, retryNonce);
+  const peopleResponse = loadHasPeople(personsVersion, retryNonce);
 
   const error = timelineResponse.error
     ? timelineResponse.error.message || 'Failed to load upcoming dates'
     : null;
-  const hasPeople = (peopleResponse.data?.length ?? 0) > 0;
-  const sections = buildSections(
-    projectUpcoming(timelineResponse.data ?? [], today),
+  const peopleExist = !peopleResponse.error && peopleResponse.data === true;
+  const sections = buildUpcomingSections(
+    timelineResponse.error ? [] : (timelineResponse.data ?? []),
     today,
   );
 
@@ -372,23 +281,26 @@ export default function HomeScreen() {
 
   return (
     <>
-      <FlatList
-        data={sections}
-        keyExtractor={(section) => section.key}
+      <SectionList
+        sections={sections}
+        keyExtractor={(group) => group.key}
+        stickySectionHeadersEnabled={false}
+        renderSectionHeader={renderSectionHeader}
+        renderSectionFooter={() => <SectionFooter />}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName={
           sections.length === 0
             ? process.env.EXPO_OS === 'ios'
               ? 'px-4'
               : 'grow p-4'
-            : 'gap-5 p-4'
+            : 'p-4'
         }
         alwaysBounceVertical={sections.length > 0}
         ListEmptyComponent={
           <EmptyState
-            kind={hasPeople ? 'dates' : 'welcome'}
+            kind={peopleExist ? 'dates' : 'welcome'}
             onPress={() => {
-              if (hasPeople) {
+              if (peopleExist) {
                 setSheetConfig({ mode: 'create', kind: 'date' });
               } else {
                 router.push('/add-person');
@@ -396,7 +308,7 @@ export default function HomeScreen() {
             }}
           />
         }
-        renderItem={renderTimelineSection}
+        renderItem={renderUpcomingRow}
         ListHeaderComponent={
           <View>
             {header.largeTitle}

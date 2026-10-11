@@ -71,6 +71,15 @@ export function getPeople(): ServiceResponse<Person[]> {
   );
 }
 
+export function hasPeople(): ServiceResponse<boolean> {
+  return runServiceOperation(
+    () =>
+      db.getFirstSync<{ has_people: number }>(
+        'SELECT EXISTS(SELECT 1 FROM persons WHERE deleted_at IS NULL) AS has_people',
+      )?.has_people === 1,
+  );
+}
+
 /**
  * Get a single person by ID
  */

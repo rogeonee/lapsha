@@ -120,7 +120,7 @@ test('v6 preserves every gift field and index while permitting the last photo to
     const before = database.getAllSync('SELECT * FROM gifts ORDER BY id');
     migrateDatabase(database);
     expect(database.getFirstSync('PRAGMA user_version')).toEqual({
-      user_version: 6,
+      user_version: 7,
     });
     expect(database.getAllSync('SELECT * FROM gifts ORDER BY id')).toEqual(
       before,
@@ -199,7 +199,7 @@ test('v6 rolls back the gift constraint removal, data, index, and version togeth
     ).toThrow();
     migrateDatabase(database);
     expect(database.getFirstSync('PRAGMA user_version')).toEqual({
-      user_version: 6,
+      user_version: 7,
     });
     expect(database.getAllSync('SELECT * FROM gifts ORDER BY id')).toEqual(
       snapshot,

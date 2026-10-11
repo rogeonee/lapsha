@@ -31,45 +31,57 @@ function rowToTimelineEntry(row: TimelineRow): TimelineEntry {
   };
 }
 
-/**
- * Get timeline of all dates across all people, sorted chronologically
- * Handles recurring dates (year 0001) by treating them as annual events
- */
-export function getTimeline(
-  options: TimelineOptions = {},
-): ServiceResponse<TimelineEntry[]> {
-  return runServiceOperation(() => {
-    const { startDate, endDate, limit, includeUnknownYears = true } = options;
+function readTimelineRows(
+  options: TimelineOptions,
+  orderByStoredDate: boolean,
+): TimelineRow[] {
+  const { startDate, endDate, limit, includeUnknownYears = true } = options;
 
-    const conditions = ['d.deleted_at IS NULL', 'p.deleted_at IS NULL'];
-    const params: (string | number)[] = [];
+  const conditions = ['d.deleted_at IS NULL', 'p.deleted_at IS NULL'];
+  const params: (string | number)[] = [];
 
-    if (startDate) {
-      conditions.push('d.date >= ?');
-      params.push(startDate);
-    }
-    if (endDate) {
-      conditions.push('d.date <= ?');
-      params.push(endDate);
-    }
-    if (!includeUnknownYears) {
-      conditions.push('d.year_known = 1');
-    }
+  if (startDate) {
+    conditions.push('d.date >= ?');
+    params.push(startDate);
+  }
+  if (endDate) {
+    conditions.push('d.date <= ?');
+    params.push(endDate);
+  }
+  if (!includeUnknownYears) {
+    conditions.push('d.year_known = 1');
+  }
 
-    let query = `
+  let query = `
       SELECT d.*, p.name AS person_name, p.avatar AS person_avatar
       FROM dates d
       JOIN persons p ON p.id = d.person_id
       WHERE ${conditions.join(' AND ')}
-      ORDER BY d.date ASC
     `;
 
-    if (limit) {
-      query += ' LIMIT ?';
-      params.push(limit);
-    }
+  if (orderByStoredDate) query += ' ORDER BY d.date ASC';
 
-    const rows = db.getAllSync<TimelineRow>(query, ...params);
+  if (limit) {
+    query += ' LIMIT ?';
+    params.push(limit);
+  }
+
+  return db.getAllSync<TimelineRow>(query, ...params);
+}
+
+/** Upcoming projects and orders annual occurrences itself, so no stored-date sort is needed. */
+export function getUpcomingDates(): ServiceResponse<TimelineEntry[]> {
+  return runServiceOperation(() =>
+    readTimelineRows({}, false).map(rowToTimelineEntry),
+  );
+}
+
+/** Stored-date timeline; unknown years are projected into the current year. */
+export function getTimeline(
+  options: TimelineOptions = {},
+): ServiceResponse<TimelineEntry[]> {
+  return runServiceOperation(() => {
+    const rows = readTimelineRows(options, true);
     const timelineEntries = rows.map(rowToTimelineEntry);
 
     // Sort chronologically with special handling for recurring dates
