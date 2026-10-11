@@ -319,6 +319,34 @@ function EntryForm({
               </Text>
             ))}
           </Picker>
+          {form.giftStatus === 'given' && form.giftGivenOn && (
+            <VStack spacing={0} modifiers={cardModifiers}>
+              {usesExpandedRows ? (
+                <VStack
+                  alignment="leading"
+                  spacing={8}
+                  modifiers={fieldRowModifiers}
+                >
+                  <Text>Given on</Text>
+                  <DatePicker
+                    title="Given on"
+                    selection={form.giftGivenOn}
+                    displayedComponents={['date']}
+                    onDateChange={form.setGiftGivenOn}
+                    modifiers={[labelsHidden(), frame({ maxWidth: FILL })]}
+                  />
+                </VStack>
+              ) : (
+                <DatePicker
+                  title="Given on"
+                  selection={form.giftGivenOn}
+                  displayedComponents={['date']}
+                  onDateChange={form.setGiftGivenOn}
+                  modifiers={controlRowModifiers}
+                />
+              )}
+            </VStack>
+          )}
         </>
       ) : form.kind === 'fact' ? (
         <VStack spacing={0} modifiers={cardModifiers}>
