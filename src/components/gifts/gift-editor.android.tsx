@@ -43,6 +43,7 @@ import {
 } from '~/lib/dates';
 import { palette } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
+import { useObserveScreen } from '~/lib/use-observe-screen';
 
 function loadPeople(_version: number) {
   return getPeople();
@@ -57,6 +58,7 @@ type Confirmation = {
 };
 
 export default function GiftEditorScreen() {
+  useObserveScreen();
   const { id, personId, captured } = useLocalSearchParams<{
     id?: string;
     personId?: string;

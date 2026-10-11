@@ -2,7 +2,7 @@ import { Observe } from 'expo-observe';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ImagePickerAsset } from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Alert } from 'react-native';
 import { KeyboardController } from 'react-native-keyboard-controller';
@@ -19,9 +19,6 @@ import {
   saveAvatarFile,
 } from '~/lib/avatars';
 import { toStorageDate } from '~/lib/dates';
-
-// Placeholder until real analytics lands; silent so it doesn't spam the console
-const trackEvent = (_event: Record<string, unknown>) => {};
 
 /**
  * Shared state + save flow behind add-person, mirroring the
@@ -51,10 +48,6 @@ export function useAddPersonForm() {
   // eslint-disable-next-line react-hooks/incompatible-library
   const initial = watch('name').trim().charAt(0).toUpperCase();
 
-  useEffect(() => {
-    trackEvent({ type: 'person_create_started' });
-  }, []);
-
   const choosePhoto = async () => {
     KeyboardController.dismiss();
     try {
@@ -78,12 +71,6 @@ export function useAddPersonForm() {
     const response = createPerson({ name: data.name.trim() });
 
     if (response.error || !response.data) {
-      trackEvent({
-        type: 'person_create_error',
-        errorCode: response.error?.code,
-        errorMessage: response.error?.message,
-      });
-
       const errorMessage =
         response.error?.code === 'VALIDATION_ERROR'
           ? 'Please check the name and try again.'
@@ -95,11 +82,6 @@ export function useAddPersonForm() {
       ]);
       return;
     }
-
-    trackEvent({
-      type: 'person_create_success',
-      personId: response.data.id,
-    });
 
     if (photo) {
       try {
