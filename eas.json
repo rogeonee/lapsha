@@ -17,6 +17,7 @@
     },
     "preview": {
       "distribution": "internal",
+      "uploadSourceMaps": true,
       "bun": "1.3.6"
     },
     "production": {

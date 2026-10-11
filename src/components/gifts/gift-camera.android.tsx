@@ -15,6 +15,7 @@ import { CameraIcon, CloseIcon, PhotoIcon } from '~/components/ui/icons';
 import { Text } from '~/components/ui/text';
 import { palette } from '~/lib/theme';
 import { pickGiftPhoto, takeGiftPhoto } from '~/lib/gift-photos';
+import { useObserveScreen } from '~/lib/use-observe-screen';
 import type { GiftCameraProps } from './gift-camera';
 
 export default function GiftCamera({
@@ -29,6 +30,7 @@ export default function GiftCamera({
   const [error, setError] = useState<string | null>(null);
   const [needsSettings, setNeedsSettings] = useState(false);
   const insets = useSafeAreaInsets();
+  useObserveScreen(!busy);
 
   const capture = async (source: 'camera' | 'gallery' | 'retry') => {
     if (locked.current) return;

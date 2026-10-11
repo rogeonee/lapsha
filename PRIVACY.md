@@ -1,28 +1,30 @@
 # Privacy policy
 
-Last updated: September 25, 2026
+Last updated: October 11, 2026
 
 This policy explains how Lapsha, a personal notebook about the people who matter to you, handles information. It covers the mobile app and this website.
 
 ## Your information in Lapsha
 
-Names, facts, important dates, photos you choose, and app preferences are stored locally on your device. Lapsha uses this information to display and organize your personal notebook. The app does not require an account and does not send your saved notebook to the developer or a developer-operated server.
+Names, facts, important dates, gift ideas, photos you choose or take, and app preferences are stored locally on your device. Lapsha uses this information to display and organize your personal notebook. The app does not require an account and does not send your saved notebook to the developer or a developer-operated server.
 
 Lapsha does not include advertising or advertising trackers. We do not sell your personal information or use your notebook for advertising. The app uses Expo Observe for performance monitoring and error diagnostics, as described below.
 
 ## Photos
 
-When you choose a photo using the system photo picker, Lapsha stores a resized copy in its local app storage. Choosing or removing a photo in Lapsha does not change the original in your photo library.
+When you choose a photo using the system photo picker or take a gift photo using the camera, Lapsha stores a resized copy in its local app storage. Choosing or removing a photo in Lapsha does not change the original in your photo library.
 
 ## System backups and device transfers
 
 Depending on your device settings, eligible app data may be included in backups or device transfers managed by Apple, Google, or your device provider. These services operate under their own privacy policies and settings. The developer cannot access or manage your system backups.
 
-On iOS, Lapsha uses the system’s standard backup behavior, which may include saved records, preferences, and photos. The planned Android beta backup configuration includes eligible records and preferences but excludes Lapsha’s saved photo files from cloud backup and device transfer. Photos will need to be added again after an Android restore or transfer. Backup availability and successful restoration depend on your device and provider.
+On iOS, Lapsha uses the system’s standard backup behavior and allows saved records, preferences, person photos, and gift photos to be included, subject to your backup settings and available iCloud storage.
+
+On Android, eligible records and preferences can be included in cloud backups. Person photos and gift photos are excluded from cloud backups to stay within Android’s backup size limit. Photos will need to be added again after restoring from an Android cloud backup. Lapsha allows photos in direct device-to-device transfers on Android 9 and later when supported by your device and provider; on older Android versions, photos are excluded from both backups and transfers. Backup availability and successful restoration or transfer depend on your device and provider.
 
 ## Keeping and deleting information
 
-Your notebook remains in local app storage until it is removed. Deleting an individual person, fact, or date removes it from view, but the record may remain in the local database. Use Settings → Clear All Data to remove saved notebook records, app preferences, and Lapsha’s stored photo copies. If cleanup reports a failure, follow the app’s instructions to retry.
+Your notebook remains in local app storage until it is removed. Deleting an individual person, fact, date, or gift idea removes it from view, but the record may remain in the local database. Use Settings → Clear All Data to remove saved notebook records, app preferences, and Lapsha’s stored photo copies. If cleanup reports a failure, follow the app’s instructions to retry.
 
 Deleting data in Lapsha does not delete existing system backups or original photos in your photo library. Manage those separately through your device or backup provider. Restoring an older backup may restore information that you previously deleted. Lapsha does not promise forensic erasure of storage or backups.
 

@@ -26,12 +26,38 @@ module.exports = function withAndroidBackup(config) {
         'app/src/main/res/xml',
       );
       await fs.mkdir(xmlDirectory, { recursive: true });
-      // Exclusions preserve Android's default inclusion of all other eligible app data.
+      // Android 8.1 and lower cannot require a device-transfer transport for photos.
       await fs.writeFile(
         path.join(xmlDirectory, 'lapsha_backup_rules.xml'),
         `<?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
   <exclude domain="file" path="avatars/" />
+  <exclude domain="file" path="gift-photos/" />
+</full-backup-content>
+`,
+      );
+      const legacyTransferDirectory = path.join(
+        config.modRequest.platformProjectRoot,
+        'app/src/main/res/xml-v28',
+      );
+      await fs.mkdir(legacyTransferDirectory, { recursive: true });
+      // Legacy includes replace defaults. SQLite contains both notebook and preferences;
+      // add future persistent file directories here without including the photo folders.
+      await fs.writeFile(
+        path.join(legacyTransferDirectory, 'lapsha_backup_rules.xml'),
+        `<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+  <include domain="file" path="SQLite/" />
+  <include domain="file" path="avatars/" requireFlags="deviceToDeviceTransfer" />
+  <include domain="file" path="gift-photos/" requireFlags="deviceToDeviceTransfer" />
+  <include domain="root" path="." />
+  <include domain="database" path="." />
+  <include domain="sharedpref" path="." />
+  <include domain="external" path="." />
+  <include domain="device_root" path="." />
+  <include domain="device_file" path="." />
+  <include domain="device_database" path="." />
+  <include domain="device_sharedpref" path="." />
 </full-backup-content>
 `,
       );
@@ -41,10 +67,9 @@ module.exports = function withAndroidBackup(config) {
 <data-extraction-rules>
   <cloud-backup>
     <exclude domain="file" path="avatars/" />
+    <exclude domain="file" path="gift-photos/" />
   </cloud-backup>
-  <device-transfer>
-    <exclude domain="file" path="avatars/" />
-  </device-transfer>
+  <device-transfer />
 </data-extraction-rules>
 `,
       );

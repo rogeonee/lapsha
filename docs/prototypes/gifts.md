@@ -37,7 +37,7 @@ Photos live in `documents/gift-photos/`, referenced by bare filenames. A small j
 
 Startup waits for picker recovery before reopening a restored capture route. Pinned Android patches in `expo-modules-core` and `expo` persist the native request before launch and wait for ReactHost initialization before delivering the result. Interrupted captures recover into Unsorted. Expo's existing five-minute recovery expiry remains; recheck both patches and rebuild Android when upgrading Expo. Native contract limitations are recorded in `notebook.md`.
 
-Clear All Data removes gift records, photos, and pending journals. Android backup rules exclude avatars, but gift photos remain eligible for OS backup and device transfer. Actual restore/transfer is still unverified.
+Clear All Data removes gift records, photos, and pending journals. Android cloud backup rules exclude both person and gift photos to protect the 25 MB quota. Direct device transfers allow both on Android 9+ when supported; Android 8.1 and lower exclude photos from both modes. iOS retains default backup eligibility for all saved photos. Regenerate Android native output and rebuild to apply backup rule changes. Actual restore/transfer is still unverified.
 
 ## Verification — October 3–4, 2026
 
