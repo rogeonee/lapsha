@@ -30,6 +30,8 @@ bun run format                   # Oxfmt
 
 Use Bun and `bun.lock`. Use `bun run check` before committing; do not run `expo lint`, which recreates the old ESLint setup. Run lint after code changes; follow the UI skill for relevant device verification.
 
+For iOS verification, reuse the existing baseline simulators: iPhone 16 with iOS 18 and iPhone 18 Pro with iOS 27. Do not create new iOS simulators unless the user explicitly asks.
+
 ## Architecture and conventions
 
 - Use Expo Router with native stacks/tabs; do not configure React Navigation directly. Both person routes share `src/screens/person/person-screen.tsx` to preserve the originating tab stack.

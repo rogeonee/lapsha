@@ -27,6 +27,7 @@ import EntrySheet, {
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
 import { PersonDetailSections } from '~/components/person/person-detail-sections';
+import { PersonHeaderBlur } from '~/components/person/person-header-blur';
 import PersonMenu from '~/components/person/person-menu';
 import { PersonPhotoHero } from '~/components/person/person-photo-hero';
 import {
@@ -337,6 +338,16 @@ export function PersonScreen() {
             color: showPhotoChrome ? 'white' : palette.broth,
           },
           ...(isIOS ? { headerBlurEffect: 'none' as const } : null),
+          ...(isIOS && !isLiquidGlass
+            ? {
+                headerBackground: () => (
+                  <PersonHeaderBlur
+                    progress={photoProgress}
+                    hasPhoto={hasDisplayedPhoto}
+                  />
+                ),
+              }
+            : null),
         }}
       />
       <PersonMenu

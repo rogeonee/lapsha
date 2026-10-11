@@ -80,7 +80,7 @@ Use when the user requests it, the feature or surface is nearly finished, the wo
 - Run all relevant checklist sections and static checks.
 - Exercise complete success, cancellation, dismissal, failure, interruption, and recovery paths.
 - Check accessibility semantics, reduced motion, safe areas, and keyboard behavior when relevant; apply the scale coverage rule above for text size and display zoom.
-- Discover installed iOS runtimes with `xcrun simctl list runtimes`. For version-sensitive behavior, test both sides of relevant OS gates and the newest installed runtime: iOS 18/26 for a gate at 26, and iOS 26/27 for a gate at 27, as applicable. Report unavailable coverage.
+- Discover installed iOS runtimes with `xcrun simctl list runtimes` and existing simulators with `xcrun simctl list devices available`. For version-sensitive behavior, use existing simulators to test both sides of relevant OS gates and the newest runtime with an available simulator. Include iOS 26 when an existing simulator is available and the change needs to distinguish it from iOS 18 or 27. Report unavailable coverage; an installed runtime alone does not authorize creating a simulator.
 - Use the authorized physical Android device when Android is in scope.
 - Rebuild, cold-start, or force-stop where `notebook.md` says Fast Refresh is insufficient.
 
@@ -106,6 +106,7 @@ Preserve these architectural boundaries:
 
 ## Device rules
 
+- Reuse the iOS baseline simulators specified in `AGENTS.md`. Do not create new iOS simulators unless the user explicitly asks, including when full verification would benefit from another OS version or device.
 - Use available, authorized simulator controls or a `bunx serve-sim` stream in an available browser to inspect and interact with iOS. Native screenshots or recordings can supply visual evidence; interaction claims require exercising the flow. Chrome is optional, and its absence alone does not require new permission to use an authorized alternative.
 - Prefer the authorized physical Android device. If none is connected and Android verification is required, ask the user to connect it; do not silently substitute an emulator.
 - Report exactly which platforms and OS versions were exercised.
