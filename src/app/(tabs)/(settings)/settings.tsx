@@ -102,11 +102,12 @@ export default function SettingsScreen() {
               style={{ borderCurve: 'continuous', boxShadow: shadows.whisper }}
             >
               <Text className="text-base leading-5">
-                Android can back up your people, facts, dates, and preferences,
-                depending on your device settings. Person photos are not
-                included in backups or transfers to another device. Gift photos
-                are eligible for device backup. You’ll need to add person photos
-                again after restoring.
+                Android can back up your people, facts, dates, gift ideas, and
+                preferences, depending on your device settings. Person and gift
+                photos are excluded from cloud backups to stay within Android’s
+                backup size limit. You’ll need to add them again after a cloud
+                restore. Photos can transfer directly to another device when
+                supported by your device and provider.
               </Text>
             </View>
           </View>
