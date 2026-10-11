@@ -16,13 +16,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
-import { deleteDate, getDatesByPerson } from '~/api/dates/dates-service';
-import { deleteFact, getFactsByPerson } from '~/api/facts/facts-service';
-import {
-  deletePerson,
-  getPerson,
-  updatePerson,
-} from '~/api/people/people-service';
+import { deleteDate } from '~/api/dates/dates-service';
+import { deleteFact } from '~/api/facts/facts-service';
+import { deletePerson, updatePerson } from '~/api/people/people-service';
 import EntrySheet, {
   type EntrySheetConfig,
 } from '~/components/entry/entry-sheet';
@@ -34,6 +30,7 @@ import {
   personPhotoCompactHeight,
   personPhotoExpandedHeight,
 } from '~/components/person/person-photo-layout';
+import { Button } from '~/components/ui/button';
 import { HeaderScrim } from '~/components/ui/header-scrim';
 import { Text } from '~/components/ui/text';
 import {
@@ -47,7 +44,8 @@ import { useObserveScreen } from '~/lib/use-observe-screen';
 import { palette } from '~/lib/theme';
 import { useTableVersion } from '~/lib/use-table-version';
 import { useCurrentDay } from '~/lib/use-current-day';
-import type { EntrySort, Fact, Person, Date as PersonDate } from '~/types/db';
+import type { EntrySort } from '~/types/db';
+import { loadPersonData } from '~/screens/person/load-person-data';
 
 const isIOS = process.env.EXPO_OS === 'ios';
 // iOS 26 liquid-glass header buttons adapt to the content behind them;
@@ -63,39 +61,6 @@ const photoTiming = {
   easing: Easing.out(Easing.cubic),
   reduceMotion: ReduceMotion.Never,
 } as const;
-
-function loadPersonData(
-  id: string | undefined,
-  factSort: EntrySort,
-  _dataVersion: number,
-): {
-  person: Person | null;
-  facts: Fact[];
-  dates: PersonDate[];
-  error: string | null;
-} {
-  if (!id) {
-    return { person: null, facts: [], dates: [], error: 'Person not found' };
-  }
-
-  const personRes = getPerson(id);
-  if (personRes.error || !personRes.data) {
-    return {
-      person: null,
-      facts: [],
-      dates: [],
-      error: personRes.error?.message || 'Person not found',
-    };
-  }
-
-  return {
-    person: personRes.data,
-    facts: getFactsByPerson(id, factSort).data ?? [],
-    // Dates keep their defined order: birthday pinned, then date added
-    dates: getDatesByPerson(id).data ?? [],
-    error: null,
-  };
-}
 
 function handleDeleteFact(factId: string) {
   const response = deleteFact(factId);
@@ -119,6 +84,8 @@ export function PersonScreen() {
   const headerHeight = useHeaderHeight();
   const dataVersion = useTableVersion(['persons', 'facts', 'dates']);
   const today = useCurrentDay();
+  const [retryNonce, setRetryNonce] = useState(0);
+  const retryRead = () => setRetryNonce((nonce) => nonce + 1);
   const factSort = useSyncExternalStore(
     subscribeToPreferences,
     () => getSortPref('facts'),
@@ -135,10 +102,11 @@ export function PersonScreen() {
   const pullStart = useSharedValue(0);
   const pullEligible = useSharedValue(false);
 
-  const { person, facts, dates, error } = loadPersonData(
+  const { person, facts, dates, error, canRetry } = loadPersonData(
     id,
     factSort,
     dataVersion,
+    retryNonce,
   );
 
   const photo = avatarUri(person?.avatar);
@@ -307,18 +275,8 @@ export function PersonScreen() {
     router.back();
   };
 
-  if (error) {
-    if (isDeleting) {
-      return <Stack.Screen options={{ title: '' }} />;
-    }
-    return (
-      <View className="flex-1 items-center justify-center px-8">
-        <Stack.Screen options={{ title: '' }} />
-        <Text className="text-center text-lg text-muted-foreground">
-          {error}
-        </Text>
-      </View>
-    );
+  if (error && isDeleting) {
+    return <Stack.Screen options={{ title: '' }} />;
   }
 
   return (
@@ -350,21 +308,25 @@ export function PersonScreen() {
             : null),
         }}
       />
-      <PersonMenu
-        personName={person?.name ?? ''}
-        hasPhoto={Boolean(person?.avatar)}
-        isPhotoChromeExpanded={showPhotoChrome}
-        isOpen={openMenu === 'person'}
-        onOpenChange={(open) => setOpenMenu(open ? 'person' : null)}
-        onEditName={handleEditName}
-        onChoosePhoto={() => void choosePhoto()}
-        onRemovePhoto={removePhoto}
-        onDeletePerson={handleDeletePerson}
-      />
+      {person ? (
+        <PersonMenu
+          personName={person?.name ?? ''}
+          hasPhoto={Boolean(person?.avatar)}
+          isPhotoChromeExpanded={showPhotoChrome}
+          isOpen={openMenu === 'person'}
+          onOpenChange={(open) => setOpenMenu(open ? 'person' : null)}
+          onEditName={handleEditName}
+          onChoosePhoto={() => void choosePhoto()}
+          onRemovePhoto={removePhoto}
+          onDeletePerson={handleDeletePerson}
+        />
+      ) : null}
 
       <GestureDetector gesture={scrollAndPullGesture}>
         <Animated.ScrollView
+          className="bg-paper"
           contentInsetAdjustmentBehavior="never"
+          contentContainerStyle={error ? { flexGrow: 1 } : undefined}
           contentContainerClassName={isIOS ? 'pb-4' : 'pb-24'}
           style={isIOS ? { marginTop: -headerHeight } : undefined}
           bounces={false}
@@ -372,30 +334,51 @@ export function PersonScreen() {
           onScroll={scrollHandler}
           scrollEventThrottle={16}
         >
-          <PersonPhotoHero
-            name={person?.name ?? ''}
-            photo={photo}
-            screenWidth={screenWidth}
-            headerHeight={headerHeight}
-            progress={photoProgress}
-            isExpanded={isPhotoExpanded}
-            onToggle={() => animatePhotoTo(!isPhotoExpanded)}
-            onAddPhoto={() => void choosePhoto()}
-          />
+          {error ? (
+            <View
+              className="flex-1 items-center justify-center gap-6 px-8"
+              style={{ paddingTop: headerHeight }}
+            >
+              <Text className="text-center text-lg text-muted-foreground">
+                {error}
+              </Text>
+              {canRetry ? (
+                <Button variant="outline" onPress={retryRead}>
+                  <Text>Try again</Text>
+                </Button>
+              ) : null}
+            </View>
+          ) : (
+            <>
+              <PersonPhotoHero
+                name={person?.name ?? ''}
+                photo={photo}
+                screenWidth={screenWidth}
+                headerHeight={headerHeight}
+                progress={photoProgress}
+                isExpanded={isPhotoExpanded}
+                onToggle={() => animatePhotoTo(!isPhotoExpanded)}
+                onAddPhoto={() => void choosePhoto()}
+              />
 
-          <PersonDetailSections
-            personId={id}
-            dates={dates}
-            today={today}
-            facts={facts}
-            factSort={factSort}
-            isSortMenuOpen={openMenu === 'sort'}
-            onSortMenuOpenChange={(open) => setOpenMenu(open ? 'sort' : null)}
-            onFactSortChange={changeFactSort}
-            onOpenSheet={setSheetConfig}
-            onDeleteDate={handleDeleteDate}
-            onDeleteFact={handleDeleteFact}
-          />
+              <PersonDetailSections
+                personId={id}
+                dates={dates}
+                today={today}
+                facts={facts}
+                factSort={factSort}
+                isSortMenuOpen={openMenu === 'sort'}
+                onSortMenuOpenChange={(open) =>
+                  setOpenMenu(open ? 'sort' : null)
+                }
+                onFactSortChange={changeFactSort}
+                onOpenSheet={setSheetConfig}
+                onDeleteDate={handleDeleteDate}
+                onDeleteFact={handleDeleteFact}
+                onRetryRead={retryRead}
+              />
+            </>
+          )}
         </Animated.ScrollView>
       </GestureDetector>
 

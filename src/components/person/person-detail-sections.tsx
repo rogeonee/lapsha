@@ -5,6 +5,7 @@ import type { EntrySheetConfig } from '~/components/entry/use-entry-form';
 import { AddRow, DateRow, EntryRow } from '~/components/person/entry-row';
 import FactSortMenu from '~/components/person/fact-sort-menu';
 import { PersonSectionHeader } from '~/components/person/person-section-header';
+import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
 import { Abby } from '~/components/ui/abby';
 import { shadows } from '~/lib/theme';
@@ -35,6 +36,30 @@ function SectionCard({
   );
 }
 
+function SectionReadError({
+  section,
+  onRetry,
+}: {
+  section: 'facts' | 'dates';
+  onRetry: () => void;
+}) {
+  return (
+    <View className="gap-3 px-4 py-4">
+      <Text className="text-base leading-6 text-muted-foreground">
+        Couldn’t load {section}. Please try again.
+      </Text>
+      <Button
+        className="self-start"
+        variant="outline"
+        accessibilityLabel={`Retry loading ${section}`}
+        onPress={onRetry}
+      >
+        <Text>Try again</Text>
+      </Button>
+    </View>
+  );
+}
+
 export function PersonDetailSections({
   personId,
   dates,
@@ -47,11 +72,12 @@ export function PersonDetailSections({
   onOpenSheet,
   onDeleteDate,
   onDeleteFact,
+  onRetryRead,
 }: {
   personId: string;
-  dates: PersonDate[];
+  dates: PersonDate[] | null;
   today: CalendarDay;
-  facts: Fact[];
+  facts: Fact[] | null;
   factSort: EntrySort;
   isSortMenuOpen: boolean;
   onSortMenuOpenChange: (open: boolean) => void;
@@ -59,93 +85,112 @@ export function PersonDetailSections({
   onOpenSheet: (config: EntrySheetConfig) => void;
   onDeleteDate: (dateId: string) => void;
   onDeleteFact: (factId: string) => void;
+  onRetryRead: () => void;
 }) {
   const birthday =
-    dates.find((date) => date.label.toLowerCase() === BIRTHDAY_LABEL) ?? null;
-  const otherDates = dates.filter((date) => date.id !== birthday?.id);
+    dates?.find((date) => date.label.toLowerCase() === BIRTHDAY_LABEL) ?? null;
+  const otherDates = dates?.filter((date) => date.id !== birthday?.id) ?? [];
 
   return (
     <View className="gap-5 px-4">
       <SectionCard title="Dates">
-        {birthday ? (
-          <DateRow
-            date={birthday}
-            today={today}
-            onPress={() =>
-              onOpenSheet({ mode: 'edit', kind: 'date', date: birthday })
-            }
-            onDelete={() => onDeleteDate(birthday.id)}
-          />
+        {dates === null ? (
+          <SectionReadError section="dates" onRetry={onRetryRead} />
         ) : (
-          <AddRow
-            title="Add birthday"
-            onPress={() =>
-              onOpenSheet({
-                mode: 'create',
-                kind: 'date',
-                personId,
-                dateLabel: 'Birthday',
-              })
-            }
-          />
+          <>
+            {birthday ? (
+              <DateRow
+                date={birthday}
+                today={today}
+                onPress={() =>
+                  onOpenSheet({ mode: 'edit', kind: 'date', date: birthday })
+                }
+                onDelete={() => onDeleteDate(birthday.id)}
+              />
+            ) : (
+              <AddRow
+                title="Add birthday"
+                onPress={() =>
+                  onOpenSheet({
+                    mode: 'create',
+                    kind: 'date',
+                    personId,
+                    dateLabel: 'Birthday',
+                  })
+                }
+              />
+            )}
+            {otherDates.map((date) => (
+              <DateRow
+                key={date.id}
+                divider
+                date={date}
+                today={today}
+                onPress={() =>
+                  onOpenSheet({ mode: 'edit', kind: 'date', date })
+                }
+                onDelete={() => onDeleteDate(date.id)}
+              />
+            ))}
+            <AddRow
+              title="Add date"
+              divider
+              onPress={() =>
+                onOpenSheet({ mode: 'create', kind: 'date', personId })
+              }
+            />
+          </>
         )}
-        {otherDates.map((date) => (
-          <DateRow
-            key={date.id}
-            divider
-            date={date}
-            today={today}
-            onPress={() => onOpenSheet({ mode: 'edit', kind: 'date', date })}
-            onDelete={() => onDeleteDate(date.id)}
-          />
-        ))}
-        <AddRow
-          title="Add date"
-          divider
-          onPress={() =>
-            onOpenSheet({ mode: 'create', kind: 'date', personId })
-          }
-        />
       </SectionCard>
 
       <SectionCard
         title="Facts"
         accessory={
-          <FactSortMenu
-            sort={factSort}
-            isOpen={isSortMenuOpen}
-            onOpenChange={onSortMenuOpenChange}
-            onChange={onFactSortChange}
-          />
+          facts !== null && (
+            <FactSortMenu
+              sort={factSort}
+              isOpen={isSortMenuOpen}
+              onOpenChange={onSortMenuOpenChange}
+              onChange={onFactSortChange}
+            />
+          )
         }
       >
-        {facts.length === 0 ? (
-          <View className="flex-row items-center gap-4 px-4 py-4">
-            <Abby pose="note" size={84} />
-            <Text className="flex-1 text-base leading-6 text-muted-foreground">
-              Their coffee order, a favorite flower. Start with one little
-              thing.
-            </Text>
-          </View>
+        {facts === null ? (
+          <SectionReadError section="facts" onRetry={onRetryRead} />
         ) : (
-          facts.map((fact, index) => (
-            <EntryRow
-              key={fact.id}
-              divider={index > 0}
-              label={fact.label}
-              value={fact.value}
-              onPress={() => onOpenSheet({ mode: 'edit', kind: 'fact', fact })}
-              onDelete={() => onDeleteFact(fact.id)}
+          <>
+            {facts.length === 0 ? (
+              <View className="flex-row items-center gap-4 px-4 py-4">
+                <Abby pose="note" size={84} />
+                <Text className="flex-1 text-base leading-6 text-muted-foreground">
+                  Their coffee order, a favorite flower. Start with one little
+                  thing.
+                </Text>
+              </View>
+            ) : (
+              facts.map((fact, index) => (
+                <EntryRow
+                  key={fact.id}
+                  divider={index > 0}
+                  label={fact.label}
+                  value={fact.value}
+                  onPress={() =>
+                    onOpenSheet({ mode: 'edit', kind: 'fact', fact })
+                  }
+                  onDelete={() => onDeleteFact(fact.id)}
+                />
+              ))
+            )}
+            <AddRow
+              title="Add fact"
+              divider
+              onPress={() =>
+                onOpenSheet({ mode: 'create', kind: 'fact', personId })
+              }
             />
-          ))
+          </>
         )}
-        <AddRow
-          title="Add fact"
-          divider
-          onPress={() =>
-            onOpenSheet({ mode: 'create', kind: 'fact', personId })
-          }
-        />
       </SectionCard>
       <GiftSection personId={personId} onOpenSheet={onOpenSheet} />
     </View>
