@@ -8,6 +8,8 @@ Record only non-obvious decisions, device-tested traps, and context that cannot 
 
 ## Decisions
 
+- **2026-10-11 — Defer richer read-error recovery until a real occurrence.** User accepts the edge case and keeps [PR #40](https://github.com/rogeonee/lapsha/pull/40)'s section errors and Try again behavior. Retry rereads SQLite; it does not repair or restore data, and another failure leaves the same message visible. Defer additional failed-retry feedback and guided recovery/help actions until a real report gives us a concrete failure to address.
+
 - **2026-10-03 — Gifts use the system camera with confirmation.** Android gift capture launches Expo ImagePicker's native camera instead of an embedded CameraView; the phone supplies focus, zoom, flash, lens controls, and retake/confirmation. This extra confirmation is an accepted tradeoff. The gift selection marker (legacy file name `library.pending`) covers both camera and gallery results, so interrupted captures can recover to Unsorted without claiming avatar picks. Clear it when native launch rejects or cancels; retain it after a selected asset fails preparation/staging.
 
 - **2026-10-03 — Existing gift ideas may become blank.** Removing the last photo or clearing saved details keeps the idea for later editing. Schema v6 removes the old nonempty-row constraint; update validation accepts blank content, while creation still requires a photo, thought, title, or link. Keep that distinction in both editor hooks.
