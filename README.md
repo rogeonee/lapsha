@@ -1,7 +1,5 @@
 # Lapsha
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
-
 ## Get started
 
 1. Install dependencies
@@ -10,10 +8,16 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    bun install
    ```
 
-2. Start the app
+2. Run prebuild
 
    ```bash
-   bunx expo start
+   bunx expo prebuild --platform <ios | android>
+   ```
+
+3. Run native build
+
+   ```bash
+   bun run <ios | android>
    ```
 
 ## Task-to-code map
