@@ -16,7 +16,11 @@
     "test": "TZ=UTC bun test",
     "test:timezones": "sh scripts/test-timezones.sh",
     "eas-build-post-install": "bun run check",
-    "android:gifts-lab": "APP_VARIANT=gifts-lab expo prebuild --platform android --no-install && APP_VARIANT=gifts-lab expo run:android --variant release"
+    "android:gifts-lab": "APP_VARIANT=gifts-lab expo prebuild --platform android --no-install && APP_VARIANT=gifts-lab expo run:android --variant release",
+    "test:integration": "TZ=UTC bun test tests/integration",
+    "test:db": "TZ=UTC bun test tests/database-migrations.test.ts tests/gift-migration.test.ts tests/performance-migration.test.ts tests/database-services.test.ts tests/gift-given-date.test.ts",
+    "test:e2e:ios": "python3 e2e/run-ios.py",
+    "test:e2e:check": "tsc --noEmit -p e2e/tsconfig.json"
   },
   "dependencies": {
     "@expo/ui": "~57.0.24",

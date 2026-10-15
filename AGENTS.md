@@ -28,6 +28,8 @@ bun run check                    # Lint, format, Expo types, and TypeScript
 bun run format                   # Oxfmt
 ```
 
+Prefer end-to-end journeys and integration coverage for new regressions; retain focused database tests. Read `TESTING.md` for commands, native fixture ownership, and the evidence required before retiring existing unit coverage.
+
 Use Bun and `bun.lock`. Use `bun run check` before committing; do not run `expo lint`, which recreates the old ESLint setup. Run lint after code changes; follow the UI skill for relevant device verification.
 
 For iOS verification, reuse the existing baseline simulators: iPhone 16 with iOS 18 and iPhone 18 Pro with iOS 27. Do not create new iOS simulators unless the user explicitly asks.

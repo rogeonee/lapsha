@@ -67,3 +67,7 @@ For automatic GitHub runs, set the EAS GitHub project's base directory to `/` an
 The workflow installs from `bun.lock` using EAS's frozen-lockfile behavior. Keep optional dependencies enabled: Oxlint and Oxfmt distribute platform binaries through them. The SDK 57 image supplies Node; the tools require Node 20.19+ on the 20.x line or 22.12+.
 
 `eas-build-post-install` runs `bun run check` for direct `eas build` calls, after prebuild (and CocoaPods on iOS). Future build or update jobs in the quality workflow should use `needs: [quality]` to fail before native builds start. Custom build configurations must call the checks explicitly because EAS does not automatically execute lifecycle hooks for them.
+
+## Testing
+
+See [TESTING.md](TESTING.md) for the integration-first policy, host checks, local iOS E2E commands, failure artifacts and validation limits.

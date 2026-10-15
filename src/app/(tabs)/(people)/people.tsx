@@ -31,21 +31,33 @@ function PersonSeparator() {
 }
 
 function PersonListItem({ person }: { person: Person }) {
+  const router = useRouter();
+  const href = {
+    pathname: '/(tabs)/(people)/person/[id]',
+    params: { id: person.id },
+  } as const;
   return (
-    <Link
-      href={{
-        pathname: '/(tabs)/(people)/person/[id]',
-        params: { id: person.id },
-      }}
-      asChild
+    // The native preview wrapper uses display: contents. Give accessibility a
+    // real row-sized container so iOS can expose the link after a cold launch.
+    <View
+      accessible={isIOS}
+      accessibilityRole={isIOS ? 'button' : undefined}
+      accessibilityLabel={isIOS ? `Open person: ${person.name}` : undefined}
+      onAccessibilityTap={isIOS ? () => router.navigate(href) : undefined}
     >
-      <Link.Trigger>
-        <Pressable>
-          <PersonCard person={person} />
-        </Pressable>
-      </Link.Trigger>
-      <Link.Preview />
-    </Link>
+      <Link href={href} asChild>
+        <Link.Trigger>
+          <Pressable
+            accessible={!isIOS}
+            accessibilityRole="button"
+            accessibilityLabel={`Open person: ${person.name}`}
+          >
+            <PersonCard person={person} />
+          </Pressable>
+        </Link.Trigger>
+        <Link.Preview />
+      </Link>
+    </View>
   );
 }
 

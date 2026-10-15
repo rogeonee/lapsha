@@ -1,0 +1,246 @@
+{
+  "date": "2026-10-15",
+  "baseline": "8ba1295b6299e106165a39c79321d3cfcb54055b",
+  "nativePlatform": "iPhone 18 Pro / iOS 27",
+  "pins": {
+    "e2e": "0.20.0",
+    "@e2e-dev/mobile": "0.12.0",
+    "agent-device": "0.21.25"
+  },
+  "hostChecks": {
+    "check": "passed",
+    "hostTests": {
+      "passed": 102,
+      "failed": 0
+    },
+    "timezones": {
+      "America/Edmonton": {
+        "passed": 52,
+        "failed": 0
+      },
+      "Asia/Tokyo": {
+        "passed": 52,
+        "failed": 0
+      }
+    }
+  },
+  "cleanRuns": [
+    {
+      "rawLocalReport": "e2e/artifacts/clean-stable/run-01/report.json",
+      "runId": "01a13e1e-eac5-712b-9875-2de63677afdd",
+      "startedAt": "2026-10-15T05:53:09.320Z",
+      "finishedAt": "2026-10-15T05:55:03.799Z",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": {
+        "discovered": 1,
+        "selected": 1,
+        "executed": 1,
+        "passed": 1,
+        "failed": 0,
+        "interrupted": 0,
+        "flaky": 0,
+        "skipped": 0
+      },
+      "testDurationMs": 114151,
+      "attempts": 1,
+      "error": null
+    },
+    {
+      "rawLocalReport": "e2e/artifacts/clean-stable/run-02/report.json",
+      "runId": "01a13e20-fa72-7a90-adfe-09a88927080c",
+      "startedAt": "2026-10-15T05:55:13.403Z",
+      "finishedAt": "2026-10-15T05:56:57.548Z",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": {
+        "discovered": 1,
+        "selected": 1,
+        "executed": 1,
+        "passed": 1,
+        "failed": 0,
+        "interrupted": 0,
+        "flaky": 0,
+        "skipped": 0
+      },
+      "testDurationMs": 103991,
+      "attempts": 1,
+      "error": null
+    },
+    {
+      "rawLocalReport": "e2e/artifacts/clean-stable/run-03/report.json",
+      "runId": "01a13e22-b26a-7abe-9d9b-a486f5810a4b",
+      "startedAt": "2026-10-15T05:57:05.981Z",
+      "finishedAt": "2026-10-15T05:58:37.512Z",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": {
+        "discovered": 1,
+        "selected": 1,
+        "executed": 1,
+        "passed": 1,
+        "failed": 0,
+        "interrupted": 0,
+        "flaky": 0,
+        "skipped": 0
+      },
+      "testDurationMs": 91374,
+      "attempts": 1,
+      "error": null
+    }
+  ],
+  "cleanTeardown": {
+    "errors": [],
+    "cloneInstallAttempted": true,
+    "cloneRegistryRemovalConfirmed": true,
+    "ownedBootShutdownAttempted": true,
+    "metroStopped": true,
+    "originalAppNeverTargetedForMutation": true
+  },
+  "mutation": {
+    "unchangedTestHashesBefore": {
+      "e2e/calendar.ts": "5dbe4b67611be055fe7425df8d58f81eed3061edfb63eee4b87399de51bc77bc",
+      "e2e/e2e.config.ts": "952cfd5b68f832f74af23af9f240ecc40c05a4ed3c8091b1ea2cb1b4d070f0e0",
+      "e2e/lifecycle.native.e2e.ts": "cd1421bb26e63c9149bc8c0932e0072bff00a19e89f39b28122f993198eda245",
+      "e2e/native-guard.ts": "99853295a3fb726e9e30a6f9df57b24d898b2e46c2a3ae88c5cc4ad83f084597",
+      "e2e/native-oracle.ts": "95ce634ea0d119af20aa76aa191b4f99159d6aa3272a8090567b0df949bb52a7",
+      "e2e/persistence-contract.ts": "320cf77a9b30a5f5ec48901072b3e3e3d6ba134b714071ec8e7432c4f7a5424f"
+    },
+    "originalSha256": "645800212c61256473243e3b4eb3fe760331c07b7234ca0cc83b1740f5567484",
+    "fault": "createGift ignores selected Given date and persists 2000-01-01",
+    "mutantExitCode": 1,
+    "restoredSha256": "645800212c61256473243e3b4eb3fe760331c07b7234ca0cc83b1740f5567484",
+    "restoredExitCode": 0,
+    "unchangedTestHashesAfter": {
+      "e2e/calendar.ts": "5dbe4b67611be055fe7425df8d58f81eed3061edfb63eee4b87399de51bc77bc",
+      "e2e/e2e.config.ts": "952cfd5b68f832f74af23af9f240ecc40c05a4ed3c8091b1ea2cb1b4d070f0e0",
+      "e2e/lifecycle.native.e2e.ts": "cd1421bb26e63c9149bc8c0932e0072bff00a19e89f39b28122f993198eda245",
+      "e2e/native-guard.ts": "99853295a3fb726e9e30a6f9df57b24d898b2e46c2a3ae88c5cc4ad83f084597",
+      "e2e/native-oracle.ts": "95ce634ea0d119af20aa76aa191b4f99159d6aa3272a8090567b0df949bb52a7",
+      "e2e/persistence-contract.ts": "320cf77a9b30a5f5ec48901072b3e3e3d6ba134b714071ec8e7432c4f7a5424f"
+    },
+    "testsUnchanged": true,
+    "caughtIntendedFault": true
+  },
+  "mutantRun": {
+    "rawLocalReport": "e2e/artifacts/fault-20261015T055856.846852Z/mutant/run-01/report.json",
+    "runId": "01a13e24-b9dc-7c8c-a7f6-21eeb13a05ba",
+    "startedAt": "2026-10-15T05:59:29.368Z",
+    "finishedAt": "2026-10-15T06:00:40.972Z",
+    "status": "failed",
+    "exitCode": 1,
+    "summary": {
+      "discovered": 1,
+      "selected": 1,
+      "executed": 1,
+      "passed": 0,
+      "failed": 1,
+      "interrupted": 0,
+      "flaky": 0,
+      "skipped": 0
+    },
+    "testDurationMs": 71323,
+    "attempts": 1,
+    "error": {
+      "category": "test",
+      "code": "ERROR",
+      "message": "Given date must remain the selected civil date after relaunch/cancel\n+ actual - expected\n\n+ '2000-01-01'\n- '2026-09-08'\n     ^\n",
+      "retryable": false,
+      "phase": "body",
+      "source": {
+        "file": "persistence-contract.ts",
+        "line": 63,
+        "column": 10
+      }
+    }
+  },
+  "restoredRun": {
+    "rawLocalReport": "e2e/artifacts/fault-20261015T055856.846852Z/restored/run-01/report.json",
+    "runId": "01a13e26-80b5-7239-8330-9ef101222a47",
+    "startedAt": "2026-10-15T06:01:26.008Z",
+    "finishedAt": "2026-10-15T06:03:21.822Z",
+    "status": "passed",
+    "exitCode": 0,
+    "summary": {
+      "discovered": 1,
+      "selected": 1,
+      "executed": 1,
+      "passed": 1,
+      "failed": 0,
+      "interrupted": 0,
+      "flaky": 0,
+      "skipped": 0
+    },
+    "testDurationMs": 115511,
+    "attempts": 1,
+    "error": null
+  },
+  "restoredTeardown": {
+    "errors": [],
+    "cloneInstallAttempted": true,
+    "cloneRegistryRemovalConfirmed": true,
+    "ownedBootShutdownAttempted": true,
+    "metroStopped": true,
+    "originalAppNeverTargetedForMutation": true
+  },
+  "build": {
+    "sourceExecutableSha256": "86fde4065f771ccb4fa699a631d9085c0c94012bf4595d2ee05a2ff6d40fa9b2",
+    "bunLockSha256": "ee8eb844a1aeb7101c6c31353d55a270cb0d6060ea808ed622fb82de5a8ea161",
+    "javascriptRevision": "8ba1295b6299e106165a39c79321d3cfcb54055b",
+    "javascriptDirty": true,
+    "binaryVerification": "copied development simulator app; not a release build"
+  },
+  "ios18Compatibility": {
+    "rawLocalReport": "e2e/artifacts/ios18-compatibility/run-01/report.json",
+    "runId": "01a13e58-62a7-7b39-9d54-e66f494af77d",
+    "startedAt": "2026-10-15T06:55:48.115Z",
+    "finishedAt": "2026-10-15T06:57:09.115Z",
+    "status": "passed",
+    "exitCode": 0,
+    "summary": {
+      "discovered": 1,
+      "selected": 1,
+      "executed": 1,
+      "passed": 1,
+      "failed": 0,
+      "interrupted": 0,
+      "flaky": 0,
+      "skipped": 0
+    },
+    "testDurationMs": 80833,
+    "attempts": 1,
+    "error": null
+  },
+  "ios18Teardown": {
+    "errors": [],
+    "cloneInstallAttempted": true,
+    "cloneRegistryRemovalConfirmed": true,
+    "ownedBootShutdownAttempted": true,
+    "metroStopped": true,
+    "originalAppNeverTargetedForMutation": true
+  },
+  "finalOwnershipCheck": {
+    "ownedPids": {
+      "exitCode": 1,
+      "output": ""
+    },
+    "metroPort": {
+      "exitCode": 1,
+      "output": ""
+    },
+    "matchingKeepAwakeProcesses": [],
+    "simulators": [
+      {
+        "name": "iPhone 18 Pro",
+        "udid": "CA556E39-5624-40F3-A0CA-639E027F5C2C",
+        "state": "Shutdown"
+      },
+      {
+        "name": "iPhone 16",
+        "udid": "FC1508B4-F858-4E0A-8603-D4611C031CAF",
+        "state": "Shutdown"
+      }
+    ],
+    "sourceSha256": "645800212c61256473243e3b4eb3fe760331c07b7234ca0cc83b1740f5567484"
+  }
+}

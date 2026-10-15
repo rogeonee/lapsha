@@ -26,6 +26,8 @@
     "ios/**",
     "android/**",
     "src/uniwind-types.d.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    ".e2e-build/**",
+    "e2e/artifacts/**"
   ]
 }

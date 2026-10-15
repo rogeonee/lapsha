@@ -18,7 +18,9 @@
     "coverage/**",
     ".agents/**",
     ".claude/**",
-    "src/uniwind-types.d.ts"
+    "src/uniwind-types.d.ts",
+    ".e2e-build/**",
+    "e2e/artifacts/**"
   ],
   "rules": {
     "import/namespace": "error",
