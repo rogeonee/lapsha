@@ -62,6 +62,8 @@ TypeScript checks source imports and types separately with Expo's TypeScript ver
 eas workflow:run .eas/workflows/quality.yml
 ```
 
+For automatic GitHub runs, set the EAS GitHub project's base directory to `/` and link an Expo account member's GitHub user with access to this repository. These checks run independently of native app builds.
+
 The workflow installs from `bun.lock` using EAS's frozen-lockfile behavior. Keep optional dependencies enabled: Oxlint and Oxfmt distribute platform binaries through them. The SDK 57 image supplies Node; the tools require Node 20.19+ on the 20.x line or 22.12+.
 
 `eas-build-post-install` runs `bun run check` for direct `eas build` calls, after prebuild (and CocoaPods on iOS). Future build or update jobs in the quality workflow should use `needs: [quality]` to fail before native builds start. Custom build configurations must call the checks explicitly because EAS does not automatically execute lifecycle hooks for them.
