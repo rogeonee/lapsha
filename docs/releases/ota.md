@@ -83,8 +83,8 @@ Expected project is `@rogeonee/lapsha` / `22e93af4-b730-40d9-8d51-cb0b60f2603e`,
 Resolve the candidate runtime using the same environment as the installed beta binary. These commands only read EAS variables and compute local configuration/hashes; they do not upload an update:
 
 ```sh
-env -u APP_VARIANT EXPO_NO_DOTENV=1 eas env:exec --environment production 'test -z "$APP_VARIANT" && bunx expo-updates runtimeversion:resolve --platform android'
-env -u APP_VARIANT EXPO_NO_DOTENV=1 eas env:exec --environment production 'test -z "$APP_VARIANT" && bunx expo-updates runtimeversion:resolve --platform ios'
+env -u APP_VARIANT EXPO_NO_DOTENV=1 eas env:exec production 'test -z "$APP_VARIANT" && bunx expo-updates runtimeversion:resolve --platform android'
+env -u APP_VARIANT EXPO_NO_DOTENV=1 eas env:exec production 'test -z "$APP_VARIANT" && bunx expo-updates runtimeversion:resolve --platform ios'
 ```
 
 Compare each resulting `runtimeVersion` with the **same platform's installed beta build runtime** recorded above. No match means no OTA for that binary: stop and prepare a native build, or check out the old binary's source and backport a JS-only fix. Do not assume the latest build is the one testers installed. For source-level diagnosis, `bunx expo-updates fingerprint:generate --platform android` (or `ios`) emits local hash inputs; use the same environment. `eas fingerprint:generate/compare` can upload fingerprint records, so they are not part of this no-publication validation path.
@@ -92,8 +92,8 @@ Compare each resulting `runtimeVersion` with the **same platform's installed bet
 When the single heavy-job slot is available, validate exports sequentially under the same environment, using distinct output directories:
 
 ```sh
-env -u APP_VARIANT EXPO_NO_DOTENV=1 eas env:exec --environment production 'test -z "$APP_VARIANT" && bunx expo export --platform android --output-dir dist/ota-android'
-env -u APP_VARIANT EXPO_NO_DOTENV=1 eas env:exec --environment production 'test -z "$APP_VARIANT" && bunx expo export --platform ios --output-dir dist/ota-ios'
+env -u APP_VARIANT EXPO_NO_DOTENV=1 eas env:exec production 'test -z "$APP_VARIANT" && bunx expo export --platform android --output-dir dist/ota-android'
+env -u APP_VARIANT EXPO_NO_DOTENV=1 eas env:exec production 'test -z "$APP_VARIANT" && bunx expo export --platform ios --output-dir dist/ota-ios'
 ```
 
 These are local bundles, not native builds or delivery tests. A compatible release build on a device is still required. Preview testing uses `preview` channel/environment and must independently match its runtime; a development client's ability to load an update does not prove the beta channel is wired correctly.
