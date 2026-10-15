@@ -23,7 +23,10 @@
     "production": {
       "autoIncrement": true,
       "uploadSourceMaps": true,
-      "bun": "1.3.6"
+      "bun": "1.3.6",
+      "ios": {
+        "image": "macos-tahoe-26.6-xcode-27.0"
+      }
     },
     "gifts-lab": {
       "extends": "preview",
