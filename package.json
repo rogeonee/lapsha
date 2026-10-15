@@ -13,6 +13,8 @@
     "typegen": "expo customize tsconfig.json",
     "typecheck": "tsc --noEmit",
     "check": "bun run lint && bun run format:check && bun run typegen && bun run typecheck",
+    "test": "TZ=UTC bun test",
+    "test:timezones": "sh scripts/test-timezones.sh",
     "eas-build-post-install": "bun run check",
     "android:gifts-lab": "APP_VARIANT=gifts-lab expo prebuild --platform android --no-install && APP_VARIANT=gifts-lab expo run:android --variant release"
   },

@@ -13,8 +13,10 @@ defaults:
 
 jobs:
   quality:
-    name: Lint, format, and typecheck
+    name: Lint, format, typecheck, and test
     steps:
       - uses: eas/checkout
       - uses: eas/install_node_modules
       - run: bun run check
+      - run: bun run test
+      - run: bun run test:timezones

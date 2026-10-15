@@ -38,6 +38,8 @@ Use Bun 1.3.6, matching `packageManager` and EAS. Install the recommended Oxc ed
 
 ```bash
 bun run check         # Lint, format check, Expo type generation, and TypeScript
+bun run test          # Full unit suite in UTC
+bun run test:timezones # Date suites in Edmonton and Tokyo, in separate processes
 bun run lint:fix      # Apply safe lint fixes
 bun run format       # Format supported files, including Tailwind classes
 ```
@@ -54,12 +56,14 @@ TypeScript checks source imports and types separately with Expo's TypeScript ver
 
 ## EAS checks
 
-`.eas/workflows/quality.yml` runs checks for pushes and pull requests to `master` when the repository is connected to EAS. It can also be run manually:
+`.eas/workflows/quality.yml` runs `bun run check`, the full unit suite in UTC, and the date suites in `America/Edmonton` and `Asia/Tokyo` for pushes and pull requests to `master` when the repository is connected to EAS. The focused timezone runs cover date conversion, current-day rollover, and upcoming sections without repeating unrelated database and photo tests. Each run starts a fresh process and a failure stops the quality job. It can also be run manually:
 
 ```bash
 eas workflow:run .eas/workflows/quality.yml
 ```
 
+For automatic GitHub runs, set the EAS GitHub project's base directory to `/` and link an Expo account member's GitHub user with access to this repository. These checks run independently of native app builds.
+
 The workflow installs from `bun.lock` using EAS's frozen-lockfile behavior. Keep optional dependencies enabled: Oxlint and Oxfmt distribute platform binaries through them. The SDK 57 image supplies Node; the tools require Node 20.19+ on the 20.x line or 22.12+.
 
-`eas-build-post-install` runs the same checks for direct `eas build` calls, after prebuild (and CocoaPods on iOS). Future build or update jobs in the quality workflow should use `needs: [quality]` to fail before native builds start. Custom build configurations must call the checks explicitly because EAS does not automatically execute lifecycle hooks for them.
+`eas-build-post-install` runs `bun run check` for direct `eas build` calls, after prebuild (and CocoaPods on iOS). Future build or update jobs in the quality workflow should use `needs: [quality]` to fail before native builds start. Custom build configurations must call the checks explicitly because EAS does not automatically execute lifecycle hooks for them.
