@@ -1,5 +1,6 @@
 import { Observe } from 'expo-observe';
 import * as Application from 'expo-application';
+import { Link } from 'expo-router';
 import {
   Alert,
   Linking,
@@ -63,6 +64,31 @@ export default function SettingsScreen() {
         scrollEventThrottle={16}
       >
         {header.largeTitle}
+        <View>
+          <Text className="mb-2 px-1 text-base font-medium">Help</Text>
+          <View
+            className="overflow-hidden rounded-2xl bg-white"
+            style={{ borderCurve: 'continuous', boxShadow: shadows.whisper }}
+          >
+            <Link href="/(tabs)/(settings)/using-lapsha" asChild>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Using Lapsha"
+                accessibilityHint="Opens tips for people, dates, and gifts. Available offline"
+                className="min-h-14 flex-row items-center gap-3 px-4 py-3 active:bg-black/5"
+              >
+                <View className="flex-1 gap-1">
+                  <Text className="text-base">Using Lapsha</Text>
+                  <Text className="text-sm text-muted-foreground">
+                    Tips for people, dates, and gifts
+                  </Text>
+                </View>
+                <ChevronRightIcon color={palette.warmGrayDeep} />
+              </Pressable>
+            </Link>
+          </View>
+        </View>
+
         <View>
           <Text className="mb-2 px-1 text-base font-medium">About</Text>
           <View

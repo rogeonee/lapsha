@@ -39,6 +39,15 @@ export default function SettingsStackLayout() {
           headerShown: isIOS,
         }}
       />
+      <Stack.Screen
+        name="using-lapsha"
+        options={{
+          title: 'Using Lapsha',
+          headerLargeTitle: false,
+          headerTransparent: false,
+          headerStyle: { backgroundColor: palette.paper },
+        }}
+      />
     </Stack>
   );
 }
