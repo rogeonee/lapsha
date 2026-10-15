@@ -56,6 +56,8 @@ TypeScript checks source imports and types separately with Expo's TypeScript ver
 
 ## EAS checks
 
+For JavaScript/asset releases, see [OTA releases and rollback](docs/releases/ota.md). Store beta builds now use the `beta` build/submit profile (Google Play internal testing and TestFlight); `production` is reserved for the future public-release OTA audience. Existing beta binaries need a one-time native rebuild before they can receive updates.
+
 `.eas/workflows/quality.yml` runs `bun run check`, the full unit suite in UTC, and the date suites in `America/Edmonton` and `Asia/Tokyo` for pushes and pull requests to `master` when the repository is connected to EAS. The focused timezone runs cover date conversion, current-day rollover, and upcoming sections without repeating unrelated database and photo tests. Each run starts a fresh process and a failure stops the quality job. It can also be run manually:
 
 ```bash
