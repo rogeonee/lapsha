@@ -76,6 +76,8 @@ Current patch filenames and versions are defined once in [package.json](package.
 
 - **2026-07-12 — Keep row text outside swipe animation nodes.** Translating the Android row tree under Fabric made text selectable or disappear. Keep content stationary and reveal the delete action. Force-stop after changing gesture implementations; Fast Refresh can retain a stale gesture graph.
 
+- **2026-10-16 — Use native presses inside swipe rows.** On SDK 58, iOS 18 could reveal Delete and fire React Native Pressable's edit action from the same fast swipe, with both legacy and hook-based gestures. Gesture Handler's Pressable cancels the competing tap natively. Keep the hidden Delete button disabled. Explicitly making presses wait for the pan blocked ordinary Android taps; native cancellation passed on both platforms.
+
 - **2026-10-03 — Read shared values directly inside animated style mappers.** Hiding every `.get()` in a captured helper left photo-viewer styles unsubscribed despite gesture state changing. Read values in the mapper and pass them into geometry helpers.
 
 - **2026-10-03 — Android photo-viewer status bars need keyboard-controller coordination.** Its override updates the activity but misses Modal windows. Temporarily disable the controller, wait before showing the Modal, reapply light icons in `onShow`, and restore the prior enabled state on unmount.

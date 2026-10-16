@@ -141,7 +141,7 @@ export default function TabLayout() {
         </NativeTabs.Trigger>
       </NativeTabs>
 
-      {/* Android only; iOS 26+ quick add is the search-role tab above */}
+      {/* Android only; iOS 26+ quick add is the native tab above */}
       <QuickAddFab onPress={openQuickAdd} />
 
       <EntrySheet config={quickAdd} onClose={() => setQuickAdd(null)} />
