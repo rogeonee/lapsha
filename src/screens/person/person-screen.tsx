@@ -4,7 +4,12 @@ import { useHeaderHeight } from 'expo-router/react-navigation';
 import { StatusBar } from 'expo-status-bar';
 import { useState, useSyncExternalStore } from 'react';
 import { Alert, Platform, useWindowDimensions, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  GestureDetector,
+  useNativeGesture,
+  usePanGesture,
+  useSimultaneousGestures,
+} from 'react-native-gesture-handler';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -185,17 +190,17 @@ export function PersonScreen() {
     opacity: hasDisplayedPhoto ? 1 - photoProgress.get() : 1,
   }));
 
-  const nativeScrollGesture = Gesture.Native();
-  const pullGesture = Gesture.Pan()
-    .enabled(photo !== null || openMenu !== null)
-    .activeOffsetY([-8, 8])
-    .failOffsetX([-12, 12])
-    .onBegin(() => {
+  const nativeScrollGesture = useNativeGesture();
+  const pullGesture = usePanGesture({
+    enabled: photo !== null || openMenu !== null,
+    activeOffsetY: [-8, 8],
+    failOffsetX: [-12, 12],
+    onBegin: () => {
       if (openMenu !== null) scheduleOnRN(dismissMenus);
       pullEligible.set(photo !== null && scrollY.get() <= 0.5);
       pullStart.set(photoProgress.get());
-    })
-    .onUpdate((event) => {
+    },
+    onUpdate: (event) => {
       if (!pullEligible.get()) return;
       if (pullStart.get() <= 0.001 && event.translationY < 0) return;
       photoProgress.set(
@@ -204,8 +209,8 @@ export function PersonScreen() {
           Math.max(0, pullStart.get() + event.translationY / photoTravel),
         ),
       );
-    })
-    .onEnd((event) => {
+    },
+    onDeactivate: (event) => {
       if (!pullEligible.get()) return;
 
       const shouldExpand =
@@ -216,8 +221,9 @@ export function PersonScreen() {
           if (finished) scheduleOnRN(setPhotoExpanded, shouldExpand);
         }),
       );
-    });
-  const scrollAndPullGesture = Gesture.Simultaneous(
+    },
+  });
+  const scrollAndPullGesture = useSimultaneousGestures(
     nativeScrollGesture,
     pullGesture,
   );

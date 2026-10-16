@@ -56,13 +56,13 @@ class Directory extends TestPath {
   }
 }
 class File extends TestPath {
-  write(value: string) {
+  writeSync(value: string) {
     writeFileSync(this.uri, value);
   }
   textSync() {
     return readFileSync(this.uri, 'utf8');
   }
-  copy(target: File) {
+  copySync(target: File) {
     if (stagingFails) throw new Error('Photo copy failed');
     copyFileSync(this.uri, target.uri);
   }

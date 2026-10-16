@@ -7,7 +7,7 @@ on:
     branches: [master]
 
 defaults:
-  image: sdk-57
+  image: sdk-58
   tools:
     bun: '1.3.6'
 

@@ -56,7 +56,7 @@ TypeScript checks source imports and types separately with Expo's TypeScript ver
 
 ## EAS checks
 
-For JavaScript/asset releases, see [OTA releases and rollback](docs/releases/ota.md). Store beta builds now use the `beta` build/submit profile (Google Play internal testing and TestFlight); `production` is reserved for the future public-release OTA audience. Existing beta binaries need a one-time native rebuild before they can receive updates.
+App changes pushed to `master` are delivered by [the beta workflow](.eas/workflows/beta.yml): native fingerprint changes build and submit both platforms; compatible changes publish OTA to `beta`. Docs, skills, tests, and deployment-tooling-only changes do not deploy. Read [activation, delivery, and rollback](docs/releases/ota.md) before merging the workflow: it needs the `BETA_EXPO_TOKEN` EAS secret and internal TestFlight automatic distribution, and its first delivery creates the OTA-enabled store binaries.
 
 `.eas/workflows/quality.yml` runs `bun run check`, the full unit suite in UTC, and the date suites in `America/Edmonton` and `Asia/Tokyo` for pushes and pull requests to `master` when the repository is connected to EAS. The focused timezone runs cover date conversion, current-day rollover, and upcoming sections without repeating unrelated database and photo tests. Each run starts a fresh process and a failure stops the quality job. It can also be run manually:
 
@@ -64,8 +64,8 @@ For JavaScript/asset releases, see [OTA releases and rollback](docs/releases/ota
 eas workflow:run .eas/workflows/quality.yml
 ```
 
-For automatic GitHub runs, set the EAS GitHub project's base directory to `/` and link an Expo account member's GitHub user with access to this repository. These checks run independently of native app builds.
+For automatic GitHub runs, set the EAS GitHub project's base directory to `/` and link an Expo account member's GitHub user with access to this repository. The beta workflow repeats these commands as a required dependency of deployment; this standalone workflow also checks maintenance-only changes.
 
-The workflow installs from `bun.lock` using EAS's frozen-lockfile behavior. Keep optional dependencies enabled: Oxlint and Oxfmt distribute platform binaries through them. The SDK 57 image supplies Node; the tools require Node 20.19+ on the 20.x line or 22.12+.
+The workflow installs from `bun.lock` using EAS's frozen-lockfile behavior. Keep optional dependencies enabled: Oxlint and Oxfmt distribute platform binaries through them. The SDK 58 image supplies Node. Expo tooling requires Node 22.13+ on the 22.x line, 24.3+ on the 24.x line, or Node 26+.
 
-`eas-build-post-install` runs `bun run check` for direct `eas build` calls, after prebuild (and CocoaPods on iOS). Future build or update jobs in the quality workflow should use `needs: [quality]` to fail before native builds start. Custom build configurations must call the checks explicitly because EAS does not automatically execute lifecycle hooks for them.
+`eas-build-post-install` runs `bun run check` for direct `eas build` calls, after prebuild (and CocoaPods on iOS). The beta workflow uses `needs: [quality]` before fingerprinting and delivery. Custom build configurations must call the checks explicitly because EAS does not automatically execute lifecycle hooks for them.

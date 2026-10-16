@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": ">= 24.14.0",
+    "version": ">= 25.1.1",
     "appVersionSource": "remote"
   },
   "build": {
@@ -35,6 +35,8 @@
     },
     "beta": {
       "extends": "production",
+      "distribution": "store",
+      "environment": "production",
       "channel": "beta"
     },
     "gifts-lab": {
@@ -50,7 +52,11 @@
   },
   "submit": {
     "beta": {
-      "extends": "production"
+      "extends": "production",
+      "android": {
+        "track": "internal",
+        "releaseStatus": "completed"
+      }
     },
     "production": {
       "ios": {

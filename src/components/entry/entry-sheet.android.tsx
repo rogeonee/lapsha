@@ -14,7 +14,7 @@ import {
   Pressable,
   View,
   useWindowDimensions,
-  type TextInput,
+  type TextInputInstance,
 } from 'react-native';
 import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
@@ -208,7 +208,7 @@ function EntryForm({
   // keyboard changes the scrollable content inset, without serializing
   // the two animations into a full pause. Fires for create mode and for
   // the single-field edit-name mode.
-  const autoFocusRef = useRef<TextInput>(null);
+  const autoFocusRef = useRef<TextInputInstance>(null);
   const focusedOnce = useRef(false);
   const shouldAutoFocus =
     config.kind !== 'gift' &&

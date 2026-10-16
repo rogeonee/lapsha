@@ -1,0 +1,209 @@
+name: Deliver master to beta
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - src/**
+      - assets/**
+      - plugins/**
+      - patches/**
+      - modules/**
+      - app.json
+      - app.config.ts
+      - eas.json
+      - package.json
+      - bun.lock
+      - bunfig.toml
+      - metro.config.js
+      - babel.config.*
+      - tsconfig.json
+      - '!assets/reference/**'
+      - '!assets/android-icon/play-store.png'
+      - '!**/*.md'
+      - '!**/*.test.*'
+      - '!**/__tests__/**'
+  schedule:
+    - cron: '0 15 * * 1'
+  workflow_dispatch:
+    inputs:
+      force_native:
+        type: boolean
+        default: false
+        description: Rebuild both store binaries even if their runtimes match
+
+concurrency:
+  cancel_in_progress: true
+  group: ${{ workflow.filename }}-${{ github.ref }}
+
+defaults:
+  image: sdk-58
+  tools:
+    bun: '1.3.6'
+
+jobs:
+  quality:
+    name: Check the master revision
+    environment: production
+    steps:
+      - uses: eas/checkout
+      - run: bun scripts/beta-delivery.mjs guard
+      - uses: eas/install_node_modules
+      - run: bun run check
+      - run: bun run test
+      - run: bun run test:timezones
+
+  fingerprint:
+    needs: [quality]
+    type: fingerprint
+    environment: production
+
+  get_android_build:
+    needs: [fingerprint]
+    type: get-build
+    params:
+      platform: android
+      profile: beta
+      distribution: store
+      channel: beta
+      app_identifier: com.rogeonee.lapsha
+      fingerprint_hash: ${{ needs.fingerprint.outputs.android_fingerprint_hash }}
+      wait_for_in_progress: true
+
+  get_ios_build:
+    needs: [fingerprint]
+    type: get-build
+    params:
+      platform: ios
+      profile: beta
+      distribution: store
+      channel: beta
+      app_identifier: com.rogeonee.lapsha
+      fingerprint_hash: ${{ needs.fingerprint.outputs.ios_fingerprint_hash }}
+      wait_for_in_progress: true
+
+  plan:
+    needs: [fingerprint, get_android_build, get_ios_build]
+    environment: production
+    env:
+      BETA_WORKFLOW_ID: ${{ workflow.id }}
+      BETA_EVENT: ${{ github.event_name }}
+      BETA_FORCE_NATIVE: ${{ inputs.force_native || false }}
+      BETA_FINGERPRINTS: '{"android":"${{ needs.fingerprint.outputs.android_fingerprint_hash }}","ios":"${{ needs.fingerprint.outputs.ios_fingerprint_hash }}"}'
+      BETA_ANDROID_BUILD_ID: ${{ needs.get_android_build.outputs.build_id }}
+      BETA_IOS_BUILD_ID: ${{ needs.get_ios_build.outputs.build_id }}
+    outputs:
+      mode: ${{ steps.plan.outputs.mode }}
+      state: ${{ steps.plan.outputs.state }}
+      fingerprints: ${{ steps.plan.outputs.fingerprints }}
+      android_build_id: ${{ steps.plan.outputs.android_build_id }}
+      ios_build_id: ${{ steps.plan.outputs.ios_build_id }}
+      android_submit: ${{ steps.plan.outputs.android_submit }}
+      ios_submit: ${{ steps.plan.outputs.ios_submit }}
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - id: plan
+        run: bun scripts/beta-delivery.mjs plan
+
+  build_android:
+    needs: [plan]
+    if: ${{ needs.plan.outputs.mode == 'native' && !needs.plan.outputs.android_build_id }}
+    type: build
+    params:
+      platform: android
+      profile: beta
+    hooks:
+      before_install_node_modules:
+        - run: bun scripts/beta-delivery.mjs guard
+
+  build_ios:
+    needs: [plan]
+    if: ${{ needs.plan.outputs.mode == 'native' && !needs.plan.outputs.ios_build_id }}
+    type: build
+    params:
+      platform: ios
+      profile: beta
+    hooks:
+      before_install_node_modules:
+        - run: bun scripts/beta-delivery.mjs guard
+
+  select_android:
+    after: [plan, build_android]
+    if: ${{ after.plan.status == 'success' && after.plan.outputs.mode == 'native' && (after.build_android.status == 'success' || after.plan.outputs.android_build_id) }}
+    env:
+      BETA_BUILD_ID: ${{ after.build_android.outputs.build_id || after.plan.outputs.android_build_id }}
+    outputs:
+      build_id: ${{ steps.select.outputs.build_id }}
+    steps:
+      - id: select
+        run: set-output build_id "$BETA_BUILD_ID"
+
+  select_ios:
+    after: [plan, build_ios]
+    if: ${{ after.plan.status == 'success' && after.plan.outputs.mode == 'native' && (after.build_ios.status == 'success' || after.plan.outputs.ios_build_id) }}
+    env:
+      BETA_BUILD_ID: ${{ after.build_ios.outputs.build_id || after.plan.outputs.ios_build_id }}
+    outputs:
+      build_id: ${{ steps.select.outputs.build_id }}
+    steps:
+      - id: select
+        run: set-output build_id "$BETA_BUILD_ID"
+
+  submit_android:
+    needs: [plan, select_android]
+    if: ${{ needs.plan.outputs.android_submit == 'true' }}
+    type: submit
+    params:
+      build_id: ${{ needs.select_android.outputs.build_id }}
+      profile: beta
+    hooks:
+      before_submit:
+        - run: bun scripts/beta-delivery.mjs guard
+
+  testflight_ios:
+    needs: [plan, select_ios]
+    if: ${{ needs.plan.outputs.ios_submit == 'true' }}
+    type: testflight
+    params:
+      build_id: ${{ needs.select_ios.outputs.build_id }}
+      profile: beta
+      changelog: Master beta build
+    hooks:
+      after_checkout:
+        - run: bun scripts/beta-delivery.mjs guard
+
+  publish_update:
+    needs: [record_delivery]
+    if: ${{ needs.record_delivery.outputs.publish == 'true' }}
+    environment: production
+    outputs:
+      updates: ${{ steps.publish.outputs.updates }}
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - id: publish
+        run: bun scripts/beta-delivery.mjs publish
+
+  record_delivery:
+    after: [plan, select_android, select_ios, submit_android, testflight_ios]
+    if: ${{ after.plan.status == 'success' }}
+    environment: production
+    env:
+      BETA_STATE: ${{ after.plan.outputs.state }}
+      BETA_FINGERPRINTS: ${{ after.plan.outputs.fingerprints }}
+      BETA_MODE: ${{ after.plan.outputs.mode }}
+      BETA_ANDROID_REQUIRED: ${{ after.plan.outputs.android_submit }}
+      BETA_IOS_REQUIRED: ${{ after.plan.outputs.ios_submit }}
+      BETA_ANDROID_BUILD_ID: ${{ after.select_android.outputs.build_id }}
+      BETA_IOS_BUILD_ID: ${{ after.select_ios.outputs.build_id }}
+      BETA_ANDROID_SUBMITTED: ${{ after.submit_android.status == 'success' }}
+      BETA_IOS_SUBMITTED: ${{ after.testflight_ios.status == 'success' }}
+    outputs:
+      state: ${{ steps.record.outputs.state }}
+      publish: ${{ steps.record.outputs.publish }}
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - id: record
+        run: bun scripts/beta-delivery.mjs record

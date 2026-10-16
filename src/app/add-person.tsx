@@ -51,7 +51,7 @@ function AddPersonScreen() {
           variant="done"
           tintColor={palette.broth}
           disabled={!form.isValid || form.isSubmitting}
-          onPress={form.save}
+          onPress={() => form.save()}
         >
           Add
         </Stack.Toolbar.Button>
@@ -95,7 +95,7 @@ function AddPersonScreen() {
                 autoCapitalize="words"
                 autoComplete="name"
                 returnKeyType="done"
-                onSubmitEditing={form.save}
+                onSubmitEditing={() => form.save()}
                 accessibilityLabel="Person's name"
                 className="border-0 bg-transparent px-4"
               />

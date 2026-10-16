@@ -6,7 +6,12 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {
+  GestureDetector,
+  Pressable as GesturePressable,
+  usePanGesture,
+} from 'react-native-gesture-handler';
+import { withUniwind } from 'uniwind';
 import { useReducedMotion } from 'react-native-reanimated';
 import { BIRTHDAY_LABEL } from '~/api/dates/dates-service';
 import { PlusCircleIcon, TrashIcon } from '~/components/ui/icons';
@@ -16,6 +21,9 @@ import { palette } from '~/lib/theme';
 import { cn } from '~/lib/utils';
 import type { Date as PersonDate } from '~/types/db';
 import type { CalendarDay } from '~/lib/current-day';
+
+// Keep row taps in the native gesture graph so swipes cannot also edit.
+const SwipePressable = withUniwind(GesturePressable);
 
 const DELETE_ACTION_WIDTH = 80;
 const SWIPE_OPEN_THRESHOLD = 32;
@@ -76,11 +84,11 @@ export function SwipeableRow({
     if (isOpen) close();
     else action();
   };
-  const pan = Gesture.Pan()
-    .activeOffsetX([-8, 8])
-    .failOffsetY([-10, 10])
-    .runOnJS(true)
-    .onEnd((event) => {
+  const pan = usePanGesture({
+    activeOffsetX: [-8, 8],
+    failOffsetY: [-10, 10],
+    runOnJS: true,
+    onDeactivate: (event) => {
       const nextWidth = Math.min(
         DELETE_ACTION_WIDTH,
         Math.max(0, (isOpen ? DELETE_ACTION_WIDTH : 0) - event.translationX),
@@ -91,7 +99,8 @@ export function SwipeableRow({
           nextWidth >= SWIPE_OPEN_THRESHOLD);
       animateTo(shouldOpen ? DELETE_ACTION_WIDTH : 0);
       setIsOpen(shouldOpen);
-    });
+    },
+  });
 
   return (
     <GestureDetector gesture={pan}>
@@ -106,7 +115,7 @@ export function SwipeableRow({
             flexDirection: accessoryPosition === 'bottom' ? 'column' : 'row',
           }}
         >
-          <Pressable
+          <SwipePressable
             onPress={() => press(onPress)}
             onPressIn={() => setIsPressed(true)}
             onPressOut={() => setIsPressed(false)}
@@ -124,9 +133,9 @@ export function SwipeableRow({
             <View pointerEvents="none" aria-hidden>
               {children}
             </View>
-          </Pressable>
+          </SwipePressable>
           {accessory && (
-            <Pressable
+            <SwipePressable
               accessibilityRole="button"
               accessibilityLabel={accessory.accessibilityLabel}
               onPress={() => press(accessory.onPress)}
@@ -136,7 +145,7 @@ export function SwipeableRow({
               style={accessory.style}
             >
               {accessory.content}
-            </Pressable>
+            </SwipePressable>
           )}
         </View>
         {isPressed && (
@@ -152,7 +161,8 @@ export function SwipeableRow({
           className="absolute top-0 right-0 bottom-0 overflow-hidden"
           style={{ width: revealWidth, zIndex: 2 }}
         >
-          <Pressable
+          <SwipePressable
+            disabled={!isOpen}
             focusable={isOpen}
             onPress={() => {
               close();
@@ -164,7 +174,7 @@ export function SwipeableRow({
             accessibilityLabel={`Delete ${deleteLabel}`}
           >
             <TrashIcon color="white" />
-          </Pressable>
+          </SwipePressable>
         </View>
       </View>
     </GestureDetector>

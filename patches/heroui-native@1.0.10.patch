@@ -1,0 +1,53 @@
+diff --git a/lib/typescript/src/components/input/input.d.ts b/lib/typescript/src/components/input/input.d.ts
+index ec45861e97fa9013c7acd859d37f750696d26c1e..312d42b35f7d62f3cc721a10aee2478982a5fff9 100644
+--- a/lib/typescript/src/components/input/input.d.ts
++++ b/lib/typescript/src/components/input/input.d.ts
+@@ -18,7 +18,7 @@ import type { InputProps } from './input.types.js';
+  *
+  * @see Full documentation: https://heroui.com/docs/native/components/input
+  */
+-declare const Input: import("react").ForwardRefExoticComponent<InputProps & import("react").RefAttributes<import("react-native").TextInput>> & {
++declare const Input: import("react").ForwardRefExoticComponent<InputProps & import("react").RefAttributes<import("react-native").TextInputInstance>> & {
+     /** @optional Theme-aware background container behind the text input */
+     Background: import("react").ForwardRefExoticComponent<import("react-native").ViewProps & {
+         className?: string;
+diff --git a/lib/typescript/src/components/input-group/input-group.d.ts b/lib/typescript/src/components/input-group/input-group.d.ts
+index 38a1fecbba28fffd75ecc9c29615b62f64597475..3931f8e459d0305b59518b6e4da0137019b61cc5 100644
+--- a/lib/typescript/src/components/input-group/input-group.d.ts
++++ b/lib/typescript/src/components/input-group/input-group.d.ts
+@@ -30,7 +30,7 @@ declare const CompoundInputGroup: import("react").ForwardRefExoticComponent<Inpu
+     /** Absolutely positioned View for trailing suffix content */
+     Suffix: import("react").ForwardRefExoticComponent<InputGroupSuffixProps & import("react").RefAttributes<View>>;
+     /** Pass-through to Input — accepts all Input props directly */
+-    Input: import("react").ForwardRefExoticComponent<InputGroupInputProps & import("react").RefAttributes<import("react-native").TextInput>>;
++    Input: import("react").ForwardRefExoticComponent<InputGroupInputProps & import("react").RefAttributes<import("react-native").TextInputInstance>>;
+ };
+ export default CompoundInputGroup;
+ //# sourceMappingURL=input-group.d.ts.map
+\ No newline at end of file
+diff --git a/lib/typescript/src/components/search-field/search-field.d.ts b/lib/typescript/src/components/search-field/search-field.d.ts
+index caf1389bfb12bfe274be5dac904b1e52011cf9d7..5fcd074505bc924b2f0da92fbf9254566f9e0b3d 100644
+--- a/lib/typescript/src/components/search-field/search-field.d.ts
++++ b/lib/typescript/src/components/search-field/search-field.d.ts
+@@ -33,7 +33,7 @@ declare const CompoundSearchField: import("react").ForwardRefExoticComponent<Sea
+     /** Magnifying glass search icon */
+     SearchIcon: import("react").ForwardRefExoticComponent<SearchFieldSearchIconProps & import("react").RefAttributes<View>>;
+     /** Text input with search-specific defaults */
+-    Input: import("react").ForwardRefExoticComponent<SearchFieldInputProps & import("react").RefAttributes<import("react-native").TextInput>>;
++    Input: import("react").ForwardRefExoticComponent<SearchFieldInputProps & import("react").RefAttributes<import("react-native").TextInputInstance>>;
+     /** Small clear button to dismiss search text */
+     ClearButton: import("react").ForwardRefExoticComponent<SearchFieldClearButtonProps & import("react").RefAttributes<View>>;
+ };
+diff --git a/lib/typescript/src/components/text-area/text-area.d.ts b/lib/typescript/src/components/text-area/text-area.d.ts
+index 9c525b3c8b386b5087eed2cb2d46d699834c25c4..89b57e5b5c9e99ffe558ccb2d27da4cdae17c73f 100644
+--- a/lib/typescript/src/components/text-area/text-area.d.ts
++++ b/lib/typescript/src/components/text-area/text-area.d.ts
+@@ -6,6 +6,6 @@ import type { TextAreaProps } from './text-area.types.js';
+  *
+  * @see Full documentation: https://heroui.com/docs/native/components/text-area
+  */
+-declare const TextArea: import("react").ForwardRefExoticComponent<TextAreaProps & import("react").RefAttributes<import("react-native").TextInput>>;
++declare const TextArea: import("react").ForwardRefExoticComponent<TextAreaProps & import("react").RefAttributes<import("react-native").TextInputInstance>>;
+ export default TextArea;
+ //# sourceMappingURL=text-area.d.ts.map
+\ No newline at end of file

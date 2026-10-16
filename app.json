@@ -61,22 +61,6 @@
         {
           "addGeneratedScheme": false
         }
-      ],
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Lapsha uses the camera to save gift ideas.",
-          "recordAudioAndroid": false,
-          "microphonePermission": false
-        }
-      ],
-      [
-        "expo-build-properties",
-        {
-          "ios": {
-            "enableSceneSupport": true
-          }
-        }
       ]
     ],
     "experiments": {
