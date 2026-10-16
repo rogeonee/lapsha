@@ -32,8 +32,8 @@ export function stageGiftPhoto(
   photos.create({ idempotent: true, intermediates: true });
   const id = randomUUID();
   const pending = { id, personId, photo: `${id}.jpg` };
-  new File(photos, `${id}.json`).write(JSON.stringify(pending));
-  new File(uri).copy(new File(photos, pending.photo));
+  new File(photos, `${id}.json`).writeSync(JSON.stringify(pending));
+  new File(uri).copySync(new File(photos, pending.photo));
   if (librarySelection.exists) librarySelection.delete();
   return pending;
 }
@@ -73,7 +73,7 @@ async function selectGiftPhoto(
   source: 'library' | 'camera',
 ): Promise<string | null> {
   photos.create({ idempotent: true, intermediates: true });
-  librarySelection.write('null');
+  librarySelection.writeSync('null');
   const options: ImagePicker.ImagePickerOptions = {
     mediaTypes: ['images'],
     allowsEditing: false,
@@ -93,7 +93,7 @@ async function selectGiftPhoto(
     librarySelection.delete();
     return null;
   }
-  librarySelection.write(
+  librarySelection.writeSync(
     JSON.stringify(libraryAssetSchema.parse(result.assets[0])),
   );
   return prepareGiftPhoto(result.assets[0]);
@@ -147,7 +147,7 @@ export async function pendingGiftLibraryPhoto(): Promise<string | null> {
   const result = await ImagePicker.getPendingResultAsync();
   if (result && 'assets' in result && !result.canceled && result.assets?.[0]) {
     const asset = libraryAssetSchema.parse(result.assets[0]);
-    librarySelection.write(JSON.stringify(asset));
+    librarySelection.writeSync(JSON.stringify(asset));
     return prepareGiftPhoto(asset);
   }
   librarySelection.delete();

@@ -1,0 +1,42 @@
+diff --git a/build/Asset.js b/build/Asset.js
+index afd8222156f5b69e509a987fefc4467db35a2e6e..66f770995205dd0cdd4f5e88c54eb8e43aa4e957 100644
+--- a/build/Asset.js
++++ b/build/Asset.js
+@@ -1,5 +1,5 @@
+ import { Platform } from 'expo-modules-core';
+-import { AssetRegistry } from 'react-native';
++import * as AssetRegistry from 'react-native/asset-registry';
+ import { selectAssetSource } from './AssetSources';
+ import * as AssetUris from './AssetUris';
+ import { downloadAsync } from './ExpoAsset';
+diff --git a/build/resolveAssetSource.js b/build/resolveAssetSource.js
+index bb23ac03b3a28e229dd5ef0092a45e0159adcb77..7cfc7fb6ed63e32b00ed0cbd9c13445358439959 100644
+--- a/build/resolveAssetSource.js
++++ b/build/resolveAssetSource.js
+@@ -1,4 +1,4 @@
+-import { AssetRegistry } from 'react-native';
++import * as AssetRegistry from 'react-native/asset-registry';
+ import AssetSourceResolver from './AssetSourceResolver';
+ let _customSourceTransformer;
+ export function setCustomSourceTransformer(transformer) {
+diff --git a/src/Asset.ts b/src/Asset.ts
+index 44b3c8995e1d147a71342162d9ba9939fef05046..ce2b922885660ace1eaf2922155be0ab2f668ced 100644
+--- a/src/Asset.ts
++++ b/src/Asset.ts
+@@ -1,5 +1,5 @@
+ import { Platform } from 'expo-modules-core';
+-import { AssetRegistry } from 'react-native';
++import * as AssetRegistry from 'react-native/asset-registry';
+ 
+ import { type AssetMetadata, selectAssetSource } from './AssetSources';
+ import * as AssetUris from './AssetUris';
+diff --git a/src/resolveAssetSource.ts b/src/resolveAssetSource.ts
+index 960e205dc9316fbcf86789bbf4f1dfd67bb7dcea..607d98c3979db4a249b6cb71d02403b79fdd7a40 100644
+--- a/src/resolveAssetSource.ts
++++ b/src/resolveAssetSource.ts
+@@ -1,4 +1,4 @@
+-import { AssetRegistry } from 'react-native';
++import * as AssetRegistry from 'react-native/asset-registry';
+ 
+ import type { ResolvedAssetSource } from './AssetSourceResolver';
+ import AssetSourceResolver from './AssetSourceResolver';

@@ -136,7 +136,7 @@ export default function PeopleScreen() {
               <View className={people.length > 0 ? 'pb-5' : undefined}>
                 {header.largeTitle}
               </View>
-            ) : null
+            ) : undefined
           }
           onScroll={header.onScroll}
           scrollEventThrottle={16}

@@ -12,7 +12,7 @@ import {
   Pressable,
   View,
   useWindowDimensions,
-  type TextInput,
+  type TextInputInstance,
 } from 'react-native';
 import {
   KeyboardController,
@@ -170,7 +170,7 @@ function SheetForm({
   // Autofocus the name field shortly after the open animation starts:
   // the head start lets the sheet establish its spring before the
   // keyboard changes the scrollable content inset (see entry-sheet.android)
-  const nameInputRef = useRef<TextInput>(null);
+  const nameInputRef = useRef<TextInputInstance>(null);
   const focusedOnce = useRef(false);
   useEffect(() => {
     if (canFocus && !focusedOnce.current) {
@@ -273,7 +273,7 @@ function SheetForm({
 
       <Button
         isDisabled={!form.isValid || form.isSubmitting}
-        onPress={form.save}
+        onPress={() => form.save()}
       >
         Add person
       </Button>

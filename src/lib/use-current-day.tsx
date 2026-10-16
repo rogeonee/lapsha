@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import { AppState } from 'react-native';
-import { useIsFocused } from 'expo-router/react-navigation';
+import { useIsFocused } from 'expo-router';
 import {
   createCurrentDayMonitor,
   getCurrentDaySnapshot,

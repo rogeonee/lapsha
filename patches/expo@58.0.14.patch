@@ -1,23 +1,23 @@
 diff --git a/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt b/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt
+index 4735fed564ef9651c4d7e80aee82961ac161d0e6..63bb8395d7db32811ded82909e35bbce52fbf58d 100644
 --- a/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt
 +++ b/android/src/main/java/expo/modules/ReactActivityDelegateWrapper.kt
-@@ -30,6 +30,7 @@
+@@ -30,6 +30,7 @@ import kotlinx.coroutines.CoroutineScope
  import kotlinx.coroutines.CoroutineStart
  import kotlinx.coroutines.Dispatchers
  import kotlinx.coroutines.launch
 +import kotlinx.coroutines.runInterruptible
+ import kotlinx.coroutines.suspendCancellableCoroutine
  import kotlinx.coroutines.sync.Mutex
  import kotlinx.coroutines.sync.withLock
- import java.lang.reflect.Field
-@@ -253,9 +254,22 @@
+@@ -255,9 +256,22 @@ class ReactActivityDelegateWrapper(
       *
       * TODO (@bbarthec): fix it upstream?
       */
 -    launchLifecycleScopeWithLock {
--      loadAppReady.await()
--      delegate.onActivityResult(requestCode, resultCode, data)
 +    activity.lifecycleScope.launch {
-+      loadAppReady.await()
+       loadAppReady.await()
+-      delegate.onActivityResult(requestCode, resultCode, data)
 +      val host = reactHost
 +      if (host != null) {
 +        // A published ReactContext can still be initializing its native modules.

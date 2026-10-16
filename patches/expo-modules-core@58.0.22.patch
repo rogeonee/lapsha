@@ -1,8 +1,8 @@
 diff --git a/android/src/main/java/expo/modules/kotlin/activityresult/AppContextActivityResultRegistry.kt b/android/src/main/java/expo/modules/kotlin/activityresult/AppContextActivityResultRegistry.kt
-index a5b971ef8fdc06d064d68349a6ac7230b517a783..22f80eb9c20fc65fad42be9d7e38f4d261cb6ccf 100644
+index 4955e93521fabce3d4ef3719d2bc2962faaeb213..bc66d696c657530394a1fcf9db9f716c5016324e 100644
 --- a/android/src/main/java/expo/modules/kotlin/activityresult/AppContextActivityResultRegistry.kt
 +++ b/android/src/main/java/expo/modules/kotlin/activityresult/AppContextActivityResultRegistry.kt
-@@ -66,6 +66,7 @@ class AppContextActivityResultRegistry(
+@@ -67,6 +67,7 @@ class AppContextActivityResultRegistry(
    private val currentActivityProvider: CurrentActivityProvider
  ) {
    private var random: Random = Random()
@@ -10,7 +10,7 @@ index a5b971ef8fdc06d064d68349a6ac7230b517a783..22f80eb9c20fc65fad42be9d7e38f4d2
  
    private val requestCodeToKey: MutableMap<Int, String> = HashMap()
    private val keyToRequestCode: MutableMap<String, Int> = HashMap()
-@@ -166,6 +167,7 @@ class AppContextActivityResultRegistry(
+@@ -167,6 +168,7 @@ class AppContextActivityResultRegistry(
      contract: AppContextActivityResultContract<I, O>,
      fallbackCallback: AppContextActivityResultFallbackCallback<I, O>
    ): AppContextActivityResultLauncher<I, O> {
@@ -18,7 +18,7 @@ index a5b971ef8fdc06d064d68349a6ac7230b517a783..22f80eb9c20fc65fad42be9d7e38f4d2
      val lifecycle = lifecycleOwner.lifecycle
  
      keyToCallbacksAndContract[key] = CallbacksAndContract(fallbackCallback, null, contract)
-@@ -204,6 +206,8 @@ class AppContextActivityResultRegistry(
+@@ -205,6 +207,8 @@ class AppContextActivityResultRegistry(
                // 2.2 launching Activity killed during the process, proceed with fallback callback
                callbacksAndContract.fallbackCallback.onActivityResult(input, result)
              }
@@ -27,7 +27,7 @@ index a5b971ef8fdc06d064d68349a6ac7230b517a783..22f80eb9c20fc65fad42be9d7e38f4d2
            }
          }
  
-@@ -229,9 +233,12 @@ class AppContextActivityResultRegistry(
+@@ -231,9 +235,12 @@ class AppContextActivityResultRegistry(
          launchedKeys.add(key)
  
          try {
@@ -40,7 +40,7 @@ index a5b971ef8fdc06d064d68349a6ac7230b517a783..22f80eb9c20fc65fad42be9d7e38f4d2
            throw e
          }
        }
-@@ -257,6 +264,8 @@ class AppContextActivityResultRegistry(
+@@ -292,6 +299,8 @@ class AppContextActivityResultRegistry(
     * Possibly restore saved results from before the registry was destroyed.
     */
    fun restoreInstanceState(context: Context) {
@@ -49,7 +49,7 @@ index a5b971ef8fdc06d064d68349a6ac7230b517a783..22f80eb9c20fc65fad42be9d7e38f4d2
      val dataPersistor = DataPersistor(context)
  
      dataPersistor.retrieveStringArrayList("launchedKeys")?.let { launchedKeys = it }
-@@ -298,9 +307,11 @@ class AppContextActivityResultRegistry(
+@@ -333,9 +342,11 @@ class AppContextActivityResultRegistry(
     */
    @MainThread
    fun dispatchResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {

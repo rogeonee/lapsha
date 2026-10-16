@@ -1,5 +1,5 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { NativeTabs } from 'expo-router/native-tabs';
 import { useState } from 'react';
 import { DynamicColorIOS, Platform } from 'react-native';
 import EntrySheet, {
@@ -8,9 +8,10 @@ import EntrySheet, {
 import QuickAddFab from '~/components/quick-add/quick-add-fab';
 import { palette } from '~/lib/theme';
 
-// iOS 26 detaches the search-role item. On iOS 27+, our react-native-screens
-// patch maps the disabled search-role action to an explicitly prominent UITab
-// (build with Xcode 27). Older iOS hides the action; Android keeps the FAB.
+// iOS 26 detaches the search-role item; iOS 27 uses explicit tab prominence.
+// Older iOS hides the action; Android keeps the FAB.
+const PROMINENT_QUICK_ADD =
+  Platform.OS === 'ios' && Number.parseInt(String(Platform.Version), 10) >= 27;
 const DETACHED_QUICK_ADD =
   Platform.OS === 'ios' && Number.parseInt(String(Platform.Version), 10) >= 26;
 
@@ -44,6 +45,11 @@ export default function TabLayout() {
     <>
       <NativeTabs
         minimizeBehavior="onScrollDown"
+        unstable_nativeProps={
+          PROMINENT_QUICK_ADD
+            ? { ios: { prominentScreenKey: 'quick-add' } }
+            : undefined
+        }
         tintColor={
           Platform.OS === 'ios'
             ? DynamicColorIOS({
@@ -119,12 +125,13 @@ export default function TabLayout() {
 
         {/* Quick-add as a detached native button (iOS 26+). `disabled`
             keeps the current tab active, while Expo Router re-emits the
-            prevented native selection as `tabPress`. The route still needs a
-            trigger so Expo Router does not surface it automatically. */}
+            prevented native selection as `tabPress`. */}
         <NativeTabs.Trigger
           name="quick-add"
           accessibilityLabel="Quick add"
-          role={DETACHED_QUICK_ADD ? 'search' : undefined}
+          role={
+            DETACHED_QUICK_ADD && !PROMINENT_QUICK_ADD ? 'search' : undefined
+          }
           hidden={!DETACHED_QUICK_ADD}
           disabled={DETACHED_QUICK_ADD}
           listeners={{ tabPress: openQuickAdd }}
