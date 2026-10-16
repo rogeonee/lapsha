@@ -10,8 +10,8 @@ import {
   Stack,
   ThemeProvider,
   type ErrorBoundaryProps,
+  type Theme,
 } from 'expo-router';
-import type { Theme } from 'expo-router/react-navigation';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';

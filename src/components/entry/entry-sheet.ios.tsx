@@ -437,7 +437,7 @@ function PersonPickerRow({
 }) {
   if (!expanded) {
     return (
-      <HStack modifiers={personRowModifiers}>
+      <HStack spacing={0} modifiers={personRowModifiers}>
         <Text>Person</Text>
         <Spacer />
         <Picker

@@ -3,9 +3,12 @@ import { StatusBar } from 'expo-status-bar';
 import { useLayoutEffect, useState } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import {
-  Gesture,
   GestureDetector,
   GestureHandlerRootView,
+  usePanGesture,
+  usePinchGesture,
+  useSimultaneousGestures,
+  useTapGesture,
 } from 'react-native-gesture-handler';
 import { useKeyboardController } from 'react-native-keyboard-controller';
 import Animated, {
@@ -92,15 +95,15 @@ export function GiftPhotoViewer({
           ),
     );
   };
-  const pinch = Gesture.Pinch()
-    .onStart((event) => {
+  const pinch = usePinchGesture({
+    onActivate: (event) => {
       pinching.set(true);
       panNeedsRebase.set(true);
       cancelAnimation(transform);
       pinchStart.set(currentTransform());
       pinchOrigin.set({ x: event.focalX, y: event.focalY });
-    })
-    .onUpdate((event) => {
+    },
+    onUpdate: (event) => {
       if (!imageSize.get().width) return;
       transform.set(
         photoTransformAtPoint(
@@ -112,21 +115,22 @@ export function GiftPhotoViewer({
           pinchStart.get().scale * event.scale,
         ),
       );
-    })
-    .onFinalize(() => {
+    },
+    onFinalize: () => {
       pinching.set(false);
       panNeedsRebase.set(true);
-    });
-  const pan = Gesture.Pan()
-    .averageTouches(true)
-    .minDistance(10)
-    .onStart((event) => {
+    },
+  });
+  const pan = usePanGesture({
+    averageTouches: true,
+    minDistance: 10,
+    onActivate: (event) => {
       cancelAnimation(transform);
       panStart.set(currentTransform());
       panOrigin.set({ x: event.translationX, y: event.translationY });
       panNeedsRebase.set(pinching.get() || event.numberOfPointers !== 1);
-    })
-    .onUpdate((event) => {
+    },
+    onUpdate: (event) => {
       if (pinching.get() || event.numberOfPointers !== 1) {
         panNeedsRebase.set(true);
         return;
@@ -145,14 +149,17 @@ export function GiftPhotoViewer({
           y: start.y + event.translationY - origin.y,
         }),
       );
-    });
-  const doubleTap = Gesture.Tap()
-    .numberOfTaps(2)
-    .maxDelay(280)
-    .maxDistance(10)
-    .onEnd((event, success) => {
-      if (success) zoomAt({ x: event.x, y: event.y });
-    });
+    },
+  });
+  const doubleTap = useTapGesture({
+    numberOfTaps: 2,
+    maxDelay: 280,
+    maxDistance: 10,
+    onDeactivate: (event) => {
+      if (!event.canceled) zoomAt({ x: event.x, y: event.y });
+    },
+  });
+  const photoGesture = useSimultaneousGestures(pinch, pan, doubleTap);
   const style = useAnimatedStyle(() => {
     // Reanimated subscribes to shared values captured directly by this mapper.
     const current = boundPhotoTransform(
@@ -223,7 +230,7 @@ export function GiftPhotoViewer({
             <CloseIcon size={24} color={palette.cardWhite} />
           </Pressable>
         </View>
-        <GestureDetector gesture={Gesture.Simultaneous(pinch, pan, doubleTap)}>
+        <GestureDetector gesture={photoGesture}>
           <View
             collapsable={false}
             className="flex-1 overflow-hidden"

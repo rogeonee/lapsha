@@ -1,7 +1,6 @@
 import { DatePickerDialog, Host } from '@expo/ui/jetpack-compose';
 import { Image } from 'expo-image';
-import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { usePreventRemove } from 'expo-router/react-navigation';
+import { useLocalSearchParams, usePreventRemove, useRouter } from 'expo-router';
 import { Button } from 'heroui-native/button';
 import { Dialog } from 'heroui-native/dialog';
 import { Input } from 'heroui-native/input';
@@ -92,7 +91,6 @@ function GiftEditor({
   captured: boolean;
 }) {
   const router = useRouter();
-  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const form = useGiftEditor(initial, personId);
   const version = useTableVersion(['persons']);
@@ -132,13 +130,8 @@ function GiftEditor({
       else router.replace('/');
     }
   }, [form.done, router]);
-  // Keep native header props stable through the pop; toggling prevention while
-  // saving crashes Screens on Android. Decide whether to prompt in the callback.
-  usePreventRemove(true, ({ data }) => {
-    if (!form.dirty || form.done) {
-      navigation.dispatch(data.action);
-      return;
-    }
+  const [discarding, setDiscarding] = useState(false);
+  usePreventRemove(form.dirty && !form.done && !discarding, ({ repeat }) => {
     confirm({
       title: 'Discard unsaved details?',
       description: form.photo
@@ -146,7 +139,10 @@ function GiftEditor({
         : 'These changes haven’t been saved.',
       cancelLabel: 'Keep editing',
       actionLabel: 'Discard',
-      onConfirm: () => navigation.dispatch(data.action),
+      onConfirm: () => {
+        setDiscarding(true);
+        repeat();
+      },
     });
   });
 

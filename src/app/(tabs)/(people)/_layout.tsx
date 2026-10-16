@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { palette } from '~/lib/theme';
 
 export const unstable_settings = {
-  initialRouteName: 'people',
+  anchor: 'people',
 };
 
 const isIOS = process.env.EXPO_OS === 'ios';
