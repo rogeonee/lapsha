@@ -136,6 +136,8 @@ jobs:
     outputs:
       build_id: ${{ steps.select.outputs.build_id }}
     steps:
+      - uses: eas/checkout
+      - run: bun scripts/beta-delivery.mjs guard
       - id: select
         run: set-output build_id "$BETA_BUILD_ID"
 
@@ -147,6 +149,8 @@ jobs:
     outputs:
       build_id: ${{ steps.select.outputs.build_id }}
     steps:
+      - uses: eas/checkout
+      - run: bun scripts/beta-delivery.mjs guard
       - id: select
         run: set-output build_id "$BETA_BUILD_ID"
 
@@ -157,9 +161,6 @@ jobs:
     params:
       build_id: ${{ needs.select_android.outputs.build_id }}
       profile: beta
-    hooks:
-      before_submit:
-        - run: bun scripts/beta-delivery.mjs guard
 
   testflight_ios:
     needs: [plan, select_ios]
@@ -169,9 +170,6 @@ jobs:
       build_id: ${{ needs.select_ios.outputs.build_id }}
       profile: beta
       changelog: Master beta build
-    hooks:
-      after_checkout:
-        - run: bun scripts/beta-delivery.mjs guard
 
   publish_update:
     needs: [record_delivery]
