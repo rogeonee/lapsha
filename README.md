@@ -56,7 +56,7 @@ TypeScript checks source imports and types separately with Expo's TypeScript ver
 
 ## EAS checks
 
-App changes pushed to `master` are delivered by [the beta workflow](.eas/workflows/beta.yml): native fingerprint changes build and submit both platforms; compatible changes publish OTA to `beta`. Docs, skills, tests, and deployment-tooling-only changes do not deploy. Read [activation, delivery, and rollback](docs/releases/ota.md) before merging the workflow: it needs the `BETA_EXPO_TOKEN` EAS secret and internal TestFlight automatic distribution, and its first delivery creates the OTA-enabled store binaries.
+App changes pushed to `master` are automatically delivered to Play internal testing and internal TestFlight through native builds or OTA. See [beta setup, retries, and rollback](docs/releases/ota.md).
 
 `.eas/workflows/quality.yml` runs `bun run check`, the full unit suite in UTC, and the date suites in `America/Edmonton` and `Asia/Tokyo` for pushes and pull requests to `master` when the repository is connected to EAS. The focused timezone runs cover date conversion, current-day rollover, and upcoming sections without repeating unrelated database and photo tests. Each run starts a fresh process and a failure stops the quality job. It can also be run manually:
 

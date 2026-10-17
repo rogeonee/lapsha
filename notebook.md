@@ -6,8 +6,6 @@ Date entries, keep the reason and revisit condition, and prune obsolete guidance
 
 ## Accepted decisions
 
-- **2026-10-16 — Master delivers to the beta audience.** The EAS beta workflow uses the `beta` build/submit profile and channel for Play internal/completed and internal TestFlight. Keep the production channel separate for future public builds. Fingerprint compatibility and successful distribution checkpoints decide native builds versus OTA; native build completion alone is insufficient. Activation and rollback are documented in [the delivery runbook](docs/releases/ota.md).
-
 - **2026-10-11 — Keep read-error recovery simple.** [PR #40](https://github.com/rogeonee/lapsha/pull/40)'s section errors and Try again behavior are accepted. Retry rereads SQLite; it does not repair data. Defer richer failed-retry feedback and guided recovery until a real report establishes the need.
 
 - **2026-10-11 — Photos follow platform backup rules.** iOS retains default photo eligibility. Android cloud backups omit person and gift photos to protect the quota; supported direct transfers include them on Android 9+, while older versions omit them from both modes. Both SQLite stores live in `files/SQLite/`, not the `database` backup domain; SecureStore was removed because its shared-preferences-only rules excluded them, so reassess backup rules before re-adding it. Android 9–11 includes replace defaults: add future persistent `files/` directories explicitly in [the backup plugin](plugins/with-android-backup.js). Rule changes require native regeneration and a rebuild. Restore/transfer verification remains deferred to the friends beta; device verification was waived for this policy revision.
