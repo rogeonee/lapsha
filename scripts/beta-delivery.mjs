@@ -44,6 +44,7 @@ function easJson(...args) {
 }
 
 function output(name, value) {
+  if (value === '') return;
   run('set-output', [
     name,
     typeof value === 'string' ? value : JSON.stringify(value),
