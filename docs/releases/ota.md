@@ -24,7 +24,7 @@ eas workflow:run .eas/workflows/beta.yml --ref master --input force_native=true
 
 Use `force_native` if a store accepted an upload before its delivery checkpoint was saved, or the planner cannot find a recent checkpoint. Check the store first to avoid repeatedly submitting an accepted binary.
 
-A Monday 15:00 UTC check renews binaries when the iOS build reaches 75 days, before TestFlight's 90-day expiry. Otherwise it does nothing. EAS schedules require a paid plan; use the manual fresh-build command before expiry if scheduling is unavailable.
+An app delivery renews binaries when the iOS build reaches 75 days, before TestFlight's 90-day expiry. If there are no app changes, use the manual fresh-build command before expiry. There is no scheduled renewal because EAS schedules require a paid plan and prevent this workflow from starting on the Free plan.
 
 ## Rollback
 

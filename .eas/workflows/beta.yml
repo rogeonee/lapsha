@@ -23,8 +23,6 @@ on:
       - '!**/*.md'
       - '!**/*.test.*'
       - '!**/__tests__/**'
-  schedule:
-    - cron: '0 15 * * 1'
   workflow_dispatch:
     inputs:
       force_native:
