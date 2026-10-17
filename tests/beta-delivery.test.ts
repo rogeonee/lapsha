@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'bun:test';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,6 +39,86 @@ function plan(overrides = {}) {
 }
 
 describe('master-to-beta delivery', () => {
+  test('the first planner run exports submission flags without empty build outputs', () => {
+    const root = mkdtempSync(join(tmpdir(), 'lapsha-beta-plan-'));
+    const origin = join(root, 'origin');
+    const checkout = join(root, 'checkout');
+    const bin = join(root, 'bin');
+    const outputs = join(root, 'outputs.jsonl');
+    const script = fileURLToPath(
+      new URL('../scripts/beta-delivery.mjs', import.meta.url),
+    );
+    const git = (...args) =>
+      execFileSync('git', args, { cwd: root, stdio: 'ignore' });
+    try {
+      git('init', '-b', 'master', origin);
+      git(
+        '-C',
+        origin,
+        '-c',
+        'user.name=Beta test',
+        '-c',
+        'user.email=beta@example.invalid',
+        'commit',
+        '--allow-empty',
+        '-m',
+        'Fixture',
+      );
+      git('clone', origin, checkout);
+      mkdirSync(bin);
+      writeFileSync(
+        join(bin, 'bunx'),
+        `#!/usr/bin/env bun
+if (!process.argv.includes('workflow:runs')) process.exit(1);
+console.log('[]');
+`,
+        { mode: 0o755 },
+      );
+      writeFileSync(
+        join(bin, 'set-output'),
+        `#!/usr/bin/env bun
+import { appendFileSync } from 'node:fs';
+const [name, value] = process.argv.slice(2);
+if (!name || !value) process.exit(2);
+appendFileSync(process.env.BETA_TEST_OUTPUTS, JSON.stringify([name, value]) + '\\n');
+`,
+        { mode: 0o755 },
+      );
+      const result = spawnSync('bun', [script, 'plan'], {
+        cwd: checkout,
+        env: {
+          ...process.env,
+          PATH: `${bin}:${process.env.PATH}`,
+          APP_VARIANT: '',
+          BETA_EXPO_TOKEN: 'fixture',
+          BETA_WORKFLOW_ID: 'fixture',
+          BETA_FINGERPRINTS: JSON.stringify(fingerprints),
+          BETA_ANDROID_BUILD_ID: '',
+          BETA_IOS_BUILD_ID: '',
+          BETA_FORCE_NATIVE: 'false',
+          BETA_TEST_OUTPUTS: outputs,
+        },
+        encoding: 'utf8',
+      });
+      expect(result.status, result.stderr).toBe(0);
+      const exported = Object.fromEntries(
+        readFileSync(outputs, 'utf8')
+          .trim()
+          .split('\n')
+          .map((line) => JSON.parse(line)),
+      );
+      expect(exported).toMatchObject({
+        mode: 'native',
+        android_submit: 'true',
+        ios_submit: 'true',
+      });
+      expect(exported).not.toHaveProperty('android_build_id');
+      expect(exported).not.toHaveProperty('ios_build_id');
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   test('publication waits for both required submissions, including partial retries', () => {
     expect(
       readyToPublish('native', { android: true, ios: true }, { android: {} }),
