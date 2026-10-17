@@ -3,6 +3,12 @@
     "name": "Lapsha",
     "slug": "lapsha",
     "version": "0.1.0",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/22e93af4-b730-40d9-8d51-cb0b60f2603e"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "lapsha",
