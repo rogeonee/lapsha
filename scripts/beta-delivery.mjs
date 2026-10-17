@@ -307,7 +307,7 @@ function saveDelivery() {
 
 function publishUpdate() {
   assertCurrentMaster();
-  assertBetaChannel(easJson('channel:list', '--limit', '100').currentPage);
+  assertBetaChannel(easJson('channel:list', '--limit', '25').currentPage);
   const sha = run('git', ['rev-parse', 'HEAD']);
   const result = easJson(
     'update',
