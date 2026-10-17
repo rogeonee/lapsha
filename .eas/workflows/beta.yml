@@ -160,14 +160,13 @@ jobs:
       build_id: ${{ needs.select_android.outputs.build_id }}
       profile: beta
 
-  testflight_ios:
+  submit_ios:
     needs: [plan, select_ios]
     if: ${{ needs.plan.outputs.ios_submit == 'true' }}
-    type: testflight
+    type: submit
     params:
       build_id: ${{ needs.select_ios.outputs.build_id }}
       profile: beta
-      changelog: Master beta build
 
   publish_update:
     needs: [record_delivery]
@@ -182,7 +181,7 @@ jobs:
         run: bun scripts/beta-delivery.mjs publish
 
   record_delivery:
-    after: [plan, select_android, select_ios, submit_android, testflight_ios]
+    after: [plan, select_android, select_ios, submit_android, submit_ios]
     if: ${{ after.plan.status == 'success' }}
     environment: production
     env:
@@ -194,7 +193,7 @@ jobs:
       BETA_ANDROID_BUILD_ID: ${{ after.select_android.outputs.build_id || '' }}
       BETA_IOS_BUILD_ID: ${{ after.select_ios.outputs.build_id || '' }}
       BETA_ANDROID_SUBMITTED: ${{ toJSON(after.submit_android.status == 'success') }}
-      BETA_IOS_SUBMITTED: ${{ toJSON(after.testflight_ios.status == 'success') }}
+      BETA_IOS_SUBMITTED: ${{ toJSON(after.submit_ios.status == 'success') }}
     outputs:
       state: ${{ steps.record.outputs.state }}
       publish: ${{ steps.record.outputs.publish }}
