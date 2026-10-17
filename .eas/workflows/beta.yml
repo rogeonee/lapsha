@@ -86,10 +86,10 @@ jobs:
     env:
       BETA_WORKFLOW_ID: ${{ workflow.id }}
       BETA_EVENT: ${{ github.event_name }}
-      BETA_FORCE_NATIVE: ${{ inputs.force_native || false }}
+      BETA_FORCE_NATIVE: ${{ toJSON(inputs.force_native || false) }}
       BETA_FINGERPRINTS: '{"android":"${{ needs.fingerprint.outputs.android_fingerprint_hash }}","ios":"${{ needs.fingerprint.outputs.ios_fingerprint_hash }}"}'
-      BETA_ANDROID_BUILD_ID: ${{ needs.get_android_build.outputs.build_id }}
-      BETA_IOS_BUILD_ID: ${{ needs.get_ios_build.outputs.build_id }}
+      BETA_ANDROID_BUILD_ID: ${{ needs.get_android_build.outputs.build_id || '' }}
+      BETA_IOS_BUILD_ID: ${{ needs.get_ios_build.outputs.build_id || '' }}
     outputs:
       mode: ${{ steps.plan.outputs.mode }}
       state: ${{ steps.plan.outputs.state }}
@@ -191,10 +191,10 @@ jobs:
       BETA_MODE: ${{ after.plan.outputs.mode }}
       BETA_ANDROID_REQUIRED: ${{ after.plan.outputs.android_submit }}
       BETA_IOS_REQUIRED: ${{ after.plan.outputs.ios_submit }}
-      BETA_ANDROID_BUILD_ID: ${{ after.select_android.outputs.build_id }}
-      BETA_IOS_BUILD_ID: ${{ after.select_ios.outputs.build_id }}
-      BETA_ANDROID_SUBMITTED: ${{ after.submit_android.status == 'success' }}
-      BETA_IOS_SUBMITTED: ${{ after.testflight_ios.status == 'success' }}
+      BETA_ANDROID_BUILD_ID: ${{ after.select_android.outputs.build_id || '' }}
+      BETA_IOS_BUILD_ID: ${{ after.select_ios.outputs.build_id || '' }}
+      BETA_ANDROID_SUBMITTED: ${{ toJSON(after.submit_android.status == 'success') }}
+      BETA_IOS_SUBMITTED: ${{ toJSON(after.testflight_ios.status == 'success') }}
     outputs:
       state: ${{ steps.record.outputs.state }}
       publish: ${{ steps.record.outputs.publish }}
