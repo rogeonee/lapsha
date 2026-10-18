@@ -21,6 +21,9 @@ expo-env.d.ts
 ios/
 android/
 
+# Native E2E reports, traces and logs
+.e2e/
+
 # Metro
 .metro-health-check*
 
