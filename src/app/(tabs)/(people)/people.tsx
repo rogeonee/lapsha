@@ -31,14 +31,13 @@ function PersonSeparator() {
 }
 
 function PersonListItem({ person }: { person: Person }) {
-  return (
-    <Link
-      href={{
-        pathname: '/(tabs)/(people)/person/[id]',
-        params: { id: person.id },
-      }}
-      asChild
-    >
+  const router = useRouter();
+  const href = {
+    pathname: '/(tabs)/(people)/person/[id]',
+    params: { id: person.id },
+  } as const;
+  const link = (
+    <Link href={href} asChild>
       <Link.Trigger>
         <Pressable>
           <PersonCard person={person} />
@@ -46,6 +45,19 @@ function PersonListItem({ person }: { person: Person }) {
       </Link.Trigger>
       <Link.Preview />
     </Link>
+  );
+  if (!isIOS) return link;
+  // Link.Preview removes its trigger from the iOS accessibility tree
+  // (expo/expo#46875), so VoiceOver reaches the row through this wrapper.
+  return (
+    <View
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={person.name}
+      onAccessibilityTap={() => router.navigate(href)}
+    >
+      {link}
+    </View>
   );
 }
 
