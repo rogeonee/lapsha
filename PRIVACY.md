@@ -1,6 +1,6 @@
 # Privacy policy
 
-Last updated: October 11, 2026
+Last updated: October 17, 2026
 
 This policy explains how Lapsha, a personal notebook about the people who matter to you, handles information. It covers the mobile app and this website.
 
@@ -8,7 +8,7 @@ This policy explains how Lapsha, a personal notebook about the people who matter
 
 Names, facts, important dates, gift ideas, photos you choose or take, and app preferences are stored locally on your device. Lapsha uses this information to display and organize your personal notebook. The app does not require an account and does not send your saved notebook to the developer or a developer-operated server.
 
-Lapsha does not include advertising or advertising trackers. We do not sell your personal information or use your notebook for advertising. The app uses Expo Observe for performance monitoring and error diagnostics, as described below.
+Lapsha does not include advertising or advertising trackers. We do not sell your personal information or use your notebook for advertising. The app uses Expo’s EAS Update service for app updates and Expo Observe for performance monitoring and error diagnostics, as described below.
 
 ## Photos
 
@@ -27,6 +27,10 @@ On Android, eligible records and preferences can be included in cloud backups. P
 Your notebook remains in local app storage until it is removed. Deleting an individual person, fact, date, or gift idea removes it from view, but the record may remain in the local database. Use Settings → Clear All Data to remove saved notebook records, app preferences, and Lapsha’s stored photo copies. If cleanup reports a failure, follow the app’s instructions to retry.
 
 Deleting data in Lapsha does not delete existing system backups or original photos in your photo library. Manage those separately through your device or backup provider. Restoring an older backup may restore information that you previously deleted. Lapsha does not promise forensic erasure of storage or backups.
+
+## App updates
+
+Lapsha uses Expo’s EAS Update service to automatically check for and download app improvements and bug fixes. Update requests send technical information such as your operating system, Lapsha’s project and update configuration, and a randomly generated installation token. Expo and its delivery providers may also process your IP address and request metadata to deliver and secure updates. Your saved notebook contents and photos are not included in update requests. For more information, see Expo’s privacy policy at https://expo.dev/privacy.
 
 ## App diagnostics
 
