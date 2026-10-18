@@ -50,6 +50,8 @@ Current patch filenames and versions are defined once in [package.json](package.
 
 ## Sheets and navigation
 
+- **2026-10-17 — Keep the accessible wrapper around iOS People rows.** `Link.Preview` removes its trigger and the whole row from the iOS accessibility tree ([expo/expo#46875](https://github.com/expo/expo/issues/46875)), so VoiceOver and the E2E suite could not reach anyone in the list. An accessible View labelled with the name, activating through `router.navigate`, restores the row; touch still goes through the Link. Remove the wrapper once Router fixes the issue; the E2E suite fails if rows disappear again.
+
 - **2026-07-02 — HeroUI sheets need a mounted, closed starting state.** Opening on mount can silently fail. The route-mounted add-person sheet requests open after layout and retries `snapToIndex(0)` until animation starts. Ignore an initial close only before requesting open; every subsequent close must pop the transparent route, with a root fallback for deep links, or an invisible overlay can trap input. Android's native `formSheet` previously rendered full-screen, which is why this route uses HeroUI.
 
 - **2026-10-04 — Replace closed entry-sheet content before gift navigation.** On Pixel, waiting only for `onChange(-1)` let the sheet resurface after an external camera activity. Retain the form through dismissal, clear/remount its closed content, then navigate after the replacement's layout with a generation guard. Keep the sheet root mounted for HeroUI's required false-to-true transition.
@@ -83,3 +85,7 @@ Current patch filenames and versions are defined once in [package.json](package.
 - **2026-06-10 — Preserve both light-mode locks and HeroUI color overrides.** Cold starts need both `Appearance.setColorScheme('light')` and `Uniwind.setTheme('light')`. Overrides follow HeroUI's CSS import; set both Tailwind `--color-accent` and raw `--accent` / `--accent-foreground` or pressed states stay blue. Keep the rem polyfill at 14; `group-*` and `peer-*` require Uniwind Pro.
 
 - **2026-07-15 — Pin Android tab appearance and use vector icon pairs.** Unset appearance slots fall back to wallpaper colors. MaterialCommunityIcons provides the outline/filled pairs missing from bundled Material Symbols. Shared `expo-image` `sf:` sources fail silently on Android; use the shared icon components. Compose controls, including date dialogs, must be direct children of Host.
+
+## Testing
+
+- **2026-10-17 — Native E2E traps.** iOS 27 reports tab bar items as `tab` or as `button` inside the `tablist` between snapshots; scope to the tablist and match the label. SwiftUI segmented pickers are `tab`s. Swipe rows expose nested duplicate nodes; `getByLabel` resolves the innermost one. Metro under `CI=1` does not watch files, so restart it after edits when exploring by hand. Another agent-device session (such as the T3 Device panel) leases the simulator and stops `e2e run` at boot; close it first. With a second simulator booted, iOS 27 runs mistyped text and lost fields; boot only the target simulator.

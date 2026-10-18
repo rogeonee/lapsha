@@ -26,7 +26,10 @@ bun run android                  # Build/run Android
 bun run lint                     # Oxlint
 bun run check                    # Lint, format, Expo types, and TypeScript
 bun run format                   # Oxfmt
+bun run test:e2e                 # iOS native E2E (README: Tests)
 ```
+
+Cover new regressions with native E2E journeys or integration tests; keep a unit test until a replacement covers the same failure cases.
 
 Use Bun and `bun.lock`. Use `bun run check` before committing; do not run `expo lint`, which recreates the old ESLint setup. Run lint after code changes; follow the UI skill for relevant device verification.
 

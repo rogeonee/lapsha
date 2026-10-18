@@ -38,7 +38,7 @@ Use Bun 1.3.6, matching `packageManager` and EAS. Install the recommended Oxc ed
 
 ```bash
 bun run check         # Lint, format check, Expo type generation, and TypeScript
-bun run test          # Full unit suite in UTC
+bun run test          # Full unit and integration suite in UTC
 bun run test:timezones # Date suites in Edmonton and Tokyo, in separate processes
 bun run lint:fix      # Apply safe lint fixes
 bun run format       # Format supported files, including Tailwind classes
@@ -53,6 +53,27 @@ Oxlint retains the supported Expo preset rules and adds its correctness checks. 
 TypeScript checks source imports and types separately with Expo's TypeScript version. Oxlint does not implement `import/no-unresolved`, and its compiler uses fixed options rather than exposing the old `config` / `gating` rules. The former `react/no-deprecated` rule is not retained; type-aware linting would be needed for Oxlint's replacement. When upgrading Expo, review changes to its lint preset as well as the dependency versions.
 
 `bun run check` generates `expo-env.d.ts` and Router types before typechecking so it also works in a fresh checkout. These declarations stay untracked. Type-aware Oxlint is not enabled; `tsc --noEmit` remains the type checker.
+
+## Tests
+
+Cover new regressions with native E2E journeys or integration tests. Keep a unit test until a replacement covers the same failure cases; Android, photos, and camera have no E2E coverage yet.
+
+`tests/integration` runs services and migrations against SQLite files on disk, including a writer killed after commit and a failed migration retried after reopening. `bun run test` includes it; `bun run test:integration` runs it alone.
+
+### Native E2E (iOS)
+
+`e2e/` holds [e2e](https://e2e.tester.army/docs) tests that drive the iOS simulator through accessibility labels and check committed rows by reading the app's SQLite file. They run against the `APP_VARIANT=e2e` development build (`com.rogeonee.lapsha.e2e`), so each test can erase its data without touching the development app.
+
+```bash
+bun run ios:e2e   # Prebuild, build, and install the e2e variant (after native changes)
+bun run test:e2e  # Start Metro on port 8092 and run e2e/**/*.e2e.ts
+```
+
+- Both commands target the iPhone 18 Pro simulator; set `E2E_IOS_DEVICE` to another existing simulator's name or UDID. Tests expect English, portrait, and default text size.
+- `ios/` keeps the e2e identity afterwards. Run `bunx expo prebuild --platform ios` before the next `bun run ios`.
+- Port 8092 must be free. Boot only the target simulator and close other agent-device sessions on it first.
+- Reports, traces, screenshots, and the Metro log go to `.e2e/`. A failed test's `trace.md` lists every step and the accessibility tree at failure.
+- Requires Node 22.22.3+ or 24.8+. The script disables the tool's telemetry. Tests use no AI model.
 
 ## EAS checks
 
